@@ -8,7 +8,7 @@ on:
 
 jobs:
   lint:
-    runs-on: thecluster-runners
+    runs-on: unmango-runners
     strategy:
       matrix:
         chart:

@@ -6,7 +6,7 @@ on:
 
 jobs:
   release:
-    runs-on: thecluster-runners
+    runs-on: unmango-runners
     permissions:
       contents: write
     steps:
