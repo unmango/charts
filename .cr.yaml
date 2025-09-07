@@ -2,3 +2,5 @@ owner: unmango
 git-repo: charts
 pages-branch: main
 pages-index-path: index.yaml
+generate-release-notes: true
+pr: true
