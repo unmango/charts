@@ -8,7 +8,7 @@ on:
 
 jobs:
   lint:
-    runs-on: unmango-runners
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         chart:
