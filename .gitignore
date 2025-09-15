@@ -1,0 +1,6 @@
+bin/
+charts/*/charts/
+.cr-release-packages/
+.envrc
+.vscode/*
+!.vscode/extensions.json
