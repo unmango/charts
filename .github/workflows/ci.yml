@@ -22,7 +22,7 @@ jobs:
       # renovate: datasource=pypi depName=yamale
       YAMALE_VERSION: 6.0.0
       # renovate: datasource=pypi depName=yamllint
-      YAMLLINT_VERSION: 1.27.1
+      YAMLLINT_VERSION: 1.37.1
     steps:
       - uses: actions/checkout@v5
         with:
