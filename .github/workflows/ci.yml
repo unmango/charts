@@ -42,4 +42,5 @@ jobs:
           yamale_version: ${{ env.YAMALE_VERSION }}
           yamllint_version: ${{ env.YAMLLINT_VERSION }}
 
-      - run: CT=ct make lint-${{ matrix.chart }}
+      - run: helm dep update charts/${{ matrix.chart }}
+      - run: ct lint charts/${{ matrix.chart }}
