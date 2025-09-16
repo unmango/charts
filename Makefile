@@ -10,7 +10,7 @@ HELM ?= bin/helm
 CHART_RELEASER_VERSION := 1.8.1
 
 # renovate: datasource=github-releases depName=helm/helm
-HELM_VERSION := 3.18.6
+HELM_VERSION := 3.19.0
 
 lint: lint-deemix lint-filebrowser
 lint-%: charts/%/Chart.yaml | $(HELM)
