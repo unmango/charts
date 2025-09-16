@@ -3,7 +3,6 @@
   "extends": [
     "customManagers:githubActionsVersions",
     "customManagers:helmChartYamlAppVersions",
-    "customManagers:makefileVersions",
     "github>UnstoppableMango/renovate-config"
   ]
 }
