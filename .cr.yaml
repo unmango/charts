@@ -1,6 +1,6 @@
 owner: unmango
 git-repo: charts
-pages-branch: main
+pages-branch: gh-pages
 pages-index-path: index.yaml
 generate-release-notes: true
 skip-existing: true
