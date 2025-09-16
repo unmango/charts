@@ -45,4 +45,5 @@ jobs:
           yamllint_version: ${{ env.YAMLLINT_VERSION }}
 
       - run: helm dep update charts/${{ matrix.chart }}
+      - run: helm lint charts/${{ matrix.chart }}
       - run: ct lint charts/${{ matrix.chart }}
