@@ -17,9 +17,13 @@ CHART_TESTING_VERSION := 3.13.0
 HELM_VERSION := 3.19.0
 
 lint: lint-deemix lint-filebrowser
-lint-%: charts/%/Chart.yaml | $(HELM)
+lint-%: charts/%/Chart.yaml charts/%/Chart.lock | $(HELM)
 	$(HELM) lint $(dir $<)
 	$(CT) lint $(dir $<)
+
+charts/%/Chart.lock: charts/%/Chart.yaml | $(HELM)
+	$(HELM) dep update $(dir $<)
+	@touch $@
 
 index.yaml: | $(CR)
 	$(CR) index --config .cr.yaml
