@@ -14,9 +14,17 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
+      - run: make bin/helm && echo "$GITHUB_WORKSPACE/bin" >> "$GITHUB_PATH"
       - run: helm repo add oauth2-proxy https://oauth2-proxy.github.io/manifests
 
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@v1.7.0
         with:
           config: .cr.yaml
+        env:
+          CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
