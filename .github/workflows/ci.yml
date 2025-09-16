@@ -42,4 +42,4 @@ jobs:
           yamale_version: ${{ env.YAMALE_VERSION }}
           yamllint_version: ${{ env.YAMLLINT_VERSION }}
 
-      - run: make lint-${{ matrix.chart }}
+      - run: CT=ct make lint-${{ matrix.chart }}
