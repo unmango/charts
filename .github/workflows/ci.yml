@@ -25,6 +25,8 @@ jobs:
       YAMLLINT_VERSION: 1.27.1
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
       # Required by yamale and yamllint
       - uses: actions/setup-python@v5.3.0
