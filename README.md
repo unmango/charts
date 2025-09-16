@@ -2,10 +2,12 @@
 
 Random Helm charts you may or may not find useful.
 
+Very much a work in progress, use at your own risk.
+
 ## Charts
 
-- [Deemix](./charts/deemix/)
-- [Filebrowser](./charts/filebrowser/)
+- [Deemix](https://gitlab.com/Bockiii/deemix-docker) - [Chart](./charts/deemix/)
+- [Filebrowser](https://github.com/filebrowser/filebrowser) - [Chart](./charts/filebrowser/)
 
 ## Remarks
 
