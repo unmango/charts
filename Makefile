@@ -4,10 +4,14 @@ GOARCH != go env GOARCH
 GOOS   != go env GOOS
 
 CR   ?= bin/cr
+CT   ?= bin/ct
 HELM ?= bin/helm
 
 # renovate: datasource=github-releases depName=helm/chart-releaser
 CHART_RELEASER_VERSION := 1.8.1
+
+# renovate: datasource=github-releases depName=helm/chart-testing
+CHART_TESTING_VERSION := 3.13.0
 
 # renovate: datasource=github-releases depName=helm/helm
 HELM_VERSION := 3.19.0
@@ -15,6 +19,7 @@ HELM_VERSION := 3.19.0
 lint: lint-deemix lint-filebrowser
 lint-%: charts/%/Chart.yaml | $(HELM)
 	$(HELM) lint $(dir $<)
+	$(CT) lint $(dir $<)
 
 index.yaml: | $(CR)
 	$(CR) index --config .cr.yaml
@@ -25,6 +30,10 @@ index.yaml: | $(CR)
 bin/cr:
 	curl -L https://github.com/helm/chart-releaser/releases/download/v${CHART_RELEASER_VERSION}/chart-releaser_${CHART_RELEASER_VERSION}_${GOOS}_${GOARCH}.tar.gz \
 	| tar -zxvO cr > $@ && chmod +x $@
+
+bin/ct:
+	curl -L https://github.com/helm/chart-testing/releases/download/v${CHART_TESTING_VERSION}/chart-testing_${CHART_TESTING_VERSION}_${GOOS}_${GOARCH}.tar.gz \
+	| tar -zxvO ct > $@ && chmod +x $@
 
 bin/helm:
 	curl -L https://get.helm.sh/helm-v${HELM_VERSION}-${GOOS}-${GOARCH}.tar.gz \
