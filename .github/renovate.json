@@ -1,6 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
+    "customManagers:githubActionsVersions",
     "customManagers:helmChartYamlAppVersions",
     "customManagers:makefileVersions",
     "github>UnstoppableMango/renovate-config"

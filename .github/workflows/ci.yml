@@ -14,7 +14,36 @@ jobs:
         chart:
           - deemix
           - filebrowser
+    env:
+      # renovate: datasource=github-releases depName=helm/chart-testing
+      CHART_TESTING_VERSION: 3.13.0
+      # renovate: datasource=github-releases depName=helm/helm
+      HELM_VERSION: 3.18.6
+      # renovate: datasource=pypi depName=yamale
+      YAMALE_VERSION: 4.0.4
+      # renovate: datasource=pypi depName=yamllint
+      YAMLLINT_VERSION: 1.27.1
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
 
-      - run: make lint-${{ matrix.chart }}
+      # Required by yamale and yamllint
+      - uses: actions/setup-python@v5.3.0
+        with:
+          python-version: '3.x'
+
+      - uses: azure/setup-helm@v4.2.0
+        with:
+          version: v${{ env.HELM_VERSION }}
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.7.0
+        with:
+          version: ${{ env.CHART_TESTING_VERSION }}
+          yamale_version: ${{ env.YAMALE_VERSION }}
+          yamllint_version: ${{ env.YAMLLINT_VERSION }}
+
+      - run: helm dep update charts/${{ matrix.chart }}
+      - run: helm lint charts/${{ matrix.chart }}
+      - run: ct lint charts/${{ matrix.chart }}
