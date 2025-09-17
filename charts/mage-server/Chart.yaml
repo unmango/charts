@@ -1,0 +1,14 @@
+apiVersion: v2
+name: mage-server
+description: A Helm chart for deploying an xmage server
+type: application
+version: 0.1.0
+appVersion: "1.4.57V2r0"
+sources:
+- https://github.com/magefree/mage
+- https://github.com/UnstoppableMango/xmage-docker
+- https://github.com/unmango/charts
+kubeVersion: '>= 1.25'
+maintainers:
+- name: UnstoppableMango
+  url: https://github.com/UnstoppableMango

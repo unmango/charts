@@ -24,6 +24,7 @@ jobs:
         chart:
           - deemix
           - filebrowser
+          - mage-server
     steps:
       - uses: actions/checkout@v5
         with:
