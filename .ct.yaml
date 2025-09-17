@@ -1,3 +1,6 @@
+remote: origin
+target-branch: main
 chart-dirs:
   - charts/
-target-branch: main
+chart-repos:
+  - oauth2proxy=https://oauth2-proxy.github.io/manifests
