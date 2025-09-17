@@ -4,6 +4,18 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  # renovate: datasource=github-releases depName=helm/chart-testing
+  CHART_TESTING_VERSION: 3.13.0
+  # renovate: datasource=github-releases depName=helm/helm
+  HELM_VERSION: 3.19.0
+  # renovate: datasource=github-releases depName=kubernetes-sigs/kind
+  KIND_VERSION: 0.29.0
+  # renovate: datasource=pypi depName=yamale
+  YAMALE_VERSION: 6.0.0
+  # renovate: datasource=pypi depName=yamllint
+  YAMLLINT_VERSION: 1.37.1
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -12,15 +24,6 @@ jobs:
         chart:
           - deemix
           - filebrowser
-    env:
-      # renovate: datasource=github-releases depName=helm/chart-testing
-      CHART_TESTING_VERSION: 3.13.0
-      # renovate: datasource=github-releases depName=helm/helm
-      HELM_VERSION: 3.19.0
-      # renovate: datasource=pypi depName=yamale
-      YAMALE_VERSION: 6.0.0
-      # renovate: datasource=pypi depName=yamllint
-      YAMLLINT_VERSION: 1.37.1
     steps:
       - uses: actions/checkout@v5
         with:
@@ -45,3 +48,45 @@ jobs:
       - run: helm dep update charts/${{ matrix.chart }}
       - run: helm lint charts/${{ matrix.chart }}
       - run: ct lint charts/${{ matrix.chart }}
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      # Required by yamale and yamllint
+      - uses: actions/setup-python@v6.0.0
+        with:
+          python-version: '3.x'
+
+      - uses: azure/setup-helm@v4.3.1
+        with:
+          version: v${{ env.HELM_VERSION }}
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.7.0
+        with:
+          version: ${{ env.CHART_TESTING_VERSION }}
+          yamale_version: ${{ env.YAMALE_VERSION }}
+          yamllint_version: ${{ env.YAMLLINT_VERSION }}
+
+      - id: list-changed
+        run: |
+          changed=$(ct list-changed --config .ct.yaml)
+          if [[ -n "$changed" ]]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - if: steps.list-changed.outputs.changed == 'true'
+        uses: helm/kind-action@v1
+        with:
+          version: v${{ env.KIND_VERSION }}
+          config: kind-cluster.yml
+
+      - if: steps.list-changed.outputs.changed == 'true'
+        run: |
+          ct install --config .ct.yaml \
+          --github-groups --all \
+          --excluded-charts filebrowser
