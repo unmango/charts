@@ -17,7 +17,7 @@ CHART_TESTING_VERSION := 3.13.0
 HELM_VERSION := 3.19.0
 
 lint: lint-deemix lint-filebrowser
-lint-%: charts/%/Chart.yaml charts/%/Chart.lock .ct.yaml | $(HELM)
+lint-%: charts/%/Chart.yaml charts/%/Chart.lock .ct.yaml | $(HELM) $(CT)
 	$(HELM) lint $(dir $<)
 	$(CT) lint --config .ct.yaml $(dir $<)
 
@@ -28,7 +28,7 @@ charts/%/Chart.lock: charts/%/Chart.yaml | $(HELM)
 index.yaml: | $(CR)
 	$(CR) index --config .cr.yaml
 
-.cr-release-packages/%-0.1.0.tgz: charts/%/Chart.yaml .cr.yaml
+.cr-release-packages/%-0.1.0.tgz: charts/%/Chart.yaml .cr.yaml | $(CR)
 	$(CR) package charts/$* --config .cr.yaml
 
 bin/cr:
