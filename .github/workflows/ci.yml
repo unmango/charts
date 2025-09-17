@@ -10,7 +10,7 @@ env:
   # renovate: datasource=github-releases depName=helm/helm
   HELM_VERSION: 3.19.0
   # renovate: datasource=github-releases depName=kubernetes-sigs/kind
-  KIND_VERSION: 0.29.0
+  KIND_VERSION: 0.30.0
   # renovate: datasource=pypi depName=yamale
   YAMALE_VERSION: 6.0.0
   # renovate: datasource=pypi depName=yamllint
