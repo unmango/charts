@@ -35,6 +35,9 @@ package: .cr-release-packages/deemix-0.1.0.tgz .cr-release-packages/filebrowser-
 	--kubeconfig $@ \
 	--config $<
 
+charts/%/Chart.yaml:
+	$(HELM) create charts/$*
+
 charts/%/Chart.lock: charts/%/Chart.yaml | $(HELM)
 	$(HELM) dep update $(dir $<)
 	@touch $@
