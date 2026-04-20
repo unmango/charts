@@ -11,7 +11,7 @@ KIND ?= go tool kind
 export KUBECONFIG := ${CURDIR}/.kube/config
 
 # renovate: datasource=github-releases depName=helm/helm
-HELM_VERSION := 3.19.0
+HELM_VERSION := 3.20.2
 
 lint: lint-deemix lint-filebrowser
 lint-%: charts/%/Chart.yaml charts/%/Chart.lock .ct.yaml | $(HELM)
