@@ -34,7 +34,7 @@ jobs:
         with:
           python-version: '3.x'
 
-      - uses: azure/setup-helm@v4.3.1
+      - uses: azure/setup-helm@v5
         with:
           version: v${{ env.HELM_VERSION }}
 
@@ -61,7 +61,7 @@ jobs:
         with:
           python-version: '3.x'
 
-      - uses: azure/setup-helm@v4.3.1
+      - uses: azure/setup-helm@v5
         with:
           version: v${{ env.HELM_VERSION }}
 
