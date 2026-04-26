@@ -6,3 +6,4 @@ charts/*/charts/
 !.vscode/extensions.json
 tmpcharts-*/
 .kube/
+.envrc

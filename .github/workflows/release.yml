@@ -2,7 +2,11 @@ name: Release
 
 on:
   push:
-    branches: [main]
+    branches: [ main ]
+
+env:
+  # renovate: datasource=github-releases depName=helm/helm
+  HELM_VERSION: 4.1.4
 
 jobs:
   release:
@@ -19,7 +23,10 @@ jobs:
           git config user.name "$GITHUB_ACTOR"
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
-      - run: make bin/helm && echo "$GITHUB_WORKSPACE/bin" >> "$GITHUB_PATH"
+      - uses: azure/setup-helm@v5
+        with:
+          version: v${{ env.HELM_VERSION }}
+
       - run: helm repo add oauth2-proxy https://oauth2-proxy.github.io/manifests
 
       - name: Run chart-releaser

@@ -17,6 +17,21 @@ env:
   YAMLLINT_VERSION: 1.38.0
 
 jobs:
+  nix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: cachix/install-nix-action@v31
+
+      - uses: cachix/cachix-action@v15
+        with:
+          name: unstoppablemango
+
+      - uses: DeterminateSystems/magic-nix-cache-action@v9
+
+      - run: nix flake check
+
   lint:
     runs-on: ubuntu-latest
     strategy:

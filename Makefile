@@ -1,20 +1,12 @@
-_ != mkdir -p bin
-
-GOARCH != go env GOARCH
-GOOS   != go env GOOS
-
-CR   ?= go tool cr
-CT   ?= go tool ct
-HELM ?= bin/helm
-KIND ?= go tool kind
+CR   ?= cr
+CT   ?= ct
+HELM ?= helm
+KIND ?= kind
 
 export KUBECONFIG := ${CURDIR}/.kube/config
 
-# renovate: datasource=github-releases depName=helm/helm
-HELM_VERSION := 4.1.4
-
 lint: lint-deemix lint-filebrowser
-lint-%: charts/%/Chart.yaml charts/%/Chart.lock .ct.yaml | $(HELM)
+lint-%: charts/%/Chart.yaml charts/%/Chart.lock .ct.yaml
 	$(HELM) lint $(dir $<)
 	$(CT) lint --config .ct.yaml $(dir $<)
 
@@ -35,7 +27,7 @@ package: .cr-release-packages/deemix-0.1.0.tgz .cr-release-packages/filebrowser-
 	--kubeconfig $@ \
 	--config $<
 
-charts/%/Chart.lock: charts/%/Chart.yaml | $(HELM)
+charts/%/Chart.lock: charts/%/Chart.yaml
 	$(HELM) dep update $(dir $<)
 	@touch $@
 
@@ -44,15 +36,3 @@ index.yaml:
 
 .cr-release-packages/%-0.1.0.tgz: charts/%/Chart.yaml .cr.yaml
 	$(CR) package charts/$* --config .cr.yaml
-
-bin/cr:
-	curl -L https://github.com/helm/chart-releaser/releases/download/v${CHART_RELEASER_VERSION}/chart-releaser_${CHART_RELEASER_VERSION}_${GOOS}_${GOARCH}.tar.gz \
-	| tar -zxvO cr > $@ && chmod +x $@
-
-bin/ct:
-	curl -L https://github.com/helm/chart-testing/releases/download/v${CHART_TESTING_VERSION}/chart-testing_${CHART_TESTING_VERSION}_${GOOS}_${GOARCH}.tar.gz \
-	| tar -zxvO ct > $@ && chmod +x $@
-
-bin/helm:
-	curl -L https://get.helm.sh/helm-v${HELM_VERSION}-${GOOS}-${GOARCH}.tar.gz \
-	| tar -zxvO ${GOOS}-${GOARCH}/helm > $@ && chmod +x $@
