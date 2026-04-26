@@ -2,7 +2,7 @@ apiVersion: v2
 name: deemix
 description: Helm chart for installing Deemix
 type: application
-version: 0.1.2
+version: 0.1.3
 # renovate: image=registry.gitlab.com/bockiii/deemix-docker
 appVersion: '2022.12.14-r222.5d447b6035'
 sources:
@@ -15,5 +15,5 @@ maintainers:
 dependencies:
 - name: oauth2-proxy
   repository: https://oauth2-proxy.github.io/manifests
-  version: 8.5.1
+  version: 10.4.3
   condition: oauth2-proxy.enabled
