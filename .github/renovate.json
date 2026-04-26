@@ -3,5 +3,8 @@
   "extends": [
     "customManagers:helmChartYamlAppVersions",
     "github>UnstoppableMango/renovate-config"
-  ]
+  ],
+  "nix": {
+    "enabled": true
+  }
 }
