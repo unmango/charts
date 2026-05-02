@@ -5,8 +5,9 @@ global:
 umask: '022'
 singleUser: true
 disableOwnershipCheck: false
-basePath:
+basePath: ''
 existingConfigMap: ''
+kind: Deployment
 
 persistence:
   downloads:

@@ -99,6 +99,9 @@
 				}
 			}
 		},
+		"kind": {
+			"type": "string"
+		},
 		"oauth2-proxy": {
 			"type": "object",
 			"required": [
@@ -124,6 +127,12 @@
 						},
 						"storageClassName": {
 							"type": "string"
+						},
+						"accessModes": {
+							"type": "array",
+							"items": {
+								"type": "string"
+							}
 						}
 					}
 				},
@@ -138,6 +147,12 @@
 						},
 						"storageClassName": {
 							"type": "string"
+						},
+						"accessModes": {
+							"type": "array",
+							"items": {
+								"type": "string"
+							}
 						}
 					}
 				}
