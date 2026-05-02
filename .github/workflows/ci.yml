@@ -38,11 +38,6 @@ jobs:
 
   lint:
     runs-on: unmango-runners
-    strategy:
-      matrix:
-        chart:
-          - deemix
-          - filebrowser
     steps:
       - uses: actions/checkout@v6
         with:
@@ -64,9 +59,12 @@ jobs:
           yamale_version: ${{ env.YAMALE_VERSION }}
           yamllint_version: ${{ env.YAMLLINT_VERSION }}
 
-      - run: helm dep update charts/${{ matrix.chart }}
-      - run: helm lint charts/${{ matrix.chart }}
-      - run: ct lint charts/${{ matrix.chart }}
+      - run: |
+          for chart in charts/*; do
+            helm dep update "$chart"
+          done
+
+      - run: ct lint --github-groups
 
   test:
     runs-on: unmango-runners
