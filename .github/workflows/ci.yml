@@ -73,11 +73,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      # Required by yamale and yamllint
-      - uses: actions/setup-python@v6.2.0
-        with:
-          python-version: '3.x'
-
       - uses: azure/setup-helm@v5
         with:
           version: v${{ env.HELM_VERSION }}
@@ -89,21 +84,12 @@ jobs:
           yamale_version: ${{ env.YAMALE_VERSION }}
           yamllint_version: ${{ env.YAMLLINT_VERSION }}
 
-      - id: list-changed
-        run: |
-          changed=$(ct list-changed --config .ct.yaml)
-          if [[ -n "$changed" ]]; then
-            echo "changed=true" >> $GITHUB_OUTPUT
-          fi
-
-      - if: steps.list-changed.outputs.changed == 'true'
-        uses: helm/kind-action@v1
+      - uses: helm/kind-action@v1
         with:
           version: v${{ env.KIND_VERSION }}
           config: kind-cluster.yml
 
-      - if: steps.list-changed.outputs.changed == 'true'
-        run: |
+      - run: |
           ct install --config .ct.yaml \
-          --github-groups --all \
+          --github-groups \
           --excluded-charts filebrowser
