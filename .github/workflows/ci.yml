@@ -18,7 +18,7 @@ env:
 
 jobs:
   nix:
-    runs-on: thecluster-runners
+    runs-on: unmango-runners
     steps:
       - uses: actions/checkout@v6
 
@@ -33,7 +33,7 @@ jobs:
       - run: nix flake check
 
   lint:
-    runs-on: thecluster-runners
+    runs-on: unmango-runners
     strategy:
       matrix:
         chart:
@@ -65,7 +65,7 @@ jobs:
       - run: ct lint charts/${{ matrix.chart }}
 
   test:
-    runs-on: thecluster-runners
+    runs-on: unmango-runners
     steps:
       - uses: actions/checkout@v6
         with:
