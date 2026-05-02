@@ -3,6 +3,28 @@ entries:
   deemix:
   - apiVersion: v2
     appVersion: 2022.12.14-r222.5d447b6035
+    created: "2026-05-02T04:55:33.771081256Z"
+    dependencies:
+    - condition: oauth2-proxy.enabled
+      name: oauth2-proxy
+      repository: https://oauth2-proxy.github.io/manifests
+      version: 8.5.1
+    description: Helm chart for installing Deemix
+    digest: 14d550b7e2e6ef167372bfc3b44d92572c77df2f741b4eb063671b6acdfb5e92
+    kubeVersion: '>= 1.25'
+    maintainers:
+    - name: UnstoppableMango
+      url: https://github.com/UnstoppableMango
+    name: deemix
+    sources:
+    - https://gitlab.com/Bockiii/deemix-docker
+    - https://github.com/UnstoppableMango/the-cluster/tree/main/charts/deemix
+    type: application
+    urls:
+    - https://github.com/unmango/charts/releases/download/deemix-0.1.2/deemix-0.1.2.tgz
+    version: 0.1.2
+  - apiVersion: v2
+    appVersion: 2022.12.14-r222.5d447b6035
     created: "2026-05-02T04:46:47.136520419Z"
     dependencies:
     - condition: oauth2-proxy.enabled
@@ -46,6 +68,29 @@ entries:
     - https://github.com/unmango/charts/releases/download/deemix-0.1.0/deemix-0.1.0.tgz
     version: 0.1.0
   filebrowser:
+  - apiVersion: v2
+    appVersion: 2.63.2
+    created: "2026-05-02T04:55:33.912219293Z"
+    dependencies:
+    - condition: oauth2-proxy.enabled
+      name: oauth2-proxy
+      repository: https://oauth2-proxy.github.io/manifests
+      version: 8.5.1
+    description: Helm chart for installing filebrowser
+    digest: 986a01c0e4aae89aed0718cae77b84b1571ab69ff30f46973075b7e9f01f798c
+    icon: https://raw.githubusercontent.com/filebrowser/logo/master/icon.png
+    kubeVersion: '>= 1.25'
+    maintainers:
+    - name: UnstoppableMango
+      url: https://github.com/UnstoppableMango
+    name: filebrowser
+    sources:
+    - https://github.com/filebrowser/filebrowser
+    - https://github.com/UnstoppableMango/the-cluster/tree/main/charts/filebrowser
+    type: application
+    urls:
+    - https://github.com/unmango/charts/releases/download/filebrowser-0.1.2/filebrowser-0.1.2.tgz
+    version: 0.1.2
   - apiVersion: v2
     appVersion: 2.63.2
     created: "2026-05-02T04:50:09.99427726Z"
@@ -92,4 +137,4 @@ entries:
     urls:
     - https://github.com/unmango/charts/releases/download/filebrowser-0.1.0/filebrowser-0.1.0.tgz
     version: 0.1.0
-generated: "2026-05-02T04:50:09.994291131Z"
+generated: "2026-05-02T04:55:33.912242967Z"
