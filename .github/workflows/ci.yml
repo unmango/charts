@@ -64,7 +64,7 @@ jobs:
             helm dep update "$chart"
           done
 
-      - run: ct lint --github-groups
+      - run: ct lint --config .ct.yaml --github-groups
 
   test:
     runs-on: unmango-runners
