@@ -47,13 +47,17 @@
       ];
 
       perSystem =
-        { pkgs, system, ... }:
+        { inputs', pkgs, system, ... }:
         {
           _module.args.pkgs = import inputs.nixpkgs {
             inherit system;
             overlays = with inputs; [
               mynix.overlays.default
             ];
+          };
+
+          apps = {
+            inherit (inputs'.nixhelm.apps) helmupdater;
           };
 
           devShells.default = pkgs.mkShellNoCC {
