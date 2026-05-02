@@ -2,7 +2,7 @@ apiVersion: v2
 name: deemix
 description: Helm chart for installing Deemix
 type: application
-version: 0.1.0
+version: 0.1.1
 # renovate: image=registry.gitlab.com/bockiii/deemix-docker
 appVersion: '2022.12.14-r222.5d447b6035'
 sources:

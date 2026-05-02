@@ -57,7 +57,7 @@ init:
     digest: ''
   securityContext:
     allowPrivilegeEscalation: false
-    runAsNonRoot: false # So we can chown the right dirs
+    runAsNonRoot: false  # So we can chown the right dirs
   resources: {}
     # limits:
     #   cpu: 10m
