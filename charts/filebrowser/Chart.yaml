@@ -2,7 +2,7 @@ apiVersion: v2
 name: filebrowser
 description: Helm chart for installing filebrowser
 type: application
-version: 0.1.1
+version: 0.1.2
 # renovate: image=filebrowser/filebrowser
 appVersion: 2.63.2
 sources:
@@ -16,5 +16,5 @@ maintainers:
 dependencies:
 - name: oauth2-proxy
   repository: https://oauth2-proxy.github.io/manifests
-  version: 8.2.1
+  version: 8.5.1
   condition: oauth2-proxy.enabled
