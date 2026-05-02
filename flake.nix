@@ -44,13 +44,17 @@
       ];
 
       perSystem =
-        { pkgs, system, ... }:
+        { inputs', pkgs, system, ... }:
         {
           _module.args.pkgs = import inputs.nixpkgs {
             inherit system;
             overlays = with inputs; [
               mangopkgs.overlays.default
             ];
+          };
+
+          apps = {
+            inherit (inputs'.nixhelm.apps) helmupdater;
           };
 
           # The generated half of charts/gha-runner-scale-set, which `make chart-gha-runner-scale-set` copies
