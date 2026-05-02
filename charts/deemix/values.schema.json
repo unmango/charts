@@ -100,7 +100,11 @@
 			}
 		},
 		"kind": {
-			"type": "string"
+			"type": "string",
+			"enum": [
+				"Deployment",
+				"StatefulSet"
+			]
 		},
 		"oauth2-proxy": {
 			"type": "object",
