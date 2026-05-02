@@ -98,7 +98,7 @@ spec:
         options:
           - name: ndots
             value: '2'
-  {{- if or .Values.persistence.downloads.enabled .Values.persistence.config.enabled }}
+{{- if eq .Values.kind "StatefulSet" }}
   volumeClaimTemplates:
   {{- if .Values.persistence.config.enabled }}
     - apiVersion: v1
@@ -130,4 +130,4 @@ spec:
           requests:
             storage: {{ .Values.persistence.downloads.size }}
   {{- end }}
-  {{- end }}
+{{- end }}

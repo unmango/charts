@@ -134,8 +134,15 @@
 						},
 						"accessModes": {
 							"type": "array",
+							"minItems": 1,
 							"items": {
-								"type": "string"
+								"type": "string",
+								"enum": [
+									"ReadWriteOnce",
+									"ReadOnlyMany",
+									"ReadWriteMany",
+									"ReadWriteOncePod"
+								]
 							}
 						}
 					}
