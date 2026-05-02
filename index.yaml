@@ -3,6 +3,28 @@ entries:
   deemix:
   - apiVersion: v2
     appVersion: 2022.12.14-r222.5d447b6035
+    created: "2026-05-02T04:46:47.136520419Z"
+    dependencies:
+    - condition: oauth2-proxy.enabled
+      name: oauth2-proxy
+      repository: https://oauth2-proxy.github.io/manifests
+      version: 8.2.1
+    description: Helm chart for installing Deemix
+    digest: 31bf91ed255dfab74c7a5d7a213eede92d7e7fa9208dd70c945452a02cbd8f4d
+    kubeVersion: '>= 1.25'
+    maintainers:
+    - name: UnstoppableMango
+      url: https://github.com/UnstoppableMango
+    name: deemix
+    sources:
+    - https://gitlab.com/Bockiii/deemix-docker
+    - https://github.com/UnstoppableMango/the-cluster/tree/main/charts/deemix
+    type: application
+    urls:
+    - https://github.com/unmango/charts/releases/download/deemix-0.1.1/deemix-0.1.1.tgz
+    version: 0.1.1
+  - apiVersion: v2
+    appVersion: 2022.12.14-r222.5d447b6035
     created: "2025-09-17T01:33:16.744978719Z"
     dependencies:
     - condition: oauth2-proxy.enabled
@@ -47,4 +69,4 @@ entries:
     urls:
     - https://github.com/unmango/charts/releases/download/filebrowser-0.1.0/filebrowser-0.1.0.tgz
     version: 0.1.0
-generated: "2025-09-17T01:33:16.911167848Z"
+generated: "2026-05-02T04:46:47.365850768Z"
