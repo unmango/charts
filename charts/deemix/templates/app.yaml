@@ -1,21 +1,19 @@
 apiVersion: apps/v1
-{{- if or .Values.persistence.config.enabled (and .Values.persistence.downloads.enabled (contains "ReadWriteOnce" .Values.persistence.downloads.accessModes)) }}
-kind: StatefulSet
-{{- else }}
-kind: Deployment
-{{- end }}
+kind: {{ .Values.kind | required "kind is required" }}
 metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
 spec:
   selector:
     matchLabels:
-      app: deemix
+      kubernetes.io/app: deemix
+  {{- if eq .Values.kind "StatefulSet" }}
   serviceName: {{ .Release.Name }}
+  {{- end }}
   template:
     metadata:
       labels:
-        app: deemix
+        kubernetes.io/app: deemix
     spec:
       containers:
         - name: deemix
@@ -100,7 +98,7 @@ spec:
         options:
           - name: ndots
             value: '2'
-  {{- if or .Values.persistence.downloads.enabled .Values.persistence.config.enabled }}
+{{- if eq .Values.kind "StatefulSet" }}
   volumeClaimTemplates:
   {{- if .Values.persistence.config.enabled }}
     - apiVersion: v1
@@ -109,9 +107,9 @@ spec:
         name: config
       spec:
         storageClassName: {{ .Values.persistence.config.storageClassName }}
-        {{- with .Values.persistence.config.accessModes }}
         accessModes:
-          {{ toYaml . | nindent 10 }}
+        {{- range .Values.persistence.config.accessModes }}
+          - {{ . }}
         {{- end }}
         resources:
           requests:
@@ -123,13 +121,13 @@ spec:
       metadata:
         name: downloads
       spec:
-        storageClassName: {{  .Values.persistence.downloads.storageClassName }}
-        {{- with .Values.persistence.downloads.accessModes }}
+        storageClassName: {{ .Values.persistence.downloads.storageClassName }}
         accessModes:
-          {{ toYaml . | nindent 10 }}
+        {{- range .Values.persistence.downloads.accessModes }}
+          - {{ . }}
         {{- end }}
         resources:
           requests:
             storage: {{ .Values.persistence.downloads.size }}
   {{- end }}
-  {{- end }}
+{{- end }}

@@ -99,6 +99,13 @@
 				}
 			}
 		},
+		"kind": {
+			"type": "string",
+			"enum": [
+				"Deployment",
+				"StatefulSet"
+			]
+		},
 		"oauth2-proxy": {
 			"type": "object",
 			"required": [
@@ -124,6 +131,19 @@
 						},
 						"storageClassName": {
 							"type": "string"
+						},
+						"accessModes": {
+							"type": "array",
+							"minItems": 1,
+							"items": {
+								"type": "string",
+								"enum": [
+									"ReadWriteOnce",
+									"ReadOnlyMany",
+									"ReadWriteMany",
+									"ReadWriteOncePod"
+								]
+							}
 						}
 					}
 				},
@@ -138,6 +158,19 @@
 						},
 						"storageClassName": {
 							"type": "string"
+						},
+						"accessModes": {
+							"type": "array",
+							"minItems": 1,
+							"items": {
+								"type": "string",
+								"enum": [
+									"ReadWriteOnce",
+									"ReadOnlyMany",
+									"ReadWriteMany",
+									"ReadWriteOncePod"
+								]
+							}
 						}
 					}
 				}

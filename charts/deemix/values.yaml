@@ -5,8 +5,9 @@ global:
 umask: '022'
 singleUser: true
 disableOwnershipCheck: false
-basePath:
+basePath: ''
 existingConfigMap: ''
+kind: Deployment
 
 persistence:
   downloads:
@@ -56,7 +57,7 @@ init:
     digest: ''
   securityContext:
     allowPrivilegeEscalation: false
-    runAsNonRoot: false # So we can chown the right dirs
+    runAsNonRoot: false  # So we can chown the right dirs
   resources: {}
     # limits:
     #   cpu: 10m
