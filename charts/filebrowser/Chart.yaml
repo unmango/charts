@@ -2,7 +2,7 @@ apiVersion: v2
 name: filebrowser
 description: Helm chart for installing filebrowser
 type: application
-version: 0.1.0
+version: 0.1.1
 # renovate: image=filebrowser/filebrowser
 appVersion: 2.63.2
 sources:
