@@ -7,6 +7,9 @@ export KUBECONFIG := ${CURDIR}/.kube/config
 # renovate: datasource=github-releases depName=kubernetes-sigs/gateway-api
 GATEWAY_API_VERSION := 1.6.2
 
+DEEMIX_VERSION := $(shell awk '/^version:/{print $$2}' charts/deemix/Chart.yaml)
+FILEBROWSER_VERSION := $(shell awk '/^version:/{print $$2}' charts/filebrowser/Chart.yaml)
+
 lint: lint-deemix lint-filebrowser
 lint-%: charts/%/Chart.yaml charts/%/Chart.lock .ct.yaml
 	helm lint $(dir $<)
@@ -38,7 +41,7 @@ format fmt:
 
 kind: .kube/config
 
-package: .cr-release-packages/deemix-0.1.0.tgz .cr-release-packages/filebrowser-0.1.0.tgz
+package: .cr-release-packages/deemix-$(DEEMIX_VERSION).tgz .cr-release-packages/filebrowser-$(FILEBROWSER_VERSION).tgz
 
 .kube/config: kind-cluster.yml
 	kind create cluster --name chart-testing \
@@ -52,5 +55,5 @@ charts/%/Chart.lock: charts/%/Chart.yaml
 index.yaml:
 	cr index --config .cr.yaml
 
-.cr-release-packages/%-0.1.0.tgz: charts/%/Chart.yaml .cr.yaml
-	cr package charts/$* --config .cr.yaml
+.cr-release-packages/%.tgz: .cr.yaml
+	cr package charts/$(firstword $(subst -, ,$*)) --config $<
