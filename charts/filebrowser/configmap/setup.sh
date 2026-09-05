@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
 [ -z "${DB_PATH+x}" ] && echo "DB_PATH not set" && exit 1;
@@ -7,8 +7,6 @@ set -e
 [ -z "${PGID+x}" ] && echo "PGID not set" && exit 1;
 
 DB_DIR="$(dirname "$DB_PATH")"
-echo "chown -R $PUID:$PGID $DB_DIR"
-chown -R "$PUID:$PGID" "$DB_DIR"
 
 echo "chown -R $PUID:$PGID /srv"
 chown -R "$PUID:$PGID" /srv
@@ -37,17 +35,17 @@ filebrowser config set
     --viewMode $FILEBROWSER_VIEW_MODE
 "
 
-args=()
+set --
 if [ -n "${FILEBROWSER_DISABLE_USED_PERCENTAGE+x}" ]; then
-    args+=("--branding.disableUsedPercentage")
+    set -- "$@" --branding.disableUsedPercentage
 fi
 
 if [ -n "${FILEBROWSER_DISABLE_EXTERNAL+x}" ]; then
-    args+=("--branding.disableExternal")
+    set -- "$@" --branding.disableExternal
 fi
 
 if [ -n "${FILEBROWSER_BRANDING_FILES+x}" ]; then
-    args+=(--branding.files "$FILEBROWSER_BRANDING_FILES")
+    set -- "$@" --branding.files "$FILEBROWSER_BRANDING_FILES"
 fi
 
 # https://filebrowser.org/cli/filebrowser-config-set
@@ -59,5 +57,9 @@ filebrowser config set \
     --branding.color "$FILEBROWSER_BRANDING_THEME" \
     --branding.name "$FILEBROWSER_BRANDING_NAME" \
     --viewMode "$FILEBROWSER_VIEW_MODE" \
-    "${args[@]}"
+    "$@"
 echo "✅ Successfully applied configuration"
+
+# Runs last so the database created above is owned by the runtime user
+echo "chown -R $PUID:$PGID $DB_DIR"
+chown -R "$PUID:$PGID" "$DB_DIR"
