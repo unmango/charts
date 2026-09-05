@@ -7,6 +7,8 @@ on:
 env:
   # renovate: datasource=github-releases depName=helm/chart-testing
   CHART_TESTING_VERSION: 3.14.0
+  # renovate: datasource=github-releases depName=kubernetes-sigs/gateway-api
+  GATEWAY_API_VERSION: 1.6.2
   # renovate: datasource=github-releases depName=helm/helm
   HELM_VERSION: 4.2.0
   # renovate: datasource=github-releases depName=kubernetes-sigs/kind
@@ -88,6 +90,11 @@ jobs:
         with:
           version: v${{ env.KIND_VERSION }}
           config: kind-cluster.yml
+
+      - name: Install Gateway API CRDs
+        run: |
+          kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v${{ env.GATEWAY_API_VERSION }}/standard-install.yaml
+          kubectl wait --for=condition=Established --timeout=60s crd/httproutes.gateway.networking.k8s.io
 
       - run: |
           ct install --config .ct.yaml \

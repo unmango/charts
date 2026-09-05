@@ -1,0 +1,7 @@
+httpRoute:
+  enabled: true
+  parentRefs:
+    - name: chart-testing
+      namespace: default
+  hostnames:
+    - filebrowser.example.com
