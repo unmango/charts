@@ -18,7 +18,7 @@ env:
 
 jobs:
   nix:
-    runs-on: unmango-runners
+    runs-on: thecluster
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
@@ -37,7 +37,7 @@ jobs:
       - run: nix flake check
 
   lint:
-    runs-on: unmango-runners
+    runs-on: thecluster
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
@@ -67,7 +67,7 @@ jobs:
       - run: ct lint --config .ct.yaml --github-groups
 
   test:
-    runs-on: unmango-runners
+    runs-on: thecluster
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
