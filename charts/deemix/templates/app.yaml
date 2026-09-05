@@ -34,10 +34,6 @@ spec:
             {{- end }}
             - name: UMASK_SET
               value: {{ .Values.umask | quote }}
-          {{- if or .Values.ingress.enabled .Values.basePath }}
-            - name: DEEMIX_LOCATION_BASE
-              value: {{ coalesce .Values.basePath .Values.ingress.path | quote }}
-          {{- end }}
         {{- if or .Values.existingConfigMap .Values.persistence.downloads.enabled .Values.persistence.config.enabled (lt 0 (len .Values.extraVolumeMounts)) }}
           volumeMounts:
           {{- if .Values.existingConfigMap }}
@@ -60,13 +56,13 @@ spec:
           readinessProbe:
             httpGet:
               port: http
-              path: {{ coalesce .Values.basePath .Values.ingress.path | quote }}
+              path: /
             initialDelaySeconds: 5
             timeoutSeconds: 1
           livenessProbe:
             httpGet:
               port: http
-              path: {{ coalesce .Values.basePath .Values.ingress.path | quote }}
+              path: /
             initialDelaySeconds: 5
             timeoutSeconds: 5
             periodSeconds: 120

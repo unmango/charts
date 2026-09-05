@@ -25,6 +25,6 @@ spec:
   tls:
     - hosts:
         - {{ .Values.ingress.host }}
-      secretName: filebrowser-tls
+      secretName: deemix-tls
   {{- end }}
 {{- end }}
