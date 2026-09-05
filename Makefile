@@ -30,7 +30,7 @@ kind: .kube/config
 package: .cr-release-packages/deemix-0.1.0.tgz .cr-release-packages/filebrowser-0.1.0.tgz
 
 .kube/config: kind-cluster.yml
-	$(KIND) create cluster --name chart-testing \
+	kind create cluster --name chart-testing \
 	--kubeconfig $@ \
 	--config $<
 
