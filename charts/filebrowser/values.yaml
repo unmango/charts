@@ -78,6 +78,7 @@ init:
   securityContext:
     allowPrivilegeEscalation: false
     runAsNonRoot: false  # So we can chown the right dirs
+    runAsUser: 0
   resources: {}
     # limits:
     #   cpu: 10m

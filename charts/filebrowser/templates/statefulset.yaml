@@ -16,7 +16,7 @@ spec:
       initContainers:
         - name: setup
           image: {{ include "init.image" . }}
-          command: ['bash', '/setup.sh']
+          command: ['sh', '/setup.sh']
           env:
             - name: DB_PATH
               value: /db/filebrowser.db
@@ -111,6 +111,8 @@ spec:
           {{- end }}
           {{- end }}
       securityContext:
+        runAsUser: {{ .Values.global.uid }}
+        runAsGroup: {{ .Values.global.gid }}
         fsGroup: {{ .Values.global.gid }}
       volumes:
         - name: config
