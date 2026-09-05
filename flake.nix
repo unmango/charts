@@ -10,14 +10,12 @@
       inputs.nixpkgs-lib.follows = "nixpkgs";
     };
 
-    mynix = {
-      url = "github:UnstoppableMango/nix";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        systems.follows = "systems";
-        flake-parts.follows = "flake-parts";
-        treefmt-nix.follows = "treefmt-nix";
-      };
+    mangopkgs = {
+      url = "github:unmango/pkgs";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.systems.follows = "systems";
+      inputs.flake-parts.follows = "flake-parts";
+      inputs.treefmt-nix.follows = "treefmt-nix";
     };
 
     treefmt-nix = {
@@ -40,7 +38,7 @@
           _module.args.pkgs = import inputs.nixpkgs {
             inherit system;
             overlays = with inputs; [
-              mynix.overlays.default
+              mangopkgs.overlays.default
             ];
           };
 
@@ -54,16 +52,13 @@
               kind
               nixfmt
             ];
-
-            HELM = "${pkgs.kubernetes-helm}/bin/helm";
-            KIND = "${pkgs.kind}/bin/kind";
-            CR = "${pkgs.chart-releaser}/bin/cr";
-            CT = "${pkgs.chart-testing}/bin/ct";
           };
 
           treefmt.programs = {
-            nixfmt.enable = true;
+            actionlint.enable = true;
             gofmt.enable = true;
+            mdformat.enable = true;
+            nixfmt.enable = true;
           };
         };
     };
