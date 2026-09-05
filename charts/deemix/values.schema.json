@@ -10,12 +10,6 @@
 		"service"
 	],
 	"properties": {
-		"basePath": {
-			"type": [
-				"string",
-				"null"
-			]
-		},
 		"extraVolumeMounts": {
 			"type": "array",
 			"items": {
