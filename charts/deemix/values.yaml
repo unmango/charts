@@ -20,6 +20,17 @@ persistence:
     size: 250Mi
     accessModes: [ReadWriteOnce]
 
+httpRoute:
+  enabled: false
+  annotations: {}
+  parentRefs: []
+  hostnames: []
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+
 ingress:
   enabled: false
   annotations: {}

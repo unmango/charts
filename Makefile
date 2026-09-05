@@ -2,14 +2,20 @@ export KUBECONFIG := ${CURDIR}/.kube/config
 
 # lint-% targets are intentionally omitted: .PHONY disables implicit rule
 # search, which would stop them matching the lint-% pattern rule below.
-.PHONY: lint test install changed update check build format fmt kind package
+.PHONY: lint test install changed update check build format fmt kind package gateway-api
+
+# renovate: datasource=github-releases depName=kubernetes-sigs/gateway-api
+GATEWAY_API_VERSION := 1.6.2
 
 lint: lint-deemix lint-filebrowser
 lint-%: charts/%/Chart.yaml charts/%/Chart.lock .ct.yaml
 	helm lint $(dir $<)
 	ct lint --config .ct.yaml $(dir $<)
 
-test: kind install
+test: kind gateway-api install
+
+gateway-api:
+	kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v$(GATEWAY_API_VERSION)/standard-install.yaml
 
 install: .ct.yaml
 	ct install --config $< --all

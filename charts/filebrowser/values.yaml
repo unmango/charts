@@ -23,6 +23,17 @@ auth:
   method: proxy
   header: X-Forwarded-User
 
+httpRoute:
+  enabled: false
+  annotations: {}
+  parentRefs: []
+  hostnames: []
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+
 ingress:
   enabled: false
   annotations: {}
