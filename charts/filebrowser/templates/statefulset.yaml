@@ -130,7 +130,9 @@ spec:
       metadata:
         name: database
       spec:
-        storageClassName: {{ required "persistence.storageClassName is required" .Values.persistence.storageClassName }}
+        {{- with .Values.persistence.storageClassName }}
+        storageClassName: {{ . }}
+        {{- end }}
         accessModes:
           - ReadWriteOnce
         resources:
