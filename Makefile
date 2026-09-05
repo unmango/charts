@@ -1,5 +1,9 @@
 export KUBECONFIG := ${CURDIR}/.kube/config
 
+# lint-% targets are intentionally omitted: .PHONY disables implicit rule
+# search, which would stop them matching the lint-% pattern rule below.
+.PHONY: lint test install changed update check build format fmt kind package
+
 lint: lint-deemix lint-filebrowser
 lint-%: charts/%/Chart.yaml charts/%/Chart.lock .ct.yaml
 	helm lint $(dir $<)
