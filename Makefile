@@ -12,12 +12,13 @@ lint-%: charts/%/Chart.yaml charts/%/Chart.lock .ct.yaml
 	helm lint $(dir $<)
 	ct lint --config .ct.yaml $(dir $<)
 
-test: kind gateway-api install
+test: install
 
-gateway-api:
+gateway-api: kind
 	kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v$(GATEWAY_API_VERSION)/standard-install.yaml
+	kubectl wait --for=condition=Established --timeout=60s crd/httproutes.gateway.networking.k8s.io
 
-install: .ct.yaml
+install: .ct.yaml gateway-api
 	ct install --config $< --all
 
 changed: .ct.yaml
