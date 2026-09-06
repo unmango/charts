@@ -5,7 +5,7 @@ This file provides guidance to coding agents when working with code in this repo
 ## What this is
 
 A Helm chart repository published to GitHub Pages (`gh-pages` branch, `index.yaml`) by `chart-releaser`.
-Two charts live under `charts/`: `deemix` and `filebrowser`.
+Four charts live under `charts/`: `deemix`, `filebrowser`, `hercules-ci-agent`, and `mage-server`.
 
 ## Tooling
 
@@ -42,14 +42,16 @@ Bump `version` in `Chart.yaml` by hand in the same PR as any chart change, other
 
 ## Chart conventions
 
-- Both charts vendor an identical `common.images.image` helper in `templates/_helpers.tpl`, copied from bitnami/common.
+- Every chart vendors an identical `common.images.image` helper in `templates/_helpers.tpl`, copied from bitnami/common.
   Templates call the local `image` / `init.image` wrappers rather than the bitnami one directly.
-  A change to one chart's helper usually needs mirroring in the other.
-- Both charts declare `oauth2-proxy` as an optional dependency gated on `oauth2-proxy.enabled`.
+  A change to one chart's helper usually needs mirroring in the others.
+- `deemix` and `filebrowser` declare `oauth2-proxy` as an optional dependency gated on `oauth2-proxy.enabled`.
+  `hercules-ci-agent` and `mage-server` have no dependencies and no `Chart.lock`.
   `charts/*/charts/` is gitignored, so `helm dep update` is required before linting or templating.
 - Each chart has a `values.schema.json` that Helm enforces at install time.
   Adding or renaming anything in `values.yaml` requires updating that schema, or installs fail with a validation error.
 - `deemix` renders `Deployment` or `StatefulSet` from `.Values.kind`; PVCs only exist in the `StatefulSet` path via `volumeClaimTemplates`.
+- `mage-server` speaks raw TCP, so it has no Ingress or HTTPRoute; its `server.*` values become `XMAGE_*` environment variables consumed by the image entrypoint.
 - `filebrowser` ships `configmap/*` files (`settings.json`, `setup.sh`) rendered through `tpl` into a ConfigMap, and runs `setup.sh` in an init container to chown volumes and seed the filebrowser DB.
   Edits to `configmap/setup.sh` change runtime behavior, not just packaging.
 
