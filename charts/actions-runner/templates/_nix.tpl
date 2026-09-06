@@ -22,11 +22,16 @@ they cannot drift.
 {{- end -}}
 
 {{/*
-The store's mount path. /nix is the only value nix itself will accept without
-rewriting every store path, so this exists to be read, not changed.
+The store's mount path, and deliberately not configurable.
+
+nix compiles /nix/store in, and `store = local` does not follow a volume
+somewhere else; pointing it at another path takes a second setting and yields a
+store no substituter can serve, so every dependency would be built from source.
+Mounting anywhere but /nix would therefore look like it worked and quietly leave
+the runner building on the container filesystem.
 */}}
 {{- define "actions-runner.nix.mountPath" -}}
-{{- default "/nix" (dig "store" "mountPath" "" .) -}}
+/nix
 {{- end -}}
 
 {{/*
