@@ -10,7 +10,7 @@ env:
   # renovate: datasource=github-releases depName=kubernetes-sigs/gateway-api
   GATEWAY_API_VERSION: 1.6.2
   # renovate: datasource=github-releases depName=helm/helm
-  HELM_VERSION: 4.2.0
+  HELM_VERSION: 4.2.4
   # renovate: datasource=github-releases depName=kubernetes-sigs/kind
   KIND_VERSION: 0.31.0
   # renovate: datasource=pypi depName=yamale
