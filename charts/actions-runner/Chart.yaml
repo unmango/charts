@@ -1,0 +1,14 @@
+apiVersion: v2
+name: actions-runner
+description: Library chart for running GitHub Actions runners with a Nix store
+type: library
+version: 0.1.0
+# renovate: image=ghcr.io/unmango/actions-runner
+appVersion: 2.337.0
+sources:
+- https://github.com/unmango/charts/tree/main/charts/actions-runner
+- https://github.com/unmango/containers
+kubeVersion: '>= 1.25'
+maintainers:
+- name: UnstoppableMango
+  url: https://github.com/UnstoppableMango
