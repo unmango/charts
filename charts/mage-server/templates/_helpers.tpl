@@ -1,62 +1,53 @@
-{{/*
-Expand the name of the chart.
-*/}}
-{{- define "mage-server.name" -}}
-{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
-{{- end }}
+{{/* vim: set filetype=mustache: */}}
+
+{{- define "image" -}}
+{{ include "common.images.image" (dict "imageRoot" .Values.image "global" .Values.global "defaultVersion" .Chart.AppVersion) }}
+{{- end -}}
 
 {{/*
-Create a default fully qualified app name.
-We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
-If release name contains chart name it will be used as a full name.
+Name of the Secret holding the mail credentials.
 */}}
-{{- define "mage-server.fullname" -}}
-{{- if .Values.fullnameOverride }}
-{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- $name := default .Chart.Name .Values.nameOverride }}
-{{- if contains $name .Release.Name }}
-{{- .Release.Name | trunc 63 | trimSuffix "-" }}
-{{- else }}
-{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" }}
-{{- end }}
-{{- end }}
-{{- end }}
+{{- define "secretName" -}}
+{{- if .Values.mail.existingSecret -}}
+    {{- .Values.mail.existingSecret -}}
+{{- else -}}
+    {{ printf "%s-mail" .Release.Name }}
+{{- end -}}
+{{- end -}}
 
 {{/*
-Create chart name and version as used by the chart label.
+Whether the chart renders a mail Secret of its own.
 */}}
-{{- define "mage-server.chart" -}}
-{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
-{{- end }}
+{{- define "manageSecret" -}}
+{{- if and (not .Values.mail.existingSecret) (or .Values.mail.password .Values.mail.mailgunApiKey) -}}
+true
+{{- end -}}
+{{- end -}}
 
 {{/*
-Common labels
+Return the proper image name
+{{ include "common.images.image" ( dict "imageRoot" .Values.path.to.the.image "global" .Values.global "defaultVersion" .Chart.AppVersion ) }}
 */}}
-{{- define "mage-server.labels" -}}
-helm.sh/chart: {{ include "mage-server.chart" . }}
-{{ include "mage-server.selectorLabels" . }}
-{{- if .Chart.AppVersion }}
-app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-{{- end }}
-app.kubernetes.io/managed-by: {{ .Release.Service }}
-{{- end }}
-
 {{/*
-Selector labels
+https://github.com/bitnami/charts/blob/74e1f3fcbe3c1848895df175557f83a53f9cdffc/bitnami/common/templates/_images.tpl#L7-L30
 */}}
-{{- define "mage-server.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "mage-server.name" . }}
-app.kubernetes.io/instance: {{ .Release.Name }}
-{{- end }}
-
-{{/*
-Create the name of the service account to use
-*/}}
-{{- define "mage-server.serviceAccountName" -}}
-{{- if .Values.serviceAccount.create }}
-{{- default (include "mage-server.fullname" .) .Values.serviceAccount.name }}
-{{- else }}
-{{- default "default" .Values.serviceAccount.name }}
-{{- end }}
-{{- end }}
+{{- define "common.images.image" -}}
+{{- $registryName := .imageRoot.registry -}}
+{{- $repositoryName := .imageRoot.repository -}}
+{{- $separator := ":" -}}
+{{- $termination := .imageRoot.tag | default .defaultVersion | toString -}}
+{{- if .global }}
+    {{- if .global.imageRegistry }}
+     {{- $registryName = .global.imageRegistry -}}
+    {{- end -}}
+{{- end -}}
+{{- if .imageRoot.digest }}
+    {{- $separator = "@" -}}
+    {{- $termination = .imageRoot.digest | toString -}}
+{{- end -}}
+{{- if $registryName }}
+    {{- printf "%s/%s%s%s" $registryName $repositoryName $separator $termination -}}
+{{- else -}}
+    {{- printf "%s%s%s"  $repositoryName $separator $termination -}}
+{{- end -}}
+{{- end -}}
