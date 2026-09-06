@@ -36,9 +36,14 @@ ct install --config .ct.yaml --charts charts/deemix
 
 ## Release flow
 
-`chart-releaser` (`.github/workflows/release.yml`) runs on every push to `main` and cuts a release for any chart whose `version` in `Chart.yaml` changed.
-Bump `version` in `Chart.yaml` by hand in the same PR as any chart change, otherwise the change never ships.
+Versions are managed by release-please (`.github/workflows/release-please.yml`, `release-please-config.json`, `.release-please-manifest.json`), one `helm` package per chart directory.
+On every push to `main` it opens or updates a `chore(main): release` PR that bumps `version` in each affected `Chart.yaml` and writes that chart's `CHANGELOG.md`.
+Never hand-edit `version` or `CHANGELOG.md`; the release PR owns them.
+A chart is bumped when a `feat` or `fix` commit touches files under its directory, so use Conventional Commits and scope PR titles to the chart.
+`chart-releaser` (`.github/workflows/release.yml`) also runs on every push to `main` and publishes any chart whose `version` changed, which happens when the release PR merges.
+release-please does not create tags or GitHub releases (`skip-github-release`); chart-releaser creates them as `<chart>-<version>`, and release-please reads those tags to find the last release.
 `appVersion` tracks the upstream image and is bumped by Renovate via the `# renovate: image=...` comments.
+Renovate updates under `charts/` commit as `fix(deps): ...` so they trigger a patch release.
 
 ## Chart conventions
 
@@ -63,6 +68,7 @@ CI (`.github/workflows/ci.yml`) discovers charts automatically through `ct`.
 ## CI notes
 
 - `ct` validates `Chart.yaml` against `chart_schema.yaml` (yamale) and YAML style against `lintconf.yaml` (yamllint).
+- `.ct.yaml` sets `check-version-increment: false` because release-please, not the chart PR, bumps `version`.
 - `ct lint` requires full git history to diff against `main`; workflows use `fetch-depth: 0`.
 - The `test` job installs every chart.
   `filebrowser` provisions a PVC and relies on the kind cluster's default `standard` StorageClass; leaving `persistence.storageClassName` empty omits the field so the cluster default applies.

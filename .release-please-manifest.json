@@ -1,0 +1,6 @@
+{
+  "charts/deemix": "0.3.0",
+  "charts/filebrowser": "0.2.2",
+  "charts/hercules-ci-agent": "0.1.0",
+  "charts/mage-server": "0.1.0"
+}

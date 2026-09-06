@@ -4,3 +4,4 @@ chart-dirs:
   - charts/
 chart-repos:
   - oauth2proxy=https://oauth2-proxy.github.io/manifests
+check-version-increment: false

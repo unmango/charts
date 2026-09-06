@@ -6,5 +6,12 @@
   ],
   "nix": {
     "enabled": true
-  }
+  },
+  "semanticCommits": "enabled",
+  "packageRules": [
+    {
+      "matchFileNames": ["charts/**"],
+      "semanticCommitType": "fix"
+    }
+  ]
 }

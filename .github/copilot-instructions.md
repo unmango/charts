@@ -6,11 +6,12 @@ Read that file before making changes.
 Key points:
 
 - This is a Helm chart repository published to GitHub Pages by `chart-releaser`.
-  Charts live under `charts/`: `deemix` and `filebrowser`.
+  Charts live under `charts/`: `deemix`, `filebrowser`, `hercules-ci-agent`, and `mage-server`.
 - All tooling (`helm`, `ct`, `cr`, `kind`, `nixfmt`) comes from the Nix devshell in `flake.nix`, loaded by direnv.
   Do not install tools separately.
 - Common targets: `make lint`, `make test`, `make check`, `make fmt`, `make package`.
-- Bump `version` in a chart's `Chart.yaml` in the same PR as any chart change, otherwise the release workflow never ships it.
+- release-please bumps `version` in `Chart.yaml` and writes `CHANGELOG.md` through its release PR; never edit those by hand.
+  Use Conventional Commits (`feat`/`fix`) scoped to the chart so the change is picked up.
   `appVersion` is bumped by Renovate.
 - `charts/*/charts/` is gitignored, so run `helm dep update` before linting or templating.
 - Adding or renaming anything in a chart's `values.yaml` requires updating that chart's `values.schema.json`.
