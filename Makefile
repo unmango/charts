@@ -18,7 +18,7 @@ lint-%: charts/%/Chart.yaml charts/%/Chart.lock .ct.yaml
 
 # hercules-ci-agent has no dependencies, so no Chart.lock to depend on
 lint-hercules-ci-agent: charts/hercules-ci-agent/Chart.yaml .ct.yaml
-	helm lint charts/hercules-ci-agent
+	helm lint charts/hercules-ci-agent --values charts/hercules-ci-agent/ci/default-values.yaml
 	ct lint --config .ct.yaml charts/hercules-ci-agent
 
 test: install

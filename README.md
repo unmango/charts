@@ -18,7 +18,8 @@ Hercules CI publishes no container image and no Helm chart.
 The image this chart deploys comes from [unmango/containers](https://github.com/unmango/containers/tree/main/images/hercules-ci-agent).
 
 Set `clusterJoinToken` to the token from the Hercules CI dashboard, or point `existingSecret` at a Secret holding `cluster-join-token.key`, `binary-caches.json`, and `secrets.json`.
-Rotating the token requires restarting the pod, since the agent only reads it at startup.
+The agent only reads the token at startup.
+Changing the chart-managed Secret restarts the pod through a checksum annotation; rotating an `existingSecret` requires restarting the pod by hand.
 
 The image sets `SSL_CERT_FILE` and `NIX_SSL_CERT_FILE` to a store path it does not actually contain, which makes every HTTPS request fail with `unable to get local issuer certificate`.
 The chart overrides both to `/etc/ssl/certs/ca-bundle.crt`, which the image does contain.

@@ -7,6 +7,7 @@ cannot indent correctly.
   "apiBaseUrl" .Values.agent.apiBaseUrl
   "baseDirectory" "/var/lib/hercules-ci-agent"
   "staticSecretsDirectory" "/etc/hercules-ci-agent/secrets"
+  "clusterJoinTokenPath" (printf "/etc/hercules-ci-agent/secrets/%s" .Values.existingSecretKey)
   "concurrentTasks" .Values.agent.concurrentTasks
   "logLevel" .Values.agent.logLevel -}}
 {{- with .Values.agent.labels }}{{ $_ := set $cfg "labels" . }}{{ end -}}
@@ -20,8 +21,8 @@ data:
   agent.json: |
     {{- $cfg | toPrettyJson | nindent 4 }}
   {{- if or .Values.nixConf .Values.extraNixConf }}
+  {{- /* The agent exits with a fatal error on any other narinfo-cache-negative-ttl value */}}
   nix.conf: |
-    {{- /* The agent exits with a fatal error on any other value */}}
     narinfo-cache-negative-ttl = 0
     {{- range $k, $v := omit .Values.nixConf "narinfo-cache-negative-ttl" }}
     {{ $k }} = {{ $v }}

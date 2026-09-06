@@ -22,9 +22,9 @@
 					"type": "string"
 				},
 				"concurrentTasks": {
-					"type": [
-						"string",
-						"integer"
+					"oneOf": [
+						{ "type": "integer" },
+						{ "const": "auto" }
 					]
 				},
 				"logLevel": {

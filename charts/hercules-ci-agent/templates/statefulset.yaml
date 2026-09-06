@@ -15,6 +15,9 @@ spec:
         kubernetes.io/app: hercules-ci-agent
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- if not .Values.existingSecret }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- end }}
     spec:
       containers:
         - name: hercules-ci-agent

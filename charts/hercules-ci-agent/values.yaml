@@ -12,6 +12,7 @@ replicaCount: 1
 # Ignored when existingSecret is set.
 clusterJoinToken: ''
 existingSecret: ''
+# Key in the Secret holding the token. The agent is pointed at this file.
 existingSecretKey: cluster-join-token.key
 
 agent:
@@ -28,8 +29,9 @@ agent:
 binaryCaches: {}
 secretsJson: {}
 
-# The image bakes in the one setting the agent requires, so this is only
-# needed to add to it. Leave empty to use the image's /etc/nix/nix.conf.
+# Setting either replaces the image's /etc/nix/nix.conf with a generated
+# file. The narinfo-cache-negative-ttl = 0 the agent requires is always
+# included. Leave both empty to keep the image's file.
 nixConf: {}
 extraNixConf: ''
 
