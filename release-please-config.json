@@ -13,7 +13,6 @@
     { "type": "refactor", "section": "Code Refactoring" },
     { "type": "test", "section": "Tests" },
     { "type": "build", "section": "Build System" },
-    { "type": "deps", "section": "Dependencies" },
     { "type": "ci", "section": "Continuous Integration" },
     { "type": "chore", "section": "Miscellaneous Chores", "hidden": true }
   ],

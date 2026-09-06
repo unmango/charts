@@ -11,7 +11,8 @@
   "packageRules": [
     {
       "matchFileNames": ["charts/**"],
-      "semanticCommitType": "fix"
+      "semanticCommitType": "fix",
+      "semanticCommitScope": "deps"
     }
   ]
 }
