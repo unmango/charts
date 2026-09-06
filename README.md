@@ -1,15 +1,28 @@
 # UnMango Charts
 
-Random Helm charts you may or may not find useful.
+[![CI](https://github.com/unmango/charts/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/unmango/charts/actions/workflows/ci.yml)
+[![Release](https://github.com/unmango/charts/actions/workflows/release.yml/badge.svg)](https://github.com/unmango/charts/actions/workflows/release.yml)
+[![License](https://img.shields.io/github/license/unmango/charts)](./LICENSE)
+[![Helm repo](https://img.shields.io/badge/helm-repo-0F1689?logo=helm&logoColor=white)](https://unmango.github.io/charts)
 
+Random Helm charts you may or may not find useful.
 Very much a work in progress, use at your own risk.
+
+## Usage
+
+```sh
+helm repo add unmango https://unmango.github.io/charts
+helm install filebrowser unmango/filebrowser
+```
 
 ## Charts
 
-- [Deemix](https://gitlab.com/Bockiii/deemix-docker) - [Chart](./charts/deemix/)
-- [Filebrowser](https://github.com/filebrowser/filebrowser) - [Chart](./charts/filebrowser/)
-- [Hercules CI Agent](https://github.com/hercules-ci/hercules-ci-agent) - [Chart](./charts/hercules-ci-agent/)
-- [XMage](https://github.com/magefree/mage) - [Chart](./charts/mage-server/)
+| Chart | Upstream | Version | Status |
+| --- | --- | --- | --- |
+| [deemix](./charts/deemix/) | [bambanah/deemix](https://github.com/bambanah/deemix) | [![deemix](https://img.shields.io/github/v/release/unmango/charts?filter=deemix-*&label=deemix)](https://github.com/unmango/charts/releases?q=deemix) | Revived fork, see [remarks](#deemix) |
+| [filebrowser](./charts/filebrowser/) | [filebrowser/filebrowser](https://github.com/filebrowser/filebrowser) | [![filebrowser](https://img.shields.io/github/v/release/unmango/charts?filter=filebrowser-*&label=filebrowser)](https://github.com/unmango/charts/releases?q=filebrowser) | Upstream archived, see [remarks](#filebrowser) |
+| [hercules-ci-agent](./charts/hercules-ci-agent/) | [hercules-ci/hercules-ci-agent](https://github.com/hercules-ci/hercules-ci-agent) | [![hercules-ci-agent](https://img.shields.io/github/v/release/unmango/charts?filter=hercules-ci-agent-*&label=hercules-ci-agent)](https://github.com/unmango/charts/releases?q=hercules-ci-agent) | Active, see [remarks](#hercules-ci-agent) |
+| [mage-server](./charts/mage-server/) | [magefree/mage](https://github.com/magefree/mage) | [![mage-server](https://img.shields.io/github/v/release/unmango/charts?filter=mage-server-*&label=mage-server)](https://github.com/unmango/charts/releases?q=mage-server) | Active, see [remarks](#xmage) |
 
 ## Remarks
 
@@ -59,14 +72,11 @@ The image runs as root, so the chart drops all capabilities and blocks privilege
 
 ### Filebrowser
 
-Filebrowser is looking for maintainers.
-
-<https://github.com/filebrowser/filebrowser#project-status>
+Upstream File Browser is [archived](https://github.com/filebrowser/filebrowser#project-status) as of 2026-09-01.
+The last planned release has shipped, and there are no further releases, bug fixes, or security fixes.
+The chart keeps working against the final image, but that image receives no updates, so weigh the risk before exposing it.
 
 ### Deemix
 
-Deemix is a little unmaintained at the moment.
-
-<https://gitlab.com/RemixDev/deemix-gui>
-<https://gitlab.com/Bockiii/deemix-docker/-/issues/149#note_2637650875>
-<https://gitlab.com/deeplydrumming/DeemixFix>
+The original deemix by RemixDev is abandoned.
+This chart deploys the revived fork at [bambanah/deemix](https://github.com/bambanah/deemix), which is actively maintained and publishes the `ghcr.io/bambanah/deemix` image.
