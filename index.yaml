@@ -272,4 +272,22 @@ entries:
     urls:
     - https://github.com/unmango/charts/releases/download/filebrowser-0.1.0/filebrowser-0.1.0.tgz
     version: 0.1.0
-generated: "2026-09-05T23:58:02.360876679Z"
+  hercules-ci-agent:
+  - apiVersion: v2
+    appVersion: 0.10.8
+    created: "2026-09-06T02:34:45.498985873Z"
+    description: Helm chart for installing the Hercules CI agent
+    digest: a0131e65247238bf6e0d387fd560a9658fe9999a45621f50016a80d33931501b
+    kubeVersion: '>= 1.25'
+    maintainers:
+    - name: UnstoppableMango
+      url: https://github.com/UnstoppableMango
+    name: hercules-ci-agent
+    sources:
+    - https://github.com/hercules-ci/hercules-ci-agent
+    - https://github.com/unmango/containers/tree/main/images/hercules-ci-agent
+    type: application
+    urls:
+    - https://github.com/unmango/charts/releases/download/hercules-ci-agent-0.1.0/hercules-ci-agent-0.1.0.tgz
+    version: 0.1.0
+generated: "2026-09-06T02:34:45.499011651Z"
