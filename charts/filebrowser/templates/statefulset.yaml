@@ -3,15 +3,17 @@ kind: StatefulSet
 metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels" . | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      app: filebrowser
+      {{- include "selectorLabels" . | nindent 6 }}
   serviceName: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: filebrowser
+        {{- include "labels" . | nindent 8 }}
     spec:
       initContainers:
         - name: setup

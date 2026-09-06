@@ -3,18 +3,18 @@ kind: StatefulSet
 metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   serviceName: {{ .Release.Name }}
   selector:
     matchLabels:
-      kubernetes.io/app: mage-server
-      app.kubernetes.io/instance: {{ .Release.Name }}
+      {{- include "selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        kubernetes.io/app: mage-server
-        app.kubernetes.io/instance: {{ .Release.Name }}
+        {{- include "labels" . | nindent 8 }}
       {{- if include "manageSecret" . }}
       annotations:
         checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}

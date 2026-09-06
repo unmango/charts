@@ -3,16 +3,18 @@ kind: StatefulSet
 metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicaCount }}
   serviceName: {{ .Release.Name }}
   selector:
     matchLabels:
-      kubernetes.io/app: hercules-ci-agent
+      {{- include "selectorLabels" . | nindent 6 }}
   template:
     metadata:
       labels:
-        kubernetes.io/app: hercules-ci-agent
+        {{- include "labels" . | nindent 8 }}
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
         {{- if not .Values.existingSecret }}
