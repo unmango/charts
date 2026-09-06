@@ -68,6 +68,9 @@ Do not share one store across nodes over `ReadWriteMany`: a nix store is SQLite 
 `max-jobs` is nix's default of 1, so a runner builds one derivation at a time whatever the pod is given, and `auto` is not the fix: nix reads the machine's core count rather than the cgroup's CPU limit, so a pod limited to 2 cores on a 24 core node resolves it to 24.
 Set both to the number the pod is actually allowed.
 
+Unlike the other charts here, `gharc` keeps upstream's labels rather than this repository's `labels` helper.
+Upstream already emits the full `app.kubernetes.io/*` set, and its `app.kubernetes.io/name` is the scale set name the controller keys on.
+
 ### Hercules CI Agent
 
 Hercules CI publishes no container image and no Helm chart.

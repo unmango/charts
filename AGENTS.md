@@ -47,7 +47,11 @@ Renovate updates under `charts/` commit as `fix(deps): ...` so they trigger a pa
 
 ## Chart conventions
 
-- Every chart vendors an identical `common.images.image` helper in `templates/_helpers.tpl`, copied from bitnami/common.
+- Every application chart vendors an identical `common.images.image` helper in `templates/_helpers.tpl`, copied from bitnami/common, alongside the `labels` and `selectorLabels` helpers.
+  `actions-runner` deliberately does not: template names are global to a release, so a library defining unprefixed names would silently override the consumer's own.
+  Everything it defines is prefixed `actions-runner.`.
+- `gharc` keeps upstream's `gha-runner-scale-set.labels` rather than this repo's `labels`.
+  Upstream already emits the full `app.kubernetes.io/*` set, and its `app.kubernetes.io/name` is the scale set name that the ARC controller keys on.
   Templates call the local `image` / `init.image` wrappers rather than the bitnami one directly.
   A change to one chart's helper usually needs mirroring in the others.
 - `actions-runner` is a library chart, so it renders nothing and cannot be installed; `ct install` excludes it, and its `lint-actions-runner` target is explicit because the `lint-%` pattern rule wants a `Chart.lock`.
