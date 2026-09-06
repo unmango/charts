@@ -1,0 +1,177 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  serviceName: {{ .Release.Name }}
+  selector:
+    matchLabels:
+      kubernetes.io/app: mage-server
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        kubernetes.io/app: mage-server
+        app.kubernetes.io/instance: {{ .Release.Name }}
+      {{- if include "manageSecret" . }}
+      annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+      {{- end }}
+    spec:
+      containers:
+        - name: mage-server
+          image: {{ include "image" . }}
+          ports:
+            - name: xmage
+              containerPort: {{ .Values.server.port }}
+            - name: xmage-secondary
+              containerPort: {{ .Values.server.secondaryBindPort }}
+          env:
+            - name: MAX_MEMORY
+              value: {{ .Values.java.maxMemory | quote }}
+            {{- with .Values.java.minMemory }}
+            - name: MIN_MEMORY
+              value: {{ . | quote }}
+            {{- end }}
+          {{- if .Values.existingConfigMap }}
+            - name: XMAGE_CONFIG_PATH
+              value: /opt/xmage/config/custom/config.xml
+          {{- else }}
+            - name: XMAGE_SERVER_NAME
+              value: {{ .Values.server.name | quote }}
+            - name: XMAGE_SERVER_ADDRESS
+              value: {{ .Values.server.address | quote }}
+            - name: XMAGE_PORT
+              value: {{ .Values.server.port | quote }}
+            - name: XMAGE_SECONDARY_BIND_PORT
+              value: {{ .Values.server.secondaryBindPort | quote }}
+            - name: XMAGE_MAX_GAME_THREADS
+              value: {{ .Values.server.maxGameThreads | quote }}
+            - name: XMAGE_MAX_SECONDS_IDLE
+              value: {{ .Values.server.maxSecondsIdle | quote }}
+            - name: XMAGE_MAX_AI_OPPONENTS
+              value: {{ .Values.server.maxAiOpponents | quote }}
+            - name: XMAGE_SAVE_GAME_ACTIVATED
+              value: {{ .Values.server.saveGameActivated | quote }}
+            - name: XMAGE_AUTHENTICATION_ACTIVATED
+              value: {{ .Values.server.authenticationActivated | quote }}
+            {{- range $key, $value := .Values.server.extraSettings }}
+            - name: XMAGE_{{ $key | snakecase | upper }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- if .Values.server.authenticationActivated }}
+            - name: XMAGE_MAIL_SMTP_HOST
+              value: {{ .Values.mail.smtpHost | quote }}
+            - name: XMAGE_MAIL_SMTP_PORT
+              value: {{ .Values.mail.smtpPort | quote }}
+            - name: XMAGE_MAIL_USER
+              value: {{ .Values.mail.user | quote }}
+            - name: XMAGE_MAIL_FROM_ADDRESS
+              value: {{ .Values.mail.fromAddress | quote }}
+            - name: XMAGE_MAILGUN_DOMAIN
+              value: {{ .Values.mail.mailgunDomain | quote }}
+            {{- if or .Values.mail.existingSecret (include "manageSecret" .) }}
+            - name: XMAGE_MAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secretName" . }}
+                  key: mail-password
+            - name: XMAGE_MAILGUN_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secretName" . }}
+                  key: mailgun-api-key
+            {{- end }}
+            {{- end }}
+          {{- end }}
+          {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: db
+              mountPath: /opt/xmage/db
+            - name: saved
+              mountPath: /opt/xmage/saved
+            {{- if .Values.existingConfigMap }}
+            - name: config
+              mountPath: /opt/xmage/config/custom
+              readOnly: true
+            {{- end }}
+          {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if or .Values.existingConfigMap (not .Values.persistence.db.enabled) (not .Values.persistence.saved.enabled) .Values.extraVolumes }}
+      volumes:
+        {{- if .Values.existingConfigMap }}
+        - name: config
+          configMap:
+            name: {{ .Values.existingConfigMap }}
+        {{- end }}
+        {{- if not .Values.persistence.db.enabled }}
+        - name: db
+          emptyDir: {}
+        {{- end }}
+        {{- if not .Values.persistence.saved.enabled }}
+        - name: saved
+          emptyDir: {}
+        {{- end }}
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+{{- if or .Values.persistence.db.enabled .Values.persistence.saved.enabled }}
+  volumeClaimTemplates:
+  {{- range $name, $claim := .Values.persistence }}
+  {{- if $claim.enabled }}
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: {{ $name }}
+      spec:
+        {{- with $claim.storageClassName }}
+        storageClassName: {{ . }}
+        {{- end }}
+        accessModes:
+        {{- range $claim.accessModes }}
+          - {{ . }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ $claim.size }}
+  {{- end }}
+  {{- end }}
+{{- end }}

@@ -9,6 +9,7 @@ Very much a work in progress, use at your own risk.
 - [Deemix](https://gitlab.com/Bockiii/deemix-docker) - [Chart](./charts/deemix/)
 - [Filebrowser](https://github.com/filebrowser/filebrowser) - [Chart](./charts/filebrowser/)
 - [Hercules CI Agent](https://github.com/hercules-ci/hercules-ci-agent) - [Chart](./charts/hercules-ci-agent/)
+- [XMage](https://github.com/magefree/mage) - [Chart](./charts/mage-server/)
 
 ## Remarks
 
@@ -38,6 +39,23 @@ Effects run in a nested container and need `effects.enabled: true`, which makes 
 The agent only makes outbound connections, so the chart ships no Ingress or HTTPRoute.
 The headless Service exists only to satisfy `StatefulSet.spec.serviceName`.
 For the same reason the chart is excluded from `ct install`: without a real join token the agent exits on a 401 and can never reach Ready.
+
+### XMage
+
+XMage publishes no container image.
+The image this chart deploys comes from [xmage-docker](https://github.com/UnstoppableMango/xmage-docker), which builds the upstream `Mage.Server` and wraps it in an entrypoint that writes `XMAGE_*` environment variables into `config.xml`.
+The `server` values map onto those variables, and `server.extraSettings` covers any attribute the chart does not name.
+`existingConfigMap` mounts a complete `config.xml` instead, in which case the entrypoint performs no substitution and the `server` and `mail` values are ignored.
+
+XMage clients speak a raw TCP protocol on `17171`, plus `17179` for the secondary socket, so the chart ships no Ingress or HTTPRoute.
+Expose the Service as `LoadBalancer` or `NodePort`, or attach a Gateway API `TCPRoute` from the experimental channel.
+`server.address` is the address the server binds and advertises to clients; the default `0.0.0.0` works behind a Service.
+
+The server loads its card database before it listens, which takes a few minutes on first start.
+The readiness probe allows ten minutes for this.
+
+The image runs as root, so the chart drops all capabilities and blocks privilege escalation by default but does not set `runAsNonRoot`.
+`server.secondaryBindPort` must be a fixed port: XMage picks an arbitrary one when it is `-1`, and a Service cannot expose that.
 
 ### Filebrowser
 

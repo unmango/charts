@@ -1,0 +1,122 @@
+global: {}
+
+image:
+  registry: 'ghcr.io'
+  repository: unstoppablemango/mage-server
+  tag: ''
+  digest: ''
+
+replicaCount: 1
+
+# Rendered into XMAGE_* environment variables, which the image's entrypoint
+# writes into /opt/xmage/config/config.xml at startup.
+# https://github.com/magefree/mage/blob/master/Mage.Server/release/config/config.xml
+server:
+  name: mage-server
+  # Address the server binds and advertises to clients
+  address: 0.0.0.0
+  port: 17171
+  # Must be a fixed port. XMage picks an arbitrary one when this is -1,
+  # which the Service cannot expose.
+  secondaryBindPort: 17179
+  maxGameThreads: 10
+  maxSecondsIdle: 600
+  maxAiOpponents: 15
+  saveGameActivated: false
+  authenticationActivated: false
+  # Any other config.xml attribute, camelCase. backlogSize: 200 becomes
+  # XMAGE_BACKLOG_SIZE=200.
+  extraSettings: {}
+    # backlogSize: 200
+    # numAcceptThreads: 2
+    # maxPoolSize: 300
+    # leasePeriod: 5000
+    # socketWriteTimeout: 10000
+    # minUserNameLength: 3
+    # maxUserNameLength: 14
+    # invalidUserNamePattern: '[^a-z0-9_]'
+    # minPasswordLength: 8
+    # maxPasswordLength: 100
+
+# Used for registration and password reset mail when
+# server.authenticationActivated is true.
+mail:
+  smtpHost: ''
+  smtpPort: ''
+  user: ''
+  fromAddress: ''
+  mailgunDomain: ''
+  # Written to a chart-managed Secret. Ignored when existingSecret is set.
+  password: ''
+  mailgunApiKey: ''
+  # Secret holding the mail-password and mailgun-api-key keys
+  existingSecret: ''
+
+java:
+  maxMemory: 1024m
+  minMemory: ''
+
+# ConfigMap holding a complete config.xml. When set, the server.* and mail.*
+# values are ignored, since the entrypoint only substitutes environment
+# variables into the image's default config file.
+existingConfigMap: ''
+
+persistence:
+  # H2 user and stats database
+  db:
+    enabled: true
+    storageClassName: ''
+    size: 1Gi
+    accessModes: [ReadWriteOnce]
+  # Saved games, written when server.saveGameActivated is true
+  saved:
+    enabled: true
+    storageClassName: ''
+    size: 5Gi
+    accessModes: [ReadWriteOnce]
+
+# XMage clients speak a raw TCP protocol, so the chart ships no Ingress or
+# HTTPRoute. Expose the Service directly or attach a Gateway API TCPRoute.
+service:
+  type: ClusterIP
+  port: 17171
+  secondaryPort: 17179
+  clusterIP: ''
+  loadBalancerIP: ''
+
+resources: {}
+  # limits:
+  #   cpu: 2
+  #   memory: 2Gi
+  # requests:
+  #   cpu: 500m
+  #   memory: 1Gi
+
+# The server loads its card database before listening, which takes a while
+livenessProbe:
+  tcpSocket:
+    port: xmage
+  initialDelaySeconds: 120
+  periodSeconds: 30
+  timeoutSeconds: 5
+readinessProbe:
+  tcpSocket:
+    port: xmage
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 60
+
+# The image runs as root, so runAsNonRoot is not set here
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: [ALL]
+podSecurityContext: {}
+
+extraEnv: []
+extraVolumes: []
+extraVolumeMounts: []
+nodeSelector: {}
+tolerations: []
+affinity: {}

@@ -1,0 +1,14 @@
+apiVersion: v2
+name: mage-server
+description: Helm chart for installing an XMage server
+type: application
+version: 0.1.0
+# renovate: image=ghcr.io/unstoppablemango/mage-server
+appVersion: v1.4.58V1r1
+sources:
+- https://github.com/magefree/mage
+- https://github.com/UnstoppableMango/xmage-docker
+kubeVersion: '>= 1.25'
+maintainers:
+- name: UnstoppableMango
+  url: https://github.com/UnstoppableMango
