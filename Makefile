@@ -2,7 +2,7 @@ export KUBECONFIG := ${CURDIR}/.kube/config
 
 # lint-% targets are intentionally omitted: .PHONY disables implicit rule
 # search, which would stop them matching the lint-% pattern rule below.
-.PHONY: lint lint-hercules-ci-agent test install changed update check build format fmt kind package gateway-api
+.PHONY: lint lint-hercules-ci-agent lint-mage-server test install changed update check build format fmt kind package gateway-api
 
 # renovate: datasource=github-releases depName=kubernetes-sigs/gateway-api
 GATEWAY_API_VERSION := 1.6.2
@@ -10,16 +10,21 @@ GATEWAY_API_VERSION := 1.6.2
 DEEMIX_VERSION := $(shell awk '/^version:/{print $$2}' charts/deemix/Chart.yaml)
 FILEBROWSER_VERSION := $(shell awk '/^version:/{print $$2}' charts/filebrowser/Chart.yaml)
 HERCULES_CI_AGENT_VERSION := $(shell awk '/^version:/{print $$2}' charts/hercules-ci-agent/Chart.yaml)
+MAGE_SERVER_VERSION := $(shell awk '/^version:/{print $$2}' charts/mage-server/Chart.yaml)
 
-lint: lint-deemix lint-filebrowser lint-hercules-ci-agent
+lint: lint-deemix lint-filebrowser lint-hercules-ci-agent lint-mage-server
 lint-%: charts/%/Chart.yaml charts/%/Chart.lock .ct.yaml
 	helm lint $(dir $<)
 	ct lint --config .ct.yaml $(dir $<)
 
-# hercules-ci-agent has no dependencies, so no Chart.lock to depend on
+# hercules-ci-agent and mage-server have no dependencies, so no Chart.lock to depend on
 lint-hercules-ci-agent: charts/hercules-ci-agent/Chart.yaml .ct.yaml
 	helm lint charts/hercules-ci-agent --values charts/hercules-ci-agent/ci/default-values.yaml
 	ct lint --config .ct.yaml charts/hercules-ci-agent
+
+lint-mage-server: charts/mage-server/Chart.yaml .ct.yaml
+	helm lint charts/mage-server
+	ct lint --config .ct.yaml charts/mage-server
 
 test: install
 
@@ -50,7 +55,8 @@ kind: .kube/config
 
 package: .cr-release-packages/deemix-$(DEEMIX_VERSION).tgz \
 	.cr-release-packages/filebrowser-$(FILEBROWSER_VERSION).tgz \
-	.cr-release-packages/hercules-ci-agent-$(HERCULES_CI_AGENT_VERSION).tgz
+	.cr-release-packages/hercules-ci-agent-$(HERCULES_CI_AGENT_VERSION).tgz \
+	.cr-release-packages/mage-server-$(MAGE_SERVER_VERSION).tgz
 
 .kube/config: kind-cluster.yml
 	kind create cluster --name chart-testing \
@@ -69,6 +75,7 @@ index.yaml:
 .cr-release-packages/deemix-$(DEEMIX_VERSION).tgz: CHART := deemix
 .cr-release-packages/filebrowser-$(FILEBROWSER_VERSION).tgz: CHART := filebrowser
 .cr-release-packages/hercules-ci-agent-$(HERCULES_CI_AGENT_VERSION).tgz: CHART := hercules-ci-agent
+.cr-release-packages/mage-server-$(MAGE_SERVER_VERSION).tgz: CHART := mage-server
 
 .cr-release-packages/%.tgz: .cr.yaml
 	cr package charts/$(CHART) --config $<
