@@ -62,5 +62,6 @@ CI (`.github/workflows/ci.yml`) discovers charts automatically through `ct`.
 
 - `ct` validates `Chart.yaml` against `chart_schema.yaml` (yamale) and YAML style against `lintconf.yaml` (yamllint).
 - `ct lint` requires full git history to diff against `main`; workflows use `fetch-depth: 0`.
-- The `test` job excludes `filebrowser` from `ct install` (it needs storage the kind cluster does not provide).
+- The `test` job installs every chart.
+  `filebrowser` provisions a PVC and relies on the kind cluster's default `standard` StorageClass; leaving `persistence.storageClassName` empty omits the field so the cluster default applies.
 - GitHub Action versions are pinned to commit SHAs and updated by Renovate; keep the `# vN` trailing comments when editing.
