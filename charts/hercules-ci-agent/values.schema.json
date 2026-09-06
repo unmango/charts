@@ -1,0 +1,239 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"type": "object",
+	"required": [
+		"agent",
+		"caCertFile",
+		"image",
+		"persistence",
+		"tmpDir"
+	],
+	"properties": {
+		"affinity": {
+			"type": "object"
+		},
+		"agent": {
+			"type": "object",
+			"required": [
+				"apiBaseUrl"
+			],
+			"properties": {
+				"apiBaseUrl": {
+					"type": "string"
+				},
+				"concurrentTasks": {
+					"type": [
+						"string",
+						"integer"
+					]
+				},
+				"logLevel": {
+					"type": "string",
+					"enum": [
+						"DebugS",
+						"InfoS",
+						"WarningS",
+						"ErrorS"
+					]
+				},
+				"labels": {
+					"type": "object"
+				},
+				"extraSettings": {
+					"type": "object"
+				}
+			}
+		},
+		"binaryCaches": {
+			"type": "object"
+		},
+		"caCertFile": {
+			"type": "string"
+		},
+		"clusterJoinToken": {
+			"type": "string"
+		},
+		"effects": {
+			"type": "object",
+			"properties": {
+				"enabled": {
+					"type": "boolean"
+				}
+			}
+		},
+		"existingSecret": {
+			"type": "string"
+		},
+		"existingSecretKey": {
+			"type": "string"
+		},
+		"extraEnv": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": [
+					"name"
+				],
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"value": {
+						"type": "string"
+					},
+					"valueFrom": {
+						"type": "object"
+					}
+				}
+			}
+		},
+		"extraNixConf": {
+			"type": "string"
+		},
+		"extraVolumeMounts": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": [
+					"name",
+					"mountPath"
+				],
+				"properties": {
+					"mountPath": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"subPath": {
+						"type": "string"
+					}
+				}
+			}
+		},
+		"extraVolumes": {
+			"type": "array"
+		},
+		"global": {
+			"type": "object",
+			"properties": {
+				"imageRegistry": {
+					"type": "string"
+				}
+			}
+		},
+		"image": {
+			"type": "object",
+			"properties": {
+				"registry": {
+					"type": "string"
+				},
+				"repository": {
+					"type": "string"
+				},
+				"tag": {
+					"type": "string"
+				},
+				"digest": {
+					"type": "string"
+				}
+			}
+		},
+		"nixConf": {
+			"type": "object"
+		},
+		"nodeSelector": {
+			"type": "object"
+		},
+		"persistence": {
+			"type": "object",
+			"required": [
+				"enabled"
+			],
+			"properties": {
+				"enabled": {
+					"type": "boolean"
+				},
+				"size": {
+					"type": "string"
+				},
+				"storageClassName": {
+					"type": "string"
+				},
+				"accessModes": {
+					"type": "array",
+					"minItems": 1,
+					"items": {
+						"type": "string",
+						"enum": [
+							"ReadWriteOnce",
+							"ReadOnlyMany",
+							"ReadWriteMany",
+							"ReadWriteOncePod"
+						]
+					}
+				}
+			}
+		},
+		"podSecurityContext": {
+			"type": "object"
+		},
+		"replicaCount": {
+			"type": "integer",
+			"minimum": 1
+		},
+		"resources": {
+			"type": "object",
+			"properties": {
+				"limits": {
+					"type": "object",
+					"properties": {
+						"cpu": {
+							"type": [
+								"string",
+								"number"
+							]
+						},
+						"memory": {
+							"type": "string"
+						}
+					}
+				},
+				"requests": {
+					"type": "object",
+					"properties": {
+						"cpu": {
+							"type": [
+								"string",
+								"number"
+							]
+						},
+						"memory": {
+							"type": "string"
+						}
+					}
+				}
+			}
+		},
+		"secretsJson": {
+			"type": "object"
+		},
+		"securityContext": {
+			"type": "object"
+		},
+		"tmpDir": {
+			"type": "object",
+			"required": [
+				"sizeLimit"
+			],
+			"properties": {
+				"sizeLimit": {
+					"type": "string"
+				}
+			}
+		},
+		"tolerations": {
+			"type": "array"
+		}
+	}
+}

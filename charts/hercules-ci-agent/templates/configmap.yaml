@@ -1,0 +1,32 @@
+{{- /*
+Rendered here rather than from a configmap/ directory like the other charts:
+the generated files are multi-line, which a `tpl` over `.Files.Glob.AsConfig`
+cannot indent correctly.
+*/ -}}
+{{- $cfg := dict
+  "apiBaseUrl" .Values.agent.apiBaseUrl
+  "baseDirectory" "/var/lib/hercules-ci-agent"
+  "staticSecretsDirectory" "/etc/hercules-ci-agent/secrets"
+  "concurrentTasks" .Values.agent.concurrentTasks
+  "logLevel" .Values.agent.logLevel -}}
+{{- with .Values.agent.labels }}{{ $_ := set $cfg "labels" . }}{{ end -}}
+{{- range $k, $v := .Values.agent.extraSettings }}{{ $_ := set $cfg $k $v }}{{ end -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-config" .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+data:
+  agent.json: |
+    {{- $cfg | toPrettyJson | nindent 4 }}
+  {{- if or .Values.nixConf .Values.extraNixConf }}
+  nix.conf: |
+    {{- /* The agent exits with a fatal error on any other value */}}
+    narinfo-cache-negative-ttl = 0
+    {{- range $k, $v := omit .Values.nixConf "narinfo-cache-negative-ttl" }}
+    {{ $k }} = {{ $v }}
+    {{- end }}
+    {{- with .Values.extraNixConf }}
+    {{- . | nindent 4 }}
+    {{- end }}
+  {{- end }}

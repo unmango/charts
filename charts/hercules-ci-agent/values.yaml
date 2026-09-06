@@ -1,0 +1,73 @@
+global: {}
+
+image:
+  registry: 'ghcr.io'
+  repository: unmango/hercules-ci-agent
+  tag: ''
+  digest: ''
+
+replicaCount: 1
+
+# Raw cluster join token from the Hercules CI dashboard.
+# Ignored when existingSecret is set.
+clusterJoinToken: ''
+existingSecret: ''
+existingSecretKey: cluster-join-token.key
+
+agent:
+  apiBaseUrl: 'https://hercules-ci.com'
+  concurrentTasks: auto
+  logLevel: InfoS
+  labels: {}
+  extraSettings: {}
+    # allowInsecureBuiltinFetchers: false
+    # nixSettings:
+    #   substituters: https://cache.nixos.org
+
+# Rendered into the agent secrets directory
+binaryCaches: {}
+secretsJson: {}
+
+# The image bakes in the one setting the agent requires, so this is only
+# needed to add to it. Leave empty to use the image's /etc/nix/nix.conf.
+nixConf: {}
+extraNixConf: ''
+
+# The image's SSL_CERT_FILE points at a store path it does not contain, so
+# the chart points both cert variables at the bundle that is present.
+caCertFile: /etc/ssl/certs/ca-bundle.crt
+
+# The agent's state directory. Nix has no /nix/var/nix here, so it chroot
+# stores into this directory too, which makes it the build cache as well.
+persistence:
+  enabled: true
+  storageClassName: ''
+  size: 100Gi
+  accessModes: [ReadWriteOnce]
+
+# Scratch space for builds
+tmpDir:
+  sizeLimit: 20Gi
+
+# Effects run in a nested container and need elevated privileges
+effects:
+  enabled: false
+
+resources: {}
+  # limits:
+  #   cpu: 2
+  #   memory: 8Gi
+  # requests:
+  #   cpu: 500m
+  #   memory: 4Gi
+
+securityContext: {}
+podSecurityContext:
+  fsGroup: 1000  # The image runs as the hercules-ci-agent user
+
+extraEnv: []
+extraVolumes: []
+extraVolumeMounts: []
+nodeSelector: {}
+tolerations: []
+affinity: {}
