@@ -4,6 +4,10 @@ on:
   pull_request:
     branches: [main]
 
+# Nothing here writes to the repository; linting and testing only read it.
+permissions:
+  contents: read
+
 env:
   # renovate: datasource=github-releases depName=helm/chart-testing
   CHART_TESTING_VERSION: 3.14.0
@@ -46,6 +50,9 @@ jobs:
         run: |
           make chart-gharc
           git diff --exit-code -- charts/gharc
+          # git diff says nothing about a file that has never been added, so a
+          # regeneration that produces a new template would otherwise pass.
+          test -z "$(git ls-files --others --exclude-standard -- charts/gharc)"
 
   lint:
     runs-on: thecluster

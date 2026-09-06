@@ -17,7 +17,7 @@ Default to the nix-enabled runner image and document the nix values block.
          command: ["/home/runner/run.sh"]
  ## Optional controller service account that needs to have required Role and RoleBinding
  ## to operate this gha-runner-scale-set installation.
-@@ -428,6 +434,102 @@
+@@ -428,6 +434,104 @@
  #   namespace: arc-system
  #   name: test-arc-gha-runner-scale-set-controller
  
@@ -76,8 +76,10 @@ Default to the nix-enabled runner image and document the nix values block.
 +      path: /var/lib/nix
 +      type: DirectoryOrCreate
 +
-+    ## /nix is the only path nix accepts without rewriting every store path.
-+    mountPath: /nix
++    ## The volume's name. Where it is mounted is not configurable: nix compiles
++    ## /nix/store in, and a store anywhere else is one no substituter can
++    ## serve, so mounting elsewhere would look like it worked and quietly
++    ## leave the runner building everything from source.
 +    volumeName: nix
 +
 +  ## Substituters to add to the image's. Rendered as extra-substituters and

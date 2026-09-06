@@ -67,9 +67,6 @@
 						"fsGroup": {
 							"type": "integer"
 						},
-						"mountPath": {
-							"type": "string"
-						},
 						"volumeName": {
 							"type": "string"
 						}
