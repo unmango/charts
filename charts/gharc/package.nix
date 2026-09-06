@@ -21,7 +21,8 @@ let
     tag = "gha-runner-scale-set-${upstream.version}";
   };
 
-  patches = lib.filesystem.listFilesRecursive ./patches |> lib.filter (lib.hasSuffix ".patch");
+  # Not `|>`: pipe-operators is still experimental, and CI runs nix without it.
+  patches = lib.filter (lib.hasSuffix ".patch") (lib.filesystem.listFilesRecursive ./patches);
 in
 runCommand "gharc-chart-${upstream.version}"
   {
