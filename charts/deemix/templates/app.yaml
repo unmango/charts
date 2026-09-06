@@ -3,17 +3,19 @@ kind: {{ .Values.kind | required "kind is required" }}
 metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels" . | nindent 4 }}
 spec:
   selector:
     matchLabels:
-      kubernetes.io/app: deemix
+      {{- include "selectorLabels" . | nindent 6 }}
   {{- if eq .Values.kind "StatefulSet" }}
   serviceName: {{ .Release.Name }}
   {{- end }}
   template:
     metadata:
       labels:
-        kubernetes.io/app: deemix
+        {{- include "labels" . | nindent 8 }}
     spec:
       containers:
         - name: deemix
