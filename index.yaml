@@ -290,4 +290,22 @@ entries:
     urls:
     - https://github.com/unmango/charts/releases/download/hercules-ci-agent-0.1.0/hercules-ci-agent-0.1.0.tgz
     version: 0.1.0
-generated: "2026-09-06T02:34:45.499011651Z"
+  mage-server:
+  - apiVersion: v2
+    appVersion: v1.4.58V1r1
+    created: "2026-09-06T03:46:52.610794987Z"
+    description: Helm chart for installing an XMage server
+    digest: 080c887a8e1e3f6ff0abbfe10d5f8dbe295ac6e0665f3c0fb09dc17b4fcf656a
+    kubeVersion: '>= 1.25'
+    maintainers:
+    - name: UnstoppableMango
+      url: https://github.com/UnstoppableMango
+    name: mage-server
+    sources:
+    - https://github.com/magefree/mage
+    - https://github.com/UnstoppableMango/xmage-docker
+    type: application
+    urls:
+    - https://github.com/unmango/charts/releases/download/mage-server-0.1.0/mage-server-0.1.0.tgz
+    version: 0.1.0
+generated: "2026-09-06T03:46:52.610825143Z"
