@@ -5,7 +5,7 @@ This file provides guidance to coding agents when working with code in this repo
 ## What this is
 
 A Helm chart repository published to GitHub Pages (`gh-pages` branch, `index.yaml`) by `chart-releaser`.
-Four charts live under `charts/`: `deemix`, `filebrowser`, `hercules-ci-agent`, and `mage-server`.
+Six charts live under `charts/`: `actions-runner`, `deemix`, `filebrowser`, `gharc`, `hercules-ci-agent`, and `mage-server`.
 
 ## Tooling
 
@@ -50,6 +50,14 @@ Renovate updates under `charts/` commit as `fix(deps): ...` so they trigger a pa
 - Every chart vendors an identical `common.images.image` helper in `templates/_helpers.tpl`, copied from bitnami/common.
   Templates call the local `image` / `init.image` wrappers rather than the bitnami one directly.
   A change to one chart's helper usually needs mirroring in the others.
+- `actions-runner` is a library chart, so it renders nothing and cannot be installed; `ct install` excludes it, and its `lint-actions-runner` target is explicit because the `lint-%` pattern rule wants a `Chart.lock`.
+  Its templates take the `nix` block as an argument rather than reading `.Values`, since a library's own values land under `.Values.actions-runner` in the consumer.
+  `gharc` depends on it through `file://../actions-runner`, so editing the library means re-running `helm dep update charts/gharc` before templating, or the stale vendored copy is what renders.
+  That dependency is constrained as `>= 0.1.0` rather than pinned, so a release-please bump of the library does not break `gharc`'s `helm dep update`.
+- `gharc`'s `templates/` and `values.yaml` are generated: `make chart-gharc` fetches the tag in `charts/gharc/upstream.nix` and applies `charts/gharc/patches/*.patch`.
+  Edit the patches, never the generated files; CI regenerates and fails on drift.
+  `Chart.yaml` is hand-written and deliberately not generated, because release-please rewrites its `version` and a regeneration would revert it.
+  To change a patch, unpack the upstream chart, edit, `diff -ruN` against a pristine copy, and rewrite the patch file.
 - `deemix` and `filebrowser` declare `oauth2-proxy` as an optional dependency gated on `oauth2-proxy.enabled`.
   `hercules-ci-agent` and `mage-server` have no dependencies and no `Chart.lock`.
   `charts/*/charts/` is gitignored, so `helm dep update` is required before linting or templating.
@@ -63,6 +71,7 @@ Renovate updates under `charts/` commit as `fix(deps): ...` so they trigger a pa
 ## Adding a chart
 
 The `lint` and `package` Makefile targets enumerate chart names explicitly; add the new chart to both.
+A chart that cannot reach Ready in kind also needs adding to `--excluded-charts` in the Makefile's `install` target and in `ci.yml`.
 CI (`.github/workflows/ci.yml`) discovers charts automatically through `ct`.
 
 ## CI notes

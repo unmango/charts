@@ -1,0 +1,18 @@
+apiVersion: v2
+name: gharc
+description: Helm chart for deploying an AutoScalingRunnerSet that builds with Nix
+type: application
+version: 0.1.0
+# renovate: image=ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set
+appVersion: '0.14.2'
+sources:
+- https://github.com/actions/actions-runner-controller
+- https://github.com/unmango/charts/tree/main/charts/gharc
+kubeVersion: '>= 1.25'
+maintainers:
+- name: UnstoppableMango
+  url: https://github.com/UnstoppableMango
+dependencies:
+- name: actions-runner
+  version: '>= 0.1.0'
+  repository: file://../actions-runner

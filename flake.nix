@@ -42,6 +42,10 @@
             ];
           };
 
+          # The generated half of charts/gharc, which `make chart-gharc` copies
+          # into the worktree and CI checks for drift.
+          packages.gharc = pkgs.callPackage ./charts/gharc/package.nix { };
+
           devShells.default = pkgs.mkShellNoCC {
             packages = with pkgs; [
               chart-releaser

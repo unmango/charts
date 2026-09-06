@@ -1,0 +1,129 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"type": "object",
+	"comment": "Only the nix block this chart adds is constrained. The rest of the surface is upstream's, which ships no schema of its own, so it stays open rather than being pinned to one upstream release.",
+	"additionalProperties": true,
+	"properties": {
+		"nix": {
+			"type": "object",
+			"additionalProperties": false,
+			"properties": {
+				"enabled": {
+					"type": "boolean"
+				},
+				"store": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"backing": {
+							"type": "string",
+							"enum": [
+								"emptyDir",
+								"ephemeral",
+								"existingClaim",
+								"hostPath",
+								"none"
+							]
+						},
+						"emptyDir": {
+							"type": "object"
+						},
+						"ephemeral": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"accessModes": {
+									"type": "array",
+									"items": {
+										"type": "string"
+									}
+								},
+								"storageClassName": {
+									"type": "string"
+								},
+								"size": {
+									"type": [
+										"string",
+										"number"
+									]
+								}
+							}
+						},
+						"existingClaim": {
+							"type": "string"
+						},
+						"hostPath": {
+							"type": "object",
+							"additionalProperties": false,
+							"properties": {
+								"path": {
+									"type": "string"
+								},
+								"type": {
+									"type": "string"
+								}
+							}
+						},
+						"fsGroup": {
+							"type": "integer"
+						},
+						"mountPath": {
+							"type": "string"
+						},
+						"volumeName": {
+							"type": "string"
+						}
+					}
+				},
+				"substituters": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				},
+				"trustedPublicKeys": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				},
+				"maxJobs": {
+					"type": [
+						"string",
+						"integer"
+					]
+				},
+				"cores": {
+					"type": [
+						"string",
+						"integer"
+					]
+				},
+				"gc": {
+					"type": "object",
+					"additionalProperties": false,
+					"properties": {
+						"minFree": {
+							"type": [
+								"string",
+								"integer"
+							]
+						},
+						"maxFree": {
+							"type": [
+								"string",
+								"integer"
+							]
+						}
+					}
+				},
+				"conf": {
+					"type": "object"
+				},
+				"extraConf": {
+					"type": "string"
+				}
+			}
+		}
+	}
+}

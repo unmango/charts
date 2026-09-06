@@ -38,6 +38,15 @@ jobs:
 
       - run: nix flake check
 
+      # charts/gharc's templates and values.yaml are generated from the pinned
+      # upstream chart and the patches beside them, and committed so that ct,
+      # chart-releaser and helm all work against the worktree. Regenerating
+      # here is what keeps the two from drifting apart.
+      - name: Check charts/gharc is up to date
+        run: |
+          make chart-gharc
+          git diff --exit-code -- charts/gharc
+
   lint:
     runs-on: thecluster
     steps:
@@ -97,4 +106,4 @@ jobs:
           kubectl wait --for=condition=Established --timeout=60s crd/httproutes.gateway.networking.k8s.io
 
       # hercules-ci-agent can't reach Ready without a real cluster join token
-      - run: ct install --config .ct.yaml --all --excluded-charts hercules-ci-agent --github-groups
+      - run: ct install --config .ct.yaml --all --excluded-charts actions-runner,gharc,hercules-ci-agent --github-groups

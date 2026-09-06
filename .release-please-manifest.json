@@ -1,6 +1,8 @@
 {
+  "charts/actions-runner": "0.1.0",
   "charts/deemix": "0.3.0",
   "charts/filebrowser": "0.2.2",
+  "charts/gharc": "0.1.0",
   "charts/hercules-ci-agent": "0.1.0",
   "charts/mage-server": "0.1.0"
 }
