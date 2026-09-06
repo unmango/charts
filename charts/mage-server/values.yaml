@@ -16,7 +16,8 @@ server:
   # Address the server binds and advertises to clients
   address: 0.0.0.0
   port: 17171
-  # Set to -1 to disable the secondary socket
+  # Must be a fixed port. XMage picks an arbitrary one when this is -1,
+  # which the Service cannot expose.
   secondaryBindPort: 17179
   maxGameThreads: 10
   maxSecondsIdle: 600
@@ -106,7 +107,11 @@ readinessProbe:
   timeoutSeconds: 5
   failureThreshold: 60
 
-securityContext: {}
+# The image runs as root, so runAsNonRoot is not set here
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop: [ALL]
 podSecurityContext: {}
 
 extraEnv: []

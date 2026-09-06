@@ -54,6 +54,9 @@ Expose the Service as `LoadBalancer` or `NodePort`, or attach a Gateway API `TCP
 The server loads its card database before it listens, which takes a few minutes on first start.
 The readiness probe allows ten minutes for this.
 
+The image runs as root, so the chart drops all capabilities and blocks privilege escalation by default but does not set `runAsNonRoot`.
+`server.secondaryBindPort` must be a fixed port: XMage picks an arbitrary one when it is `-1`, and a Service cannot expose that.
+
 ### Filebrowser
 
 Filebrowser is looking for maintainers.

@@ -9,10 +9,12 @@ spec:
   selector:
     matchLabels:
       kubernetes.io/app: mage-server
+      app.kubernetes.io/instance: {{ .Release.Name }}
   template:
     metadata:
       labels:
         kubernetes.io/app: mage-server
+        app.kubernetes.io/instance: {{ .Release.Name }}
       {{- if include "manageSecret" . }}
       annotations:
         checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
@@ -24,10 +26,8 @@ spec:
           ports:
             - name: xmage
               containerPort: {{ .Values.server.port }}
-            {{- if gt (int .Values.server.secondaryBindPort) 0 }}
             - name: xmage-secondary
               containerPort: {{ .Values.server.secondaryBindPort }}
-            {{- end }}
           env:
             - name: MAX_MEMORY
               value: {{ .Values.java.maxMemory | quote }}

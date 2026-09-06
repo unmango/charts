@@ -13,12 +13,11 @@ spec:
   {{- end }}
   selector:
     kubernetes.io/app: mage-server
+    app.kubernetes.io/instance: {{ .Release.Name }}
   ports:
   - name: xmage
     port: {{ .Values.service.port }}
     targetPort: xmage
-  {{- if gt (int .Values.server.secondaryBindPort) 0 }}
   - name: xmage-secondary
     port: {{ .Values.service.secondaryPort }}
     targetPort: xmage-secondary
-  {{- end }}
