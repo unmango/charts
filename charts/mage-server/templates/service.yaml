@@ -3,6 +3,8 @@ kind: Service
 metadata:
   name: {{ .Release.Name }}
   namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   {{- if and (eq .Values.service.type "LoadBalancer") (.Values.service.loadBalancerIP) }}
@@ -12,8 +14,7 @@ spec:
   clusterIP: {{ .Values.service.clusterIP }}
   {{- end }}
   selector:
-    kubernetes.io/app: mage-server
-    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- include "selectorLabels" . | nindent 4 }}
   ports:
   - name: xmage
     port: {{ .Values.service.port }}
