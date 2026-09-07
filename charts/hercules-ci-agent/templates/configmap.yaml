@@ -20,6 +20,12 @@ metadata:
 data:
   agent.json: |
     {{- $cfg | toPrettyJson | nindent 4 }}
+  {{- if or .Values.binaryCaches (not .Values.existingSecret) }}
+  {{- /* Agent config, not secret material, but the agent reads it from its
+         static secrets directory, so the volume projects it back in. */}}
+  binary-caches.json: |
+    {{- .Values.binaryCaches | toPrettyJson | nindent 4 }}
+  {{- end }}
   {{- if or .Values.nixConf .Values.extraNixConf }}
   {{- /* The agent exits with a fatal error on any other narinfo-cache-negative-ttl value */}}
   nix.conf: |

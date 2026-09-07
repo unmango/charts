@@ -1,1 +1,14 @@
-Idk I just wanted to have this file
+The agent reads three files from /etc/hercules-ci-agent/secrets. For this
+release they come from:
+
+  {{ .Values.existingSecretKey }}
+    {{ if .Values.existingSecret }}Secret {{ .Values.existingSecret }}{{ else }}Secret {{ include "secretName" . }}, rendered from .Values.clusterJoinToken{{ end }}
+
+  binary-caches.json
+    {{ if or .Values.binaryCaches (not .Values.existingSecret) }}ConfigMap {{ printf "%s-config" .Release.Name }}, rendered from .Values.binaryCaches{{ else }}Secret {{ .Values.existingSecret }}{{ end }}
+
+  secrets.json
+    {{ if .Values.secretsJson }}Secret {{ include "secretName" . }}, rendered from .Values.secretsJson{{ else if .Values.existingSecret }}Secret {{ .Values.existingSecret }}, if it has that key{{ else }}not provided; effects that request secrets will fail{{ end }}
+
+The volume is projected, so a file supplied from two sources at once is an
+error. Supply each of them exactly once.

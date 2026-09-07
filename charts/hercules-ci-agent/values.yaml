@@ -8,12 +8,20 @@ image:
 
 replicaCount: 1
 
-# Raw cluster join token from the Hercules CI dashboard.
-# Ignored when existingSecret is set.
-clusterJoinToken: ''
+# The supported way to give the agent its secrets. Every key is mounted into
+# the agent's static secrets directory, so one Secret can supply the cluster
+# join token, secrets.json, and a binary-caches.json that carries auth tokens
+# or signing keys.
 existingSecret: ''
 # Key in the Secret holding the token. The agent is pointed at this file.
 existingSecretKey: cluster-join-token.key
+
+# Escape hatch: setting either makes the chart render and own a Secret, which
+# puts the raw values in release state. Prefer existingSecret.
+# clusterJoinToken is the raw token from the Hercules CI dashboard, and is
+# ignored when existingSecret is set.
+clusterJoinToken: ''
+secretsJson: {}
 
 agent:
   apiBaseUrl: 'https://hercules-ci.com'
@@ -25,9 +33,10 @@ agent:
     # nixSettings:
     #   substituters: https://cache.nixos.org
 
-# Rendered into the agent secrets directory
+# Rendered into the ConfigMap as plain agent config, then projected into the
+# agent's secrets directory. Leave empty and put a binary-caches.json key in
+# existingSecret when the caches carry auth tokens or signing keys.
 binaryCaches: {}
-secretsJson: {}
 
 # Setting either replaces the image's /etc/nix/nix.conf with a generated
 # file. The narinfo-cache-negative-ttl = 0 the agent requires is always

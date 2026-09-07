@@ -5,13 +5,20 @@
 {{- end -}}
 
 {{/*
-Name of the Secret holding the cluster join token.
+Name of the chart-owned Secret. Only rendered for the clusterJoinToken and
+secretsJson escape hatch; the supported path is existingSecret.
 */}}
 {{- define "secretName" -}}
-{{- if .Values.existingSecret -}}
-    {{- .Values.existingSecret -}}
-{{- else -}}
-    {{ printf "%s-join-token" .Release.Name }}
+{{ printf "%s-agent-secrets" .Release.Name }}
+{{- end -}}
+
+{{/*
+Non-empty when the escape hatch put something in the chart-owned Secret.
+clusterJoinToken is ignored when existingSecret supplies the token.
+*/}}
+{{- define "renderSecret" -}}
+{{- if or (and .Values.clusterJoinToken (not .Values.existingSecret)) .Values.secretsJson -}}
+true
 {{- end -}}
 {{- end -}}
 

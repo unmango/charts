@@ -1,3 +1,6 @@
+{{- if not (or .Values.existingSecret .Values.clusterJoinToken) }}
+{{- fail "set existingSecret to a Secret holding the cluster join token, or clusterJoinToken to have the chart render one" }}
+{{- end }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -17,7 +20,7 @@ spec:
         {{- include "labels" . | nindent 8 }}
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
-        {{- if not .Values.existingSecret }}
+        {{- if include "renderSecret" . }}
         checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
         {{- end }}
     spec:
@@ -89,8 +92,23 @@ spec:
           configMap:
             name: {{ printf "%s-config" .Release.Name }}
         - name: secrets
-          secret:
-            secretName: {{ include "secretName" . }}
+          projected:
+            sources:
+              {{- with .Values.existingSecret }}
+              - secret:
+                  name: {{ . }}
+              {{- end }}
+              {{- if include "renderSecret" . }}
+              - secret:
+                  name: {{ include "secretName" . }}
+              {{- end }}
+              {{- if or .Values.binaryCaches (not .Values.existingSecret) }}
+              - configMap:
+                  name: {{ printf "%s-config" .Release.Name }}
+                  items:
+                    - key: binary-caches.json
+                      path: binary-caches.json
+              {{- end }}
         - name: tmp
           emptyDir:
             sizeLimit: {{ .Values.tmpDir.sizeLimit }}
