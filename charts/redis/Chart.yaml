@@ -1,0 +1,17 @@
+apiVersion: v2
+name: redis
+description: Minimal Redis Cluster, or a single node, backed by Valkey
+type: application
+version: 0.1.0
+# renovate: image=docker.io/valkey/valkey
+appVersion: 9.1.2-alpine
+keywords:
+- redis
+- valkey
+- cache
+sources:
+- https://github.com/valkey-io/valkey
+kubeVersion: '>= 1.25'
+maintainers:
+- name: UnstoppableMango
+  url: https://github.com/UnstoppableMango

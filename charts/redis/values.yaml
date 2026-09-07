@@ -1,0 +1,110 @@
+global: {}
+
+image:
+  registry: 'docker.io'
+  repository: valkey/valkey
+  tag: ''
+  digest: ''
+
+# Redis Cluster shards the keyspace across masters and fails a replica over
+# when its master dies. Clients must speak the cluster protocol.
+#
+# ncps cannot: its Redlock path builds one plain client per address and treats
+# them as independent masters, while its RWLock path builds a cluster client
+# whenever there is more than one address. Either way one of the two gets
+# MOVED. Set cluster.enabled: false for ncps.
+cluster:
+  enabled: true
+  # Masters. Redis Cluster refuses to form with fewer than three.
+  shards: 3
+  # Replicas per master. 0 means no failover.
+  replicasPerShard: 1
+  # Milliseconds a master may be unreachable before failover starts
+  nodeTimeout: 15000
+
+# Only used when cluster.enabled is false
+replicaCount: 1
+
+# Applied as requirepass and masterauth. The chart manages no ACL users, so
+# ncps needs only the password, not cache-redis-username.
+auth:
+  enabled: false
+  # Written to a chart-managed Secret. Ignored when existingSecret is set.
+  password: ''
+  existingSecret: ''
+  existingSecretKey: redis-password
+
+config:
+  # A lock key evicted while held breaks mutual exclusion the same way a
+  # restart does, so never allkeys-lru here.
+  maxmemoryPolicy: noeviction
+  maxmemory: ''
+  # Appended to the generated redis.conf verbatim
+  extra: ''
+
+persistence:
+  # Holds nodes.conf, which a cluster node needs to rejoin its shard after a
+  # restart. Both AOF and RDB stay off regardless: lock data is disposable.
+  enabled: true
+  storageClassName: ''
+  size: 1Gi
+  accessModes: [ReadWriteOnce]
+
+# Suffix of the pod DNS names the bootstrap job hands to valkey-cli
+clusterDomain: cluster.local
+
+# Cluster clients reach individual nodes through the headless Service, so this
+# one is only useful with cluster.enabled: false.
+service:
+  type: ClusterIP
+  port: 6379
+  clusterIP: ''
+  loadBalancerIP: ''
+
+podDisruptionBudget:
+  enabled: true
+  maxUnavailable: 1
+
+# Spreads nodes across hosts so one node taking a shard's master and its
+# replica cannot lose the shard. Ignored when affinity is set.
+podAntiAffinity: soft
+
+resources: {}
+  # limits:
+  #   cpu: 500m
+  #   memory: 256Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 64Mi
+
+livenessProbe:
+  tcpSocket:
+    port: redis
+  initialDelaySeconds: 10
+  periodSeconds: 15
+  timeoutSeconds: 5
+# A cluster-enabled node answers PING before it holds any slots, which is what
+# lets the pods go Ready so the bootstrap hook can run.
+readinessProbe:
+  exec:
+    command: [/bin/sh, -c, 'valkey-cli -p 6379 ping | grep -q PONG']
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
+
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  capabilities:
+    drop: [ALL]
+podSecurityContext:
+  runAsUser: 999
+  runAsGroup: 1000
+  fsGroup: 1000
+
+extraEnv: []
+extraVolumes: []
+extraVolumeMounts: []
+nodeSelector: {}
+tolerations: []
+affinity: {}

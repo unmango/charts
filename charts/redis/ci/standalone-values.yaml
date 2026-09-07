@@ -1,0 +1,12 @@
+# The shape ncps uses: one node, one address, no cluster protocol.
+cluster:
+  enabled: false
+replicaCount: 1
+auth:
+  enabled: true
+  password: chart-testing
+persistence:
+  enabled: false
+resources:
+  limits:
+    memory: 128Mi

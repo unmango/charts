@@ -5,7 +5,7 @@ This file provides guidance to coding agents when working with code in this repo
 ## What this is
 
 A Helm chart repository published to GitHub Pages (`gh-pages` branch, `index.yaml`) by `chart-releaser`.
-Six charts live under `charts/`: `actions-runner`, `deemix`, `filebrowser`, `gha-runner-scale-set`, `hercules-ci-agent`, and `mage-server`.
+Seven charts live under `charts/`: `actions-runner`, `deemix`, `filebrowser`, `gha-runner-scale-set`, `hercules-ci-agent`, `mage-server`, and `redis`.
 
 ## Tooling
 
@@ -89,6 +89,10 @@ Renovate updates under `charts/` commit as `fix(deps): ...` so they trigger a pa
   Adding or renaming anything in `values.yaml` requires updating that schema, or installs fail with a validation error.
 - `deemix` renders `Deployment` or `StatefulSet` from `.Values.kind`; PVCs only exist in the `StatefulSet` path via `volumeClaimTemplates`.
 - `mage-server` speaks raw TCP, so it has no Ingress or HTTPRoute; its `server.*` values become `XMAGE_*` environment variables consumed by the image entrypoint.
+- `redis` runs Valkey and renders one StatefulSet for two shapes: a Redis Cluster (`cluster.enabled`, replicas derived from `shards` and `replicasPerShard`) or a single node.
+  A `post-install`/`post-upgrade` hook Job runs `valkey-cli --cluster create` and then waits for every node to report `cluster_state:ok`; it must stay idempotent, since it reruns on every upgrade.
+  The password never reaches argv: the container copies the ConfigMap's `valkey.conf` to `/tmp` and appends `requirepass` there.
+  It exists for ncps, which cannot use the cluster shape at all, so do not make `cluster.enabled: false` a second-class path.
 - `filebrowser` ships `configmap/*` files (`settings.json`, `setup.sh`) rendered through `tpl` into a ConfigMap, and runs `setup.sh` in an init container to chown volumes and seed the filebrowser DB.
   Edits to `configmap/setup.sh` change runtime behavior, not just packaging.
 

@@ -37,6 +37,7 @@ The version table below links to the releases each tag corresponds to.
 | [gha-runner-scale-set](./charts/gha-runner-scale-set/) | [actions/actions-runner-controller](https://github.com/actions/actions-runner-controller) | [![gha-runner-scale-set](https://img.shields.io/github/v/release/unmango/charts?filter=gha-runner-scale-set-*&label=gha-runner-scale-set)](https://github.com/unmango/charts/releases?q=gha-runner-scale-set) | [Patched fork](#gha-runner-scale-set) |
 | [hercules-ci-agent](./charts/hercules-ci-agent/) | [hercules-ci/hercules-ci-agent](https://github.com/hercules-ci/hercules-ci-agent) | [![hercules-ci-agent](https://img.shields.io/github/v/release/unmango/charts?filter=hercules-ci-agent-*&label=hercules-ci-agent)](https://github.com/unmango/charts/releases?q=hercules-ci-agent) | [Active](#hercules-ci-agent) |
 | [mage-server](./charts/mage-server/) | [magefree/mage](https://github.com/magefree/mage) | [![mage-server](https://img.shields.io/github/v/release/unmango/charts?filter=mage-server-*&label=mage-server)](https://github.com/unmango/charts/releases?q=mage-server) | [Active](#xmage) |
+| [redis](./charts/redis/) | [valkey-io/valkey](https://github.com/valkey-io/valkey) | [![redis](https://img.shields.io/github/v/release/unmango/charts?filter=redis-*&label=redis)](https://github.com/unmango/charts/releases?q=redis) | [Active](#redis) |
 
 ## Remarks
 
@@ -77,6 +78,21 @@ No upstream image; uses `xmage-docker`.
 - `server.secondaryBindPort` must be a fixed port (not `-1`).
 - First start takes minutes to load the card database; readiness probe allows 10 minutes.
 - Runs as root; capabilities are dropped but `runAsNonRoot` is not set.
+
+### Redis
+
+Runs Valkey, which speaks the Redis protocol.
+Built for [ncps](https://github.com/kalbasit/ncps) distributed locking, so it holds no data worth keeping.
+
+- `cluster.enabled: true` (default) forms a Redis Cluster from `shards` masters and `replicasPerShard` replicas each.
+  A `post-install`/`post-upgrade` hook Job runs `valkey-cli --cluster create`; it bootstraps only, and growing `shards` later needs a manual `add-node` and reshard.
+- `cluster.enabled: false` gives one node on one address, which is what ncps needs.
+  ncps reads a multi-entry `cache.redis.addrs` as independent Redlock masters in one code path and as a Redis Cluster in the other, so nothing satisfies both.
+  It has no Sentinel support either.
+- ncps's `--cache-redis-use-tls` sets a field it never reads, so it connects in plaintext regardless. The chart offers no TLS values for that reason.
+- `maxmemory-policy` defaults to `noeviction`: evicting a held lock key breaks mutual exclusion.
+- Both AOF and RDB are off. The PVC exists for `nodes.conf`, which a cluster node needs to rejoin its shard after a restart.
+- `service` is only useful with `cluster.enabled: false`; cluster clients address nodes through the headless Service.
 
 ### Filebrowser
 

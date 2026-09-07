@@ -1,0 +1,10 @@
+# Three masters is the smallest cluster Redis will form. Replicas are dropped
+# so kind runs three pods instead of six.
+cluster:
+  shards: 3
+  replicasPerShard: 0
+persistence:
+  enabled: false
+resources:
+  limits:
+    memory: 128Mi

@@ -1,0 +1,27 @@
+{{- /*
+Stable per-pod DNS. Cluster gossip and the bootstrap job both address nodes
+individually, and publishNotReadyAddresses is what lets a node be resolved
+before it has joined the cluster.
+*/ -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "headlessServiceName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  publishNotReadyAddresses: true
+  selector:
+    {{- include "selectorLabels" . | nindent 4 }}
+  ports:
+  - name: redis
+    port: {{ .Values.service.port }}
+    targetPort: redis
+  {{- if .Values.cluster.enabled }}
+  - name: cluster-bus
+    port: {{ add .Values.service.port 10000 }}
+    targetPort: cluster-bus
+  {{- end }}

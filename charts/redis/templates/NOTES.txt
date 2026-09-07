@@ -1,0 +1,37 @@
+{{- if .Values.cluster.enabled }}
+A {{ .Values.cluster.shards }}-shard cluster with {{ .Values.cluster.replicasPerShard }} replica(s) per shard is starting.
+
+Check it formed:
+
+  kubectl exec --namespace {{ .Release.Namespace }} {{ .Release.Name }}-0 -- valkey-cli cluster info
+
+Clients must speak the cluster protocol and be given every node:
+
+{{ include "nodeAddresses" . | replace " " "\n" | indent 2 }}
+
+ncps is not such a client. Its Redlock path treats each address as an
+independent master while its RWLock path treats them as cluster nodes, so one
+of the two always gets MOVED. Reinstall with cluster.enabled=false for ncps.
+{{- else }}
+Redis is reachable inside the cluster at:
+
+  {{ .Release.Name }}.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.service.port }}
+
+Point ncps at it with:
+
+  cache:
+    lock:
+      backend: redis
+    redis:
+      addrs:
+      - {{ .Release.Name }}.{{ .Release.Namespace }}.svc.{{ .Values.clusterDomain }}:{{ .Values.service.port }}
+{{- if .Values.auth.enabled }}
+      password: <the value in secret/{{ include "secretName" . }}>
+{{- end }}
+
+Keep addrs to exactly one entry. ncps reads a longer list as a Redis Cluster
+in one code path and as independent Redlock masters in the other.
+{{- end }}
+
+ncps's --cache-redis-use-tls flag sets a field it never reads, so it connects
+in plaintext regardless. This chart offers no TLS values for that reason.

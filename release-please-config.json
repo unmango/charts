@@ -22,6 +22,7 @@
     "charts/filebrowser": { "release-type": "helm", "component": "filebrowser" },
     "charts/gha-runner-scale-set": { "release-type": "helm", "component": "gha-runner-scale-set" },
     "charts/hercules-ci-agent": { "release-type": "helm", "component": "hercules-ci-agent" },
-    "charts/mage-server": { "release-type": "helm", "component": "mage-server" }
+    "charts/mage-server": { "release-type": "helm", "component": "mage-server" },
+    "charts/redis": { "release-type": "helm", "component": "redis" }
   }
 }

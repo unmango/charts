@@ -21,8 +21,9 @@ FILEBROWSER_VERSION := $(shell awk '/^version:/{print $$2}' charts/filebrowser/C
 GHA_RUNNER_SCALE_SET_VERSION := $(shell awk '/^version:/{print $$2}' charts/gha-runner-scale-set/Chart.yaml)
 HERCULES_CI_AGENT_VERSION := $(shell awk '/^version:/{print $$2}' charts/hercules-ci-agent/Chart.yaml)
 MAGE_SERVER_VERSION := $(shell awk '/^version:/{print $$2}' charts/mage-server/Chart.yaml)
+REDIS_VERSION := $(shell awk '/^version:/{print $$2}' charts/redis/Chart.yaml)
 
-lint: lint-actions-runner lint-deemix lint-filebrowser lint-gha-runner-scale-set lint-hercules-ci-agent lint-mage-server
+lint: lint-actions-runner lint-deemix lint-filebrowser lint-gha-runner-scale-set lint-hercules-ci-agent lint-mage-server lint-redis
 lint-%: charts/%/Chart.yaml charts/%/Chart.lock .ct.yaml
 	helm lint $(dir $<)
 	ct lint --config .ct.yaml $(dir $<)
@@ -38,6 +39,14 @@ lint-actions-runner: charts/actions-runner/Chart.yaml .ct.yaml
 lint-hercules-ci-agent: charts/hercules-ci-agent/Chart.yaml charts/hercules-ci-agent/Chart.lock .ct.yaml
 	helm lint charts/hercules-ci-agent --values charts/hercules-ci-agent/ci/default-values.yaml
 	ct lint --config .ct.yaml charts/hercules-ci-agent
+
+lint-mage-server: charts/mage-server/Chart.yaml .ct.yaml
+	helm lint charts/mage-server
+	ct lint --config .ct.yaml charts/mage-server
+
+lint-redis: charts/redis/Chart.yaml .ct.yaml
+	helm lint charts/redis
+	ct lint --config .ct.yaml charts/redis
 
 test: install
 
@@ -83,7 +92,8 @@ package: .cr-release-packages/actions-runner-$(ACTIONS_RUNNER_VERSION).tgz \
 	.cr-release-packages/filebrowser-$(FILEBROWSER_VERSION).tgz \
 	.cr-release-packages/gha-runner-scale-set-$(GHA_RUNNER_SCALE_SET_VERSION).tgz \
 	.cr-release-packages/hercules-ci-agent-$(HERCULES_CI_AGENT_VERSION).tgz \
-	.cr-release-packages/mage-server-$(MAGE_SERVER_VERSION).tgz
+	.cr-release-packages/mage-server-$(MAGE_SERVER_VERSION).tgz \
+	.cr-release-packages/redis-$(REDIS_VERSION).tgz
 
 # Requires a `helm registry login` against the host in $(REGISTRY) first, e.g.
 # `helm registry login ghcr.io`. Release pushes happen in
@@ -116,6 +126,7 @@ index.yaml:
 .cr-release-packages/gha-runner-scale-set-$(GHA_RUNNER_SCALE_SET_VERSION).tgz: CHART := gha-runner-scale-set
 .cr-release-packages/hercules-ci-agent-$(HERCULES_CI_AGENT_VERSION).tgz: CHART := hercules-ci-agent
 .cr-release-packages/mage-server-$(MAGE_SERVER_VERSION).tgz: CHART := mage-server
+.cr-release-packages/redis-$(REDIS_VERSION).tgz: CHART := redis
 
 .cr-release-packages/%.tgz: .cr.yaml
 	cr package charts/$(CHART) --config $<

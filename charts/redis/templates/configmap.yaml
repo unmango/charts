@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ printf "%s-config" .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels" . | nindent 4 }}
+data:
+  valkey.conf: |
+    bind 0.0.0.0
+    port {{ .Values.service.port }}
+    dir /data
+    # Locks are ephemeral, so neither snapshotting nor the append-only log
+    # earns its write amplification.
+    save ""
+    appendonly no
+    maxmemory-policy {{ .Values.config.maxmemoryPolicy }}
+    {{- with .Values.config.maxmemory }}
+    maxmemory {{ . }}
+    {{- end }}
+    {{- if .Values.cluster.enabled }}
+    cluster-enabled yes
+    # Lives on the data volume so a restarted node can rejoin its shard
+    cluster-config-file /data/nodes.conf
+    cluster-node-timeout {{ .Values.cluster.nodeTimeout }}
+    # Pod IPs change across restarts; the pod DNS name does not. The matching
+    # cluster-announce-hostname is appended per pod at startup.
+    cluster-preferred-endpoint-type hostname
+    {{- end }}
+    {{- if not .Values.auth.enabled }}
+    # No password, so the loopback-only default would leave the node
+    # unreachable from other pods.
+    protected-mode no
+    {{- end }}
+    {{- with .Values.config.extra }}
+    {{- . | nindent 4 }}
+    {{- end }}

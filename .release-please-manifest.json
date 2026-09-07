@@ -5,4 +5,5 @@
   "charts/gha-runner-scale-set": "0.1.1",
   "charts/hercules-ci-agent": "0.2.1",
   "charts/mage-server": "0.2.1"
+  "charts/redis": "0.1.0"
 }

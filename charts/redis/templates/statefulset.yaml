@@ -1,0 +1,162 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels" . | nindent 4 }}
+spec:
+  replicas: {{ include "replicas" . }}
+  serviceName: {{ include "headlessServiceName" . }}
+  # The bootstrap job needs every node up at once, and cluster members have no
+  # ordering between them anyway.
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      {{- include "selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "labels" . | nindent 8 }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- if include "manageSecret" . }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- end }}
+    spec:
+      containers:
+        - name: redis
+          image: {{ include "image" . }}
+          command: [/bin/sh, -c]
+          args:
+            - |
+              set -eu
+              # Copied rather than used in place so the password never reaches
+              # the command line, where any process could read it.
+              cp /etc/valkey/valkey.conf /tmp/valkey.conf
+              {{- if .Values.cluster.enabled }}
+              echo "cluster-announce-hostname ${POD_NAME}.${HEADLESS_SERVICE}.${POD_NAMESPACE}.svc.{{ .Values.clusterDomain }}" >>/tmp/valkey.conf
+              {{- end }}
+              {{- if .Values.auth.enabled }}
+              printf 'requirepass %s\nmasterauth %s\n' "$REDISCLI_AUTH" "$REDISCLI_AUTH" >>/tmp/valkey.conf
+              {{- end }}
+              exec valkey-server /tmp/valkey.conf
+          ports:
+            - name: redis
+              containerPort: {{ .Values.service.port }}
+            {{- if .Values.cluster.enabled }}
+            # Gossip always runs on the client port plus 10000
+            - name: cluster-bus
+              containerPort: {{ add .Values.service.port 10000 }}
+            {{- end }}
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: HEADLESS_SERVICE
+              value: {{ include "headlessServiceName" . }}
+            {{- if .Values.auth.enabled }}
+            # valkey-cli reads this on its own, so the probes need no flags
+            - name: REDISCLI_AUTH
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secretName" . }}
+                  key: {{ .Values.auth.existingSecretKey }}
+            {{- end }}
+          {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: config
+              mountPath: /etc/valkey/valkey.conf
+              subPath: valkey.conf
+              readOnly: true
+            - name: data
+              mountPath: /data
+          {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity:
+        {{- toYaml .Values.affinity | nindent 8 }}
+      {{- else if eq .Values.podAntiAffinity "soft" }}
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchLabels:
+                    {{- include "selectorLabels" . | nindent 20 }}
+      {{- else if eq .Values.podAntiAffinity "hard" }}
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  {{- include "selectorLabels" . | nindent 18 }}
+      {{- end }}
+      volumes:
+        - name: config
+          configMap:
+            name: {{ printf "%s-config" .Release.Name }}
+        {{- if not .Values.persistence.enabled }}
+        - name: data
+          emptyDir: {}
+        {{- end }}
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+{{- if .Values.persistence.enabled }}
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: data
+      spec:
+        {{- with .Values.persistence.storageClassName }}
+        storageClassName: {{ . }}
+        {{- end }}
+        accessModes:
+        {{- range .Values.persistence.accessModes }}
+          - {{ . }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size }}
+{{- end }}

@@ -1,0 +1,89 @@
+{{- if .Values.cluster.enabled }}
+{{- /*
+Runs after the StatefulSet is Ready, so `helm install --wait` does not report
+success until the slots are assigned. It only ever bootstraps: growing
+cluster.shards later needs a manual `valkey-cli --cluster add-node` and
+reshard, which this job will not do for you.
+*/ -}}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ printf "%s-cluster-init" .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels" . | nindent 4 }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-weight: '0'
+    helm.sh/hook-delete-policy: before-hook-creation,hook-succeeded
+spec:
+  backoffLimit: 3
+  activeDeadlineSeconds: 600
+  template:
+    metadata:
+      labels:
+        {{- include "labels" . | nindent 8 }}
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: cluster-init
+          image: {{ include "image" . }}
+          command: [/bin/sh, -c]
+          args:
+            - |
+              set -eu
+              nodes='{{ include "nodeAddresses" . }}'
+              first=''
+              for node in $nodes; do
+                host=${node%:*}
+                [ -n "$first" ] || first=$host
+                until valkey-cli -h "$host" -p {{ .Values.service.port }} ping 2>/dev/null | grep -q PONG; do
+                  echo "waiting for $host"
+                  sleep 2
+                done
+              done
+              # Reruns on every upgrade, so never re-create a live cluster
+              if valkey-cli -h "$first" -p {{ .Values.service.port }} cluster info | grep -q 'cluster_state:ok'; then
+                echo 'cluster already formed'
+                exit 0
+              fi
+              # shellcheck disable=SC2086
+              valkey-cli --cluster create $nodes \
+                --cluster-replicas {{ .Values.cluster.replicasPerShard }} \
+                --cluster-yes
+              # create returns as soon as the slots are handed out, before
+              # gossip has told every node about them. Without this the job
+              # succeeds while some nodes still answer cluster_state:fail.
+              for node in $nodes; do
+                host=${node%:*}
+                until valkey-cli -h "$host" -p {{ .Values.service.port }} cluster info | grep -q 'cluster_state:ok'; do
+                  echo "waiting for $host to see the slots"
+                  sleep 2
+                done
+              done
+          {{- if .Values.auth.enabled }}
+          env:
+            # Picked up by both valkey-cli and its --cluster subcommands
+            - name: REDISCLI_AUTH
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secretName" . }}
+                  key: {{ .Values.auth.existingSecretKey }}
+          {{- end }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- end }}
