@@ -1,0 +1,58 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"type": "object",
+	"comment": "Only the fan-out structure this chart adds is constrained. What goes inside defaults and each scaleSets entry is upstream's surface, which ships no schema of its own, so it stays open rather than being pinned to one upstream release.",
+	"additionalProperties": true,
+	"required": ["scaleSets"],
+	"properties": {
+		"runnerScaleSetName": {
+			"type": "string"
+		},
+		"namespaceTemplate": {
+			"type": "string"
+		},
+		"createNamespaces": {
+			"type": "boolean"
+		},
+		"defaults": {
+			"type": "object",
+			"additionalProperties": true,
+			"comment": "namespaceOverride and runnerScaleSetName are resolved per entry and set by the chart, so a value here would be overwritten without warning. The top-level runnerScaleSetName is the one that applies to every entry.",
+			"not": {
+				"anyOf": [
+					{ "required": ["namespaceOverride"] },
+					{ "required": ["runnerScaleSetName"] }
+				]
+			}
+		},
+		"scaleSets": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"additionalProperties": true,
+				"required": ["name"],
+				"properties": {
+					"name": {
+						"type": "string",
+						"minLength": 1
+					},
+					"namespace": {
+						"type": "string",
+						"minLength": 1
+					},
+					"runnerScaleSetName": {
+						"type": "string",
+						"minLength": 1
+					},
+					"githubConfigUrl": {
+						"type": "string"
+					}
+				},
+				"comment": "namespaceOverride is set by the chart from the resolved namespace; use `namespace` instead.",
+				"not": {
+					"required": ["namespaceOverride"]
+				}
+			}
+		}
+	}
+}

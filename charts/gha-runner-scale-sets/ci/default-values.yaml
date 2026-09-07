@@ -1,0 +1,17 @@
+# ct lints against this. Two entries in the release namespace, each under its
+# own name, which is the mode an empty runnerScaleSetName gives.
+defaults:
+  githubConfigSecret:
+    github_token: dummy-token-for-linting
+  # Rendering without a cluster cannot discover the controller's ServiceAccount,
+  # which the chart otherwise looks up to build its RoleBinding.
+  controllerServiceAccount:
+    namespace: arc-system
+    name: arc-gha-rs-controller
+
+scaleSets:
+- name: charts
+  githubConfigUrl: https://github.com/unmango/charts
+- name: actions
+  githubConfigUrl: https://github.com/unmango/actions
+  minRunners: 1

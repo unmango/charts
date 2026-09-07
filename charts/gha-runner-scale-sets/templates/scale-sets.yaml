@@ -1,0 +1,104 @@
+{{- /*
+One set of gha-runner-scale-set resources per entry in .Values.scaleSets.
+
+Upstream renders a file once, against one .Values, so its templates are wrapped
+as named templates by package.nix and included here once per entry against a
+synthesized root. That root carries only what upstream reads: .Values,
+.Release.{Name,Namespace,Service}, .Chart and .Capabilities. Everything below
+the include behaves exactly as it does in a standalone release, `$` included,
+because inside a define `$` is the argument the define was handed.
+*/ -}}
+{{- $upstream := .Files.Get "upstream-values.yaml" | fromYaml }}
+{{- $resources := list
+      "githubsecret"
+      "manager_role"
+      "manager_role_binding"
+      "kube_mode_serviceaccount"
+      "kube_mode_role"
+      "kube_mode_role_binding"
+      "no_permission_serviceaccount"
+      "autoscalingrunnerset" }}
+{{- /*
+  Two uniqueness constraints, tracked separately because they fail differently.
+
+  Kubernetes: the AutoscalingRunnerSet object is named after the scale set name,
+  so (namespace, scale set name) has to be unique or one entry silently
+  overwrites another.
+
+  GitHub: a scale set name is unique per configuration URL, so two entries
+  registering one name against one repo or org render fine and are then rejected
+  by ARC at runtime, which is far harder to trace back here.
+*/ -}}
+{{- $k8sClaims := dict }}
+{{- $ghClaims := dict }}
+{{- $namespaces := dict }}
+{{- range $i, $entry := .Values.scaleSets }}
+{{- $name := required (printf "scaleSets[%d].name is required" $i) $entry.name }}
+{{- $ns := $entry.namespace | default (include "gha-runner-scale-sets.namespace" (dict "root" $ "entry" $entry)) }}
+{{- $scaleSetName := $entry.runnerScaleSetName | default $.Values.runnerScaleSetName | default $name }}
+{{- $values := mergeOverwrite
+      (deepCopy $upstream)
+      (deepCopy (default (dict) $.Values.defaults))
+      (deepCopy (omit $entry "name" "namespace" "runnerScaleSetName")) }}
+{{- $url := required
+      (printf "scaleSets[%d] %q: githubConfigUrl is required, on the entry or in defaults" $i $name)
+      $values.githubConfigUrl }}
+
+{{- $k8sKey := printf "%s/%s" $ns $scaleSetName }}
+{{- if hasKey $k8sClaims $k8sKey }}
+{{- fail (printf "scaleSets[%d] %q renders an AutoscalingRunnerSet named %q in namespace %q, already claimed by %q. Give one of them its own namespace, or its own runnerScaleSetName." $i $name $scaleSetName $ns (get $k8sClaims $k8sKey)) }}
+{{- end }}
+{{- $_ := set $k8sClaims $k8sKey $name }}
+
+{{- $ghKey := printf "%s|%s" $url $scaleSetName }}
+{{- if hasKey $ghClaims $ghKey }}
+{{- fail (printf "scaleSets[%d] %q registers the scale set name %q against %s, already claimed by %q. GitHub allows one scale set of a given name per configuration URL." $i $name $scaleSetName $url (get $ghClaims $ghKey)) }}
+{{- end }}
+{{- $_ := set $ghClaims $ghKey $name }}
+
+{{- if ne $ns $.Release.Namespace }}
+{{- $_ := set $namespaces $ns $name }}
+{{- end }}
+
+{{- $_ := set $values "namespaceOverride" $ns }}
+{{- $_ := set $values "runnerScaleSetName" $scaleSetName }}
+{{- $root := dict
+      "Values" $values
+      "Chart" $.Chart
+      "Capabilities" $.Capabilities
+      "Files" $.Files
+      "Template" $.Template
+      "Release" (dict
+        "Name" $name
+        "Namespace" $ns
+        "Service" $.Release.Service
+        "IsInstall" $.Release.IsInstall
+        "IsUpgrade" $.Release.IsUpgrade) }}
+{{- range $resource := $resources }}
+{{- $rendered := include (printf "gha-runner-scale-sets.upstream.%s" $resource) $root }}
+{{- /* Most of these are guarded on containerMode and render nothing. */ -}}
+{{- if trim $rendered }}
+---
+{{ $rendered | trim }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{- /*
+  Namespaces last in the file, first on apply: helm's install order puts
+  Namespace ahead of every kind below. Off by default because the release
+  namespace already exists, and adopting it would hand its lifecycle to this
+  release.
+*/ -}}
+{{- if .Values.createNamespaces }}
+{{- if not .Values.namespaceTemplate }}
+{{- fail "createNamespaces is set but namespaceTemplate is empty, so every entry lands in the release namespace and there is nothing to create. Set namespaceTemplate, or unset createNamespaces." }}
+{{- end }}
+{{- range $ns, $name := $namespaces }}
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ $ns }}
+{{- end }}
+{{- end }}

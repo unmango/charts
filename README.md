@@ -35,6 +35,7 @@ The version table below links to the releases each tag corresponds to.
 | [deemix](./charts/deemix/) | [bambanah/deemix](https://github.com/bambanah/deemix) | [![deemix](https://img.shields.io/github/v/release/unmango/charts?filter=deemix-*&label=deemix)](https://github.com/unmango/charts/releases?q=deemix) | [Revived fork](#deemix) |
 | [filebrowser](./charts/filebrowser/) | [filebrowser/filebrowser](https://github.com/filebrowser/filebrowser) | [![filebrowser](https://img.shields.io/github/v/release/unmango/charts?filter=filebrowser-*&label=filebrowser)](https://github.com/unmango/charts/releases?q=filebrowser) | [Upstream archived](#filebrowser) |
 | [gha-runner-scale-set](./charts/gha-runner-scale-set/) | [actions/actions-runner-controller](https://github.com/actions/actions-runner-controller) | [![gha-runner-scale-set](https://img.shields.io/github/v/release/unmango/charts?filter=gha-runner-scale-set-*&label=gha-runner-scale-set)](https://github.com/unmango/charts/releases?q=gha-runner-scale-set) | [Patched fork](#gha-runner-scale-set) |
+| [gha-runner-scale-sets](./charts/gha-runner-scale-sets/) | [actions/actions-runner-controller](https://github.com/actions/actions-runner-controller) | [![gha-runner-scale-sets](https://img.shields.io/github/v/release/unmango/charts?filter=gha-runner-scale-sets-*&label=gha-runner-scale-sets)](https://github.com/unmango/charts/releases?q=gha-runner-scale-sets) | [Fan-out](#gha-runner-scale-sets) |
 | [hercules-ci-agent](./charts/hercules-ci-agent/) | [hercules-ci/hercules-ci-agent](https://github.com/hercules-ci/hercules-ci-agent) | [![hercules-ci-agent](https://img.shields.io/github/v/release/unmango/charts?filter=hercules-ci-agent-*&label=hercules-ci-agent)](https://github.com/unmango/charts/releases?q=hercules-ci-agent) | [Active](#hercules-ci-agent) |
 | [mage-server](./charts/mage-server/) | [magefree/mage](https://github.com/magefree/mage) | [![mage-server](https://img.shields.io/github/v/release/unmango/charts?filter=mage-server-*&label=mage-server)](https://github.com/unmango/charts/releases?q=mage-server) | [Active](#xmage) |
 
@@ -57,6 +58,24 @@ Upstream chart, patched to wire in a Nix store.
 - Set `nix.maxJobs`/`nix.cores` explicitly, nix ignores cgroup CPU limits and defaults to 1 job.
 - `containerMode: kubernetes-novolume` mounts nothing; not for a runner that builds.
 - Keeps upstream's `labels` helper, since the controller keys on `app.kubernetes.io/name`.
+
+### gha-runner-scale-sets
+
+Many scale sets from one release, with no GitOps engine involved.
+Upstream renders a file once against one `.Values`, so its templates are wrapped as named templates and included once per entry in `scaleSets` against a synthesized root.
+`templates/_upstream.tpl` and `upstream-values.yaml` are generated (`make chart-gha-runner-scale-sets`) from the same pin and patches as `gha-runner-scale-set`; edit `patches/`, never the generated files.
+
+Two namespace modes, both from one code path:
+
+- `runnerScaleSetName` empty: each entry defaults to its own `name`, and they can all share the release namespace.
+- `runnerScaleSetName` set: every entry registers under one `runs-on`, so each needs its own namespace via `namespaceTemplate` (e.g. `arc-{{ .name }}`). Set `createNamespaces` unless something else owns them.
+
+Per-entry `namespace` and `runnerScaleSetName` override either mode, so a mixed layout works too.
+
+- The render fails on a duplicate `(namespace, scale set name)` and on a duplicate `(githubConfigUrl, scale set name)`; the second is what ARC would otherwise reject at runtime.
+- `defaults` merges under every entry, over upstream's own defaults, but `mergeOverwrite` replaces a list wholesale, so an entry supplying its own `template.spec.containers` drops the ones in `defaults`.
+- `githubConfigSecret` is not created here and must already exist in every namespace the chart renders into.
+- The `nix` notes under [gha-runner-scale-set](#gha-runner-scale-set) apply per entry.
 
 ### Hercules CI Agent
 

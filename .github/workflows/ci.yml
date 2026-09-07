@@ -71,6 +71,15 @@ jobs:
           # regeneration that produces a new template would otherwise pass.
           test -z "$(git ls-files --others --exclude-standard -- charts/gha-runner-scale-set)"
 
+      # charts/gha-runner-scale-sets wraps the same upstream tree as named
+      # templates so one release can render many scale sets. Same pin, same
+      # patches, so the same drift check applies.
+      - name: Check charts/gha-runner-scale-sets is up to date
+        run: |
+          make chart-gha-runner-scale-sets
+          git diff --exit-code -- charts/gha-runner-scale-sets
+          test -z "$(git ls-files --others --exclude-standard -- charts/gha-runner-scale-sets)"
+
   lint:
     runs-on: thecluster
     steps:

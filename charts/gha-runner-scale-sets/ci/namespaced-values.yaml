@@ -1,0 +1,23 @@
+# The other namespace mode: every entry registers under one `runs-on`, so each
+# needs a namespace of its own. Also covers the per-entry overrides and a name
+# carrying a dot, which a namespace cannot.
+runnerScaleSetName: thecluster
+namespaceTemplate: 'arc-{{ .name }}'
+createNamespaces: true
+
+defaults:
+  githubConfigSecret:
+    github_token: dummy-token-for-linting
+  controllerServiceAccount:
+    namespace: arc-system
+    name: arc-gha-rs-controller
+
+scaleSets:
+- name: charts
+  githubConfigUrl: https://github.com/unmango/charts
+- name: thecluster.io
+  githubConfigUrl: https://github.com/unmango/thecluster.io
+- name: pinned
+  namespace: arc-pinned-override
+  runnerScaleSetName: pinned-only
+  githubConfigUrl: https://github.com/unmango/pinned
