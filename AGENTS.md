@@ -5,7 +5,7 @@ This file provides guidance to coding agents when working with code in this repo
 ## What this is
 
 A Helm chart repository published to GitHub Pages (`gh-pages` branch, `index.yaml`) by `chart-releaser`.
-Six charts live under `charts/`: `actions-runner`, `deemix`, `filebrowser`, `gharc`, `hercules-ci-agent`, and `mage-server`.
+Six charts live under `charts/`: `actions-runner`, `deemix`, `filebrowser`, `gha-runner-scale-set`, `hercules-ci-agent`, and `mage-server`.
 
 ## Tooling
 
@@ -50,15 +50,15 @@ Renovate updates under `charts/` commit as `fix(deps): ...` so they trigger a pa
 - Every application chart vendors an identical `common.images.image` helper in `templates/_helpers.tpl`, copied from bitnami/common, alongside the `labels` and `selectorLabels` helpers.
   `actions-runner` deliberately does not: template names are global to a release, so a library defining unprefixed names would silently override the consumer's own.
   Everything it defines is prefixed `actions-runner.`.
-- `gharc` keeps upstream's `gha-runner-scale-set.labels` rather than this repo's `labels`.
+- `gha-runner-scale-set` keeps upstream's `gha-runner-scale-set.labels` rather than this repo's `labels`.
   Upstream already emits the full `app.kubernetes.io/*` set, and its `app.kubernetes.io/name` is the scale set name that the ARC controller keys on.
   Templates call the local `image` / `init.image` wrappers rather than the bitnami one directly.
   A change to one chart's helper usually needs mirroring in the others.
 - `actions-runner` is a library chart, so it renders nothing and cannot be installed; `ct install` excludes it, and its `lint-actions-runner` target is explicit because the `lint-%` pattern rule wants a `Chart.lock`.
   Its templates take the `nix` block as an argument rather than reading `.Values`, since a library's own values land under `.Values.actions-runner` in the consumer.
-  `gharc` depends on it through `file://../actions-runner`, so editing the library means re-running `helm dep update charts/gharc` before templating, or the stale vendored copy is what renders.
-  That dependency is constrained as `>= 0.1.0` rather than pinned, so a release-please bump of the library does not break `gharc`'s `helm dep update`.
-- `gharc`'s `templates/` and `values.yaml` are generated: `make chart-gharc` fetches the tag in `charts/gharc/upstream.nix` and applies `charts/gharc/patches/*.patch`.
+  `gha-runner-scale-set` depends on it through `file://../actions-runner`, so editing the library means re-running `helm dep update charts/gha-runner-scale-set` before templating, or the stale vendored copy is what renders.
+  That dependency is constrained as `>= 0.1.0` rather than pinned, so a release-please bump of the library does not break `gha-runner-scale-set`'s `helm dep update`.
+- `gha-runner-scale-set`'s `templates/` and `values.yaml` are generated: `make chart-gha-runner-scale-set` fetches the tag in `charts/gha-runner-scale-set/upstream.nix` and applies `charts/gha-runner-scale-set/patches/*.patch`.
   Edit the patches, never the generated files; CI regenerates and fails on drift.
   `Chart.yaml` is hand-written and deliberately not generated, because release-please rewrites its `version` and a regeneration would revert it.
   To change a patch, unpack the upstream chart, edit, `diff -ruN` against a pristine copy, and rewrite the patch file.

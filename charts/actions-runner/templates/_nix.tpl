@@ -8,7 +8,7 @@ Every template takes the `nix` block itself as its argument rather than reading
 
     {{ include "actions-runner.nix.volume" .Values.nix }}
 
-The block is documented in charts/gharc/values.yaml, which is the reference
+The block is documented in charts/gha-runner-scale-set/values.yaml, which is the reference
 consumer. Templates render nothing at all when `enabled` is false, so a caller
 can splice them in unconditionally.
 */}}

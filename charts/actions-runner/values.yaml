@@ -3,4 +3,4 @@
 # beside that chart's own `nix` block rather than in it. Every template here
 # takes the block as an argument instead, so defaults belong to the consumer.
 #
-# `charts/gharc/values.yaml` is the worked example of the shape they expect.
+# `charts/gha-runner-scale-set/values.yaml` is the worked example of the shape they expect.

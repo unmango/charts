@@ -4,7 +4,7 @@
 # The patches under patches/ are the source of truth. The generated tree is
 # committed anyway so that ct, chart-releaser and `helm template` all work
 # against the worktree without a Nix step, and CI fails when the two disagree.
-# `make chart-gharc` is the regeneration entry point.
+# `make chart-gha-runner-scale-set` is the regeneration entry point.
 #
 # Chart.yaml is deliberately not generated. release-please rewrites its
 # `version`, which a regeneration would revert.
@@ -21,10 +21,9 @@ let
     tag = "gha-runner-scale-set-${upstream.version}";
   };
 
-  # Not `|>`: pipe-operators is still experimental, and CI runs nix without it.
-  patches = lib.filter (lib.hasSuffix ".patch") (lib.filesystem.listFilesRecursive ./patches);
+  patches = lib.filesystem.listFilesRecursive ./patches |> lib.filter (lib.hasSuffix ".patch");
 in
-runCommand "gharc-chart-${upstream.version}"
+runCommand "gha-runner-scale-set-chart-${upstream.version}"
   {
     inherit patches;
     inherit (upstream) chartPath;
