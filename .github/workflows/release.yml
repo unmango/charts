@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      packages: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -35,6 +36,31 @@ jobs:
           config: .cr.yaml
         env:
           CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Log in to ghcr.io
+        run: echo "$GITHUB_TOKEN" |
+          helm registry login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # chart-releaser packages every chart on every run, so the tag for an
+      # unchanged chart is already in the registry. Skipping it keeps the
+      # published digest stable, the same way skip-existing does for releases.
+      - name: Push charts to ghcr.io
+        run: |
+          shopt -s nullglob
+          for pkg in .cr-release-packages/*.tgz; do
+            chart="$(helm show chart "$pkg")"
+            name="$(awk '/^name:/{print $2}' <<< "$chart")"
+            version="$(awk '/^version:/{print $2}' <<< "$chart")"
+            if helm show chart "oci://$REGISTRY/$name" --version "$version" >/dev/null 2>&1; then
+              echo "skipping $name-$version, already in $REGISTRY"
+              continue
+            fi
+            helm push "$pkg" "oci://$REGISTRY"
+          done
+        env:
+          REGISTRY: ghcr.io/unmango/charts
 
   release-please:
     name: Release Please

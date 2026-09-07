@@ -42,6 +42,9 @@ Never hand-edit `version` or `CHANGELOG.md`; the release PR owns them.
 A chart is bumped when a `feat` or `fix` commit touches files under its directory, so use Conventional Commits and scope PR titles to the chart.
 Both run in `.github/workflows/release.yml` on every push to `main`: `chart-releaser` first publishes any chart whose `version` changed (which happens when the release PR merges), then the `release-please` job runs.
 release-please does not create tags or GitHub releases (`skip-github-release`); chart-releaser creates them as `<chart>-<version>`, and release-please reads those tags to find the last release, which is why it runs second.
+The `release` job also pushes every package in `.cr-release-packages/` to `oci://ghcr.io/unmango/charts`, which is why it needs `packages: write`.
+chart-releaser packages all six charts on every run, so the push step skips a chart whose `<chart>:<version>` tag is already in the registry, mirroring `skip-existing` in `.cr.yaml`.
+`make push` does the same by hand against `REGISTRY` (default `ghcr.io/unmango/charts`) after a `helm registry login`, without the skip check.
 `appVersion` tracks the upstream image and is bumped by Renovate via the `# renovate: image=...` comments.
 Renovate updates under `charts/` commit as `fix(deps): ...` so they trigger a patch release.
 
@@ -75,6 +78,8 @@ Renovate updates under `charts/` commit as `fix(deps): ...` so they trigger a pa
 ## Adding a chart
 
 The `lint` and `package` Makefile targets enumerate chart names explicitly; add the new chart to both.
+`push` globs `.cr-release-packages/`, so it picks the chart up through `package` with no edit.
+Its ghcr package starts private and needs its visibility flipped once after the first release.
 A chart that cannot reach Ready in kind also needs adding to `--excluded-charts` in the Makefile's `install` target and in `ci.yml`.
 CI (`.github/workflows/ci.yml`) discovers charts automatically through `ct`.
 

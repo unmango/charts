@@ -17,6 +17,15 @@ helm repo add unmango https://unmango.github.io/charts
 helm install filebrowser unmango/filebrowser
 ```
 
+Every chart is also published as an OCI artifact under `ghcr.io/unmango/charts`, with identical contents:
+
+```sh
+helm install filebrowser oci://ghcr.io/unmango/charts/filebrowser --version <version>
+```
+
+Only `<chart>:<version>` tags are pushed, so `--version` is required.
+The version table below links to the releases each tag corresponds to.
+
 ## Charts
 
 | Chart | Upstream | Version | Status |
