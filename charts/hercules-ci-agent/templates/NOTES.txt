@@ -10,8 +10,10 @@ a projected volume. For this release they come from:
   secrets.json
     {{ if .Values.secretsJson }}Secret {{ include "secretName" . }}, rendered from .Values.secretsJson{{ else if .Values.existingSecret }}Secret {{ .Values.existingSecret }}, if it has that key{{ else }}not provided; effects that request secrets will fail{{ end }}
 
-A file claimed by two sources at once fails the volume, so each is supplied
-exactly once. Setting existingSecret alongside clusterJoinToken or secretsJson
-is rejected at render time. The one case the chart cannot check for you is a
-binary-caches.json key in {{ .Values.existingSecret | default "existingSecret" }} while binaryCaches is also set;
-leave binaryCaches empty when your Secret carries that file.
+Two sources claiming one file is not an error: kubelet merges them in order
+and the last one silently wins. Setting existingSecret alongside
+clusterJoinToken or secretsJson is therefore rejected at render time. The one
+case the chart cannot check for you is a binary-caches.json key in
+{{ .Values.existingSecret | default "existingSecret" }} while binaryCaches is also set. Your Secret is projected last and
+wins there, so binaryCaches is the value that goes missing; leave it empty
+when your Secret carries that file.
