@@ -59,6 +59,12 @@ Naming a `/nix` mount or a `NIX_CONFIG` env of your own takes precedence over wh
 Kubelet creates one mode `0777` and nix creates `store`, `var` and its build directory with its own modes rather than the volume's, so nothing has to prepare it.
 `ephemeral` and `existingClaim` arrive owned by root instead, so the chart adds `fsGroup: 1001` for them.
 `hostPath` is what makes a job land warm, every runner scheduled on a node sharing one store, and it is the one backing that needs `nix.gc` set, since nothing else will ever collect it.
+It also needs the node directory to be writable by the runner already: Kubernetes does not apply `fsGroup` to a `hostPath`, and `DirectoryOrCreate` makes it `root:root` `0755`, so an unprepared node leaves the runner unable to write `/nix` at all.
+A local `PersistentVolume` through `existingClaim` avoids that, since a claim does get the `fsGroup`.
+
+`containerMode: kubernetes-novolume` is the exception to all of this.
+It renders `volumes: []` and mounts nothing by design, so the store settings are ignored and only the `nix.conf` settings are injected, leaving the runner building on an overlayfs.
+It is not the mode to pick for a runner that builds.
 
 Two things not to do.
 Do not leave `/nix` unmounted (`backing: none`) for a runner that builds: the store lands on an overlayfs, where nix cannot tear down a build directory it has just emptied and fails with `cannot unlink ...: Directory not empty`.

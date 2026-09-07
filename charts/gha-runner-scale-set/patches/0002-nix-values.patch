@@ -17,7 +17,7 @@ Default to the nix-enabled runner image and document the nix values block.
          command: ["/home/runner/run.sh"]
  ## Optional controller service account that needs to have required Role and RoleBinding
  ## to operate this gha-runner-scale-set installation.
-@@ -428,6 +434,104 @@
+@@ -428,6 +434,124 @@
  #   namespace: arc-system
  #   name: test-arc-gha-runner-scale-set-controller
  
@@ -30,6 +30,13 @@ Default to the nix-enabled runner image and document the nix values block.
 +## takes precedence over what would have been injected.
 +nix:
 +  enabled: true
++
++  ## containerMode.type=kubernetes-novolume is the exception to everything
++  ## below. It renders `volumes: []` and mounts nothing by design, so the store
++  ## settings are ignored there and only the nix.conf settings are injected.
++  ## A runner in that mode builds on the container's overlayfs, which is what
++  ## the store volume exists to avoid, so it should not be the mode you pick
++  ## for a runner that builds.
 +
 +  store:
 +    ## Where the store lives.
@@ -48,6 +55,13 @@ Default to the nix-enabled runner image and document the nix values block.
 +    ##                 forbidden by the baseline and restricted pod security
 +    ##                 standards, so a local PersistentVolume is the shape that
 +    ##                 passes admission.
++    ##                 The node directory has to be writable by the runner
++    ##                 already. Kubernetes does not apply fsGroup to a
++    ##                 hostPath, and DirectoryOrCreate makes it root:root
++    ##                 0755, so an unprepared node leaves the runner unable to
++    ##                 write /nix at all. Prepare it out of band, or use a
++    ##                 local PersistentVolume through existingClaim, which
++    ##                 does get the fsGroup.
 +    ##   none          no volume. The store lands on the container's overlayfs,
 +    ##                 where nix cannot tear down a build directory it has just
 +    ##                 emptied and fails with `cannot unlink ...: Directory not
@@ -75,6 +89,12 @@ Default to the nix-enabled runner image and document the nix values block.
 +    hostPath:
 +      path: /var/lib/nix
 +      type: DirectoryOrCreate
++
++    ## The gid given to the pod as fsGroup for the claim backings, so the
++    ## runner can write a volume that arrives owned by root. 1001 is the runner
++    ## user in the default image; change it only alongside the image. An
++    ## fsGroup you set on template.spec.securityContext yourself wins.
++    fsGroup: 1001
 +
 +    ## The volume's name. Where it is mounted is not configurable: nix compiles
 +    ## /nix/store in, and a store anywhere else is one no substituter can

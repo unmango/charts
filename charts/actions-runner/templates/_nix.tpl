@@ -176,8 +176,12 @@ image this chart is built around.
 
 {{/*
 Non-empty when the store is backed by a claim, which arrives owned by root and
-so needs an fsGroup to be writable by the runner. An emptyDir does not, kubelet
-creating it world-writable, and a hostPath's ownership is the node's business.
+so needs an fsGroup to be writable by the runner.
+
+An emptyDir does not, kubelet creating it world-writable. Neither does a
+hostPath, but for the opposite reason: Kubernetes does not apply fsGroup to one
+at all, so the node directory has to be writable by the runner before the pod
+starts and there is nothing the chart can do about it.
 */}}
 {{- define "actions-runner.nix.needsFsGroup" -}}
 {{- if .enabled }}
