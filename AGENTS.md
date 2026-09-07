@@ -29,8 +29,9 @@ command make package      # cr package into .cr-release-packages/
 `test` runs `install`, which depends on `gateway-api` and passes `--excluded-charts actions-runner,gha-runner-scale-set,hercules-ci-agent`, so it is not a plain `ct install --all`.
 `ci.yml`'s `test` job excludes the same three.
 
-Every `nix` invocation goes through the Makefile's `NIX_FLAGS`, which enables the `pipe-operators` experimental feature that `charts/gha-runner-scale-set/package.nix` needs.
+Every `nix` invocation the Makefile makes goes through its `NIX_FLAGS`, which enables the `pipe-operators` experimental feature that `charts/gha-runner-scale-set/package.nix` needs.
 Run those targets through make rather than calling `nix build` directly.
+CI does not use the Makefile for this: `ci.yml` runs `nix flake check` on its own and gets `pipe-operators` from `install-nix-action`'s `extra_nix_config`, so the feature has to stay enabled in both places.
 
 `KUBECONFIG` is exported by the Makefile to `.kube/config`, so `kubectl`/`helm` in this directory target the local kind cluster.
 `kubectl` is not in the devshell; `gateway-api` and `install` need it on `PATH` separately.
@@ -77,7 +78,7 @@ Renovate updates under `charts/` commit as `fix(deps): ...` so they trigger a pa
   To change a patch, unpack the upstream chart, edit, `diff -ruN` against a pristine copy, and rewrite the patch file.
 - `deemix` and `filebrowser` declare `oauth2-proxy` as an optional dependency gated on `oauth2-proxy.enabled`.
   Every chart but `actions-runner` has a `Chart.lock`, so the `lint-%` pattern rule covers them all.
-  `lint-actions-runner` stays explicit because there is no `Chart.lock` to depend on, and `lint-hercules-ci-agent` because `helm lint` needs `--values ci/default-values.yaml` to supply the otherwise missing `clusterJoinToken`.
+  `lint-actions-runner` stays explicit because there is no `Chart.lock` to depend on, and `lint-hercules-ci-agent` because `helm lint` needs `--values charts/hercules-ci-agent/ci/default-values.yaml` to supply the otherwise missing `clusterJoinToken`.
   `charts/*/charts/` is gitignored, so `helm dep update` is required before linting or templating.
 - `deemix` and `filebrowser` render an `HTTPRoute`, so the Gateway API CRDs must exist before `ct install`; that is what `make gateway-api` and the equivalent CI step provide.
   Each has a `ci/httproute-values.yaml` alongside `ci/default-values.yaml`, so `ct` installs them twice.
