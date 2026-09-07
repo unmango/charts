@@ -66,9 +66,20 @@
               nixfmt.enable = true;
             };
 
-            # release-please owns every CHANGELOG.md and rewrites it in its own
-            # style, so formatting them only produces drift on the next release.
-            settings.global.excludes = [ "charts/*/CHANGELOG.md" ];
+            settings.global.excludes = [
+              # release-please owns every CHANGELOG.md and rewrites it in its own
+              # style, so formatting them only produces drift on the next release.
+              "charts/*/CHANGELOG.md"
+
+              # Agent tooling (skills, agents, commands) is owned by the assistant
+              # that generates it, so this repo's formatters leave it alone.
+              ".claude/**"
+              ".codex/**"
+              ".cursor/**"
+              ".gemini/**"
+              ".opencode/**"
+              ".github/skills/**"
+            ];
           };
         };
     };
