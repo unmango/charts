@@ -17,9 +17,9 @@ existingSecret: ''
 existingSecretKey: cluster-join-token.key
 
 # Escape hatch: setting either makes the chart render and own a Secret, which
-# puts the raw values in release state. Prefer existingSecret.
-# clusterJoinToken is the raw token from the Hercules CI dashboard, and is
-# ignored when existingSecret is set.
+# puts the raw values in release state. Prefer existingSecret, which rejects
+# both rather than letting two sources claim the same file.
+# clusterJoinToken is the raw token from the Hercules CI dashboard.
 clusterJoinToken: ''
 secretsJson: {}
 
@@ -34,8 +34,10 @@ agent:
     #   substituters: https://cache.nixos.org
 
 # Rendered into the ConfigMap as plain agent config, then projected into the
-# agent's secrets directory. Leave empty and put a binary-caches.json key in
-# existingSecret when the caches carry auth tokens or signing keys.
+# agent's secrets directory. A ConfigMap is readable by anyone with get access
+# in the namespace, so an authToken or signingKeys here is rejected: leave this
+# empty and put a binary-caches.json key in existingSecret instead. The same
+# goes for credentials embedded in a storeURI, which the chart cannot detect.
 binaryCaches: {}
 
 # Setting either replaces the image's /etc/nix/nix.conf with a generated

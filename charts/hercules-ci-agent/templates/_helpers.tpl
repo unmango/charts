@@ -13,12 +13,28 @@ secretsJson escape hatch; the supported path is existingSecret.
 {{- end -}}
 
 {{/*
-Non-empty when the escape hatch put something in the chart-owned Secret.
-clusterJoinToken is ignored when existingSecret supplies the token.
+The agent reads three files from one directory, assembled by a projected
+volume. Two sources claiming the same path is a kubelet error, so each file
+gets exactly one source: existingSecret owns every secret file, and the chart
+owns them only in its absence.
 */}}
-{{- define "renderSecret" -}}
-{{- if or (and .Values.clusterJoinToken (not .Values.existingSecret)) .Values.secretsJson -}}
-true
+{{- define "validateSecrets" -}}
+{{- if .Values.existingSecret -}}
+{{- if .Values.clusterJoinToken -}}
+{{- fail "clusterJoinToken conflicts with existingSecret: put the token in that Secret under existingSecretKey" -}}
+{{- end -}}
+{{- if .Values.secretsJson -}}
+{{- fail "secretsJson conflicts with existingSecret: put secrets.json in that Secret" -}}
+{{- end -}}
+{{- else if not .Values.clusterJoinToken -}}
+{{- fail "set existingSecret to a Secret holding the cluster join token, or clusterJoinToken to have the chart render one" -}}
+{{- end -}}
+{{- range $name, $cache := .Values.binaryCaches -}}
+{{- if kindIs "map" $cache -}}
+{{- if or (hasKey $cache "authToken") (get $cache "signingKeys") -}}
+{{- fail (printf "binaryCaches.%s carries credentials, and binaryCaches is rendered into a ConfigMap: leave it empty and supply binary-caches.json through existingSecret" $name) -}}
+{{- end -}}
+{{- end -}}
 {{- end -}}
 {{- end -}}
 

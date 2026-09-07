@@ -1,5 +1,5 @@
-The agent reads three files from /etc/hercules-ci-agent/secrets. For this
-release they come from:
+The agent reads three files from /etc/hercules-ci-agent/secrets, assembled by
+a projected volume. For this release they come from:
 
   {{ .Values.existingSecretKey }}
     {{ if .Values.existingSecret }}Secret {{ .Values.existingSecret }}{{ else }}Secret {{ include "secretName" . }}, rendered from .Values.clusterJoinToken{{ end }}
@@ -10,5 +10,8 @@ release they come from:
   secrets.json
     {{ if .Values.secretsJson }}Secret {{ include "secretName" . }}, rendered from .Values.secretsJson{{ else if .Values.existingSecret }}Secret {{ .Values.existingSecret }}, if it has that key{{ else }}not provided; effects that request secrets will fail{{ end }}
 
-The volume is projected, so a file supplied from two sources at once is an
-error. Supply each of them exactly once.
+A file claimed by two sources at once fails the volume, so each is supplied
+exactly once. Setting existingSecret alongside clusterJoinToken or secretsJson
+is rejected at render time. The one case the chart cannot check for you is a
+binary-caches.json key in {{ .Values.existingSecret | default "existingSecret" }} while binaryCaches is also set;
+leave binaryCaches empty when your Secret carries that file.
