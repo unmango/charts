@@ -58,11 +58,17 @@
             ];
           };
 
-          treefmt.programs = {
-            actionlint.enable = true;
-            gofmt.enable = true;
-            mdformat.enable = true;
-            nixfmt.enable = true;
+          treefmt = {
+            programs = {
+              actionlint.enable = true;
+              gofmt.enable = true;
+              mdformat.enable = true;
+              nixfmt.enable = true;
+            };
+
+            # release-please owns every CHANGELOG.md and rewrites it in its own
+            # style, so formatting them only produces drift on the next release.
+            settings.global.excludes = [ "charts/*/CHANGELOG.md" ];
           };
         };
     };
