@@ -56,12 +56,6 @@ effects:
   enabled: false
 
 resources: {}
-  # limits:
-  #   cpu: 2
-  #   memory: 8Gi
-  # requests:
-  #   cpu: 500m
-  #   memory: 4Gi
 
 securityContext: {}
 podSecurityContext:

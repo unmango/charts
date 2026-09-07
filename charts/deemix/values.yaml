@@ -52,12 +52,6 @@ extraVolumeMounts: []
 securityContext: {}
 
 resources: {}
-  # limits:
-  #   cpu: 10m
-  #   memory: 64Mi
-  # requests:
-  #   cpu: 10m
-  #   memory: 64Mi
 
 init:
   image:
@@ -69,12 +63,6 @@ init:
     allowPrivilegeEscalation: false
     runAsNonRoot: false  # So we can chown the right dirs
   resources: {}
-    # limits:
-    #   cpu: 10m
-    #   memory: 64Mi
-    # requests:
-    #   cpu: 10m
-    #   memory: 64Mi
 
 service:
   type: ClusterIP
@@ -85,9 +73,3 @@ service:
 oauth2-proxy:
   enabled: false
   resources: {}
-    # limits:
-    #   cpu: 10m
-    #   memory: 64Mi
-    # requests:
-    #   cpu: 10m
-    #   memory: 64Mi

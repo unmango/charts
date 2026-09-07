@@ -85,12 +85,6 @@ service:
   loadBalancerIP: ''
 
 resources: {}
-  # limits:
-  #   cpu: 2
-  #   memory: 2Gi
-  # requests:
-  #   cpu: 500m
-  #   memory: 1Gi
 
 # The server loads its card database before listening, which takes a while
 livenessProbe:
