@@ -15,16 +15,28 @@ Do not install them separately.
 Because of the zsh/Prezto autoload issue, prefix make with `command`:
 
 ```sh
-command make lint      # helm lint + ct lint, both charts
+command make lint         # helm lint + ct lint, all six charts
 command make lint-deemix
-command make test      # creates a kind cluster, then ct install --all
-command make kind      # just create the .kube/config kind cluster
-command make check     # nix flake check
-command make fmt       # treefmt (nixfmt, mdformat, actionlint, gofmt)
-command make package   # cr package into .cr-release-packages/
+command make test         # kind cluster + Gateway API CRDs, then ct install
+command make kind         # just create the .kube/config kind cluster
+command make gateway-api  # kind cluster + Gateway API standard CRDs
+command make changed      # ct list-changed
+command make check        # nix flake check
+command make fmt          # treefmt (nixfmt, mdformat, actionlint, gofmt)
+command make package      # cr package into .cr-release-packages/
 ```
 
+`test` runs `install`, which depends on `gateway-api` and passes `--excluded-charts actions-runner,gha-runner-scale-set,hercules-ci-agent`, so it is not a plain `ct install --all`.
+`ci.yml`'s `test` job excludes the same three.
+
+Every `nix` invocation the Makefile makes goes through its `NIX_FLAGS`, which enables the `pipe-operators` experimental feature that `charts/gha-runner-scale-set/package.nix` needs.
+Run those targets through make rather than calling `nix build` directly.
+CI does not use the Makefile for this: `ci.yml` runs `nix flake check` on its own and gets `pipe-operators` from the `nix` job's `NIX_CONFIG`, so the feature has to stay enabled in both places.
+Nothing installs nix on the `thecluster` runners; their image ships it along with an `/etc/nix/nix.conf` that already sets `experimental-features`, and `NIX_CONFIG` merges on top of that file.
+Only `extra-*` settings belong there, since a plain assignment replaces the image's value instead of adding to it.
+
 `KUBECONFIG` is exported by the Makefile to `.kube/config`, so `kubectl`/`helm` in this directory target the local kind cluster.
+`kubectl` is not in the devshell; `gateway-api` and `install` need it on `PATH` separately.
 
 Lint or install a single chart directly:
 
@@ -67,9 +79,12 @@ Renovate updates under `charts/` commit as `fix(deps): ...` so they trigger a pa
   `Chart.yaml` is hand-written and deliberately not generated, because release-please rewrites its `version` and a regeneration would revert it.
   To change a patch, unpack the upstream chart, edit, `diff -ruN` against a pristine copy, and rewrite the patch file.
 - `deemix` and `filebrowser` declare `oauth2-proxy` as an optional dependency gated on `oauth2-proxy.enabled`.
-  Every chart but `actions-runner` has a `Chart.lock`, so the `lint-%` pattern rule covers them all; `lint-actions-runner` and `lint-hercules-ci-agent` stay explicit for other reasons.
+  Every chart but `actions-runner` has a `Chart.lock`, so the `lint-%` pattern rule covers them all.
+  `lint-actions-runner` stays explicit because there is no `Chart.lock` to depend on, and `lint-hercules-ci-agent` because `helm lint` needs `--values charts/hercules-ci-agent/ci/default-values.yaml` to supply the otherwise missing `clusterJoinToken`.
   `charts/*/charts/` is gitignored, so `helm dep update` is required before linting or templating.
-- Each chart has a `values.schema.json` that Helm enforces at install time.
+- `deemix` and `filebrowser` render an `HTTPRoute`, so the Gateway API CRDs must exist before `ct install`; that is what `make gateway-api` and the equivalent CI step provide.
+  Each has a `ci/httproute-values.yaml` alongside `ci/default-values.yaml`, so `ct` installs them twice.
+- Every chart but `actions-runner` has a `values.schema.json` that Helm enforces at install time.
   Adding or renaming anything in `values.yaml` requires updating that schema, or installs fail with a validation error.
 - `deemix` renders `Deployment` or `StatefulSet` from `.Values.kind`; PVCs only exist in the `StatefulSet` path via `volumeClaimTemplates`.
 - `mage-server` speaks raw TCP, so it has no Ingress or HTTPRoute; its `server.*` values become `XMAGE_*` environment variables consumed by the image entrypoint.
@@ -89,6 +104,7 @@ CI (`.github/workflows/ci.yml`) discovers charts automatically through `ct`.
 - `ct` validates `Chart.yaml` against `chart_schema.yaml` (yamale) and YAML style against `lintconf.yaml` (yamllint).
 - `.ct.yaml` sets `check-version-increment: false` because release-please, not the chart PR, bumps `version`.
 - `ct lint` requires full git history to diff against `main`; workflows use `fetch-depth: 0`.
-- The `test` job installs every chart.
+- CI runs on the self-hosted `thecluster` runner, not a GitHub-hosted one.
+- The `test` job installs every chart except `actions-runner`, `gha-runner-scale-set` and `hercules-ci-agent`, matching the Makefile's `install` target.
   `filebrowser` provisions a PVC and relies on the kind cluster's default `standard` StorageClass; leaving `persistence.storageClassName` empty omits the field so the cluster default applies.
 - GitHub Action versions are pinned to commit SHAs and updated by Renovate; keep the `# vN` trailing comments when editing.
