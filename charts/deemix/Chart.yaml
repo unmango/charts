@@ -2,18 +2,18 @@ apiVersion: v2
 name: deemix
 description: Helm chart for installing Deemix
 type: application
-version: 0.3.0
+version: 0.4.0
 # renovate: image=ghcr.io/bambanah/deemix
 appVersion: v4.7.0
 sources:
-- https://github.com/bambanah/deemix
-- https://github.com/UnstoppableMango/the-cluster/tree/main/charts/deemix
+  - https://github.com/bambanah/deemix
+  - https://github.com/UnstoppableMango/the-cluster/tree/main/charts/deemix
 kubeVersion: '>= 1.25'
 maintainers:
-- name: UnstoppableMango
-  url: https://github.com/UnstoppableMango
+  - name: UnstoppableMango
+    url: https://github.com/UnstoppableMango
 dependencies:
-- name: oauth2-proxy
-  repository: https://oauth2-proxy.github.io/manifests
-  version: 10.7.0
-  condition: oauth2-proxy.enabled
+  - name: oauth2-proxy
+    repository: https://oauth2-proxy.github.io/manifests
+    version: 10.7.0
+    condition: oauth2-proxy.enabled
