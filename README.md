@@ -4,6 +4,8 @@
 [![Release](https://github.com/unmango/charts/actions/workflows/release.yml/badge.svg)](https://github.com/unmango/charts/actions/workflows/release.yml)
 [![License](https://img.shields.io/github/license/unmango/charts)](./LICENSE)
 [![Helm repo](https://img.shields.io/badge/helm-repo-0F1689?logo=helm&logoColor=white)](https://unmango.github.io/charts)
+[![Built with Nix](https://img.shields.io/static/v1?label=Built%20with&message=Nix&color=5277C3&logo=nixos&logoColor=white&style=flat-square)](https://builtwithnix.org)
+[![Last commit](https://img.shields.io/github/last-commit/unmango/actions)](https://github.com/unmango/actions/commits/main)
 
 Random Helm charts you may or may not find useful.
 Very much a work in progress, use at your own risk.
@@ -19,12 +21,12 @@ helm install filebrowser unmango/filebrowser
 
 | Chart | Upstream | Version | Status |
 | --- | --- | --- | --- |
-| [actions-runner](./charts/actions-runner/) | [unmango/containers](https://github.com/unmango/containers/tree/main/images/actions-runner) | [![actions-runner](https://img.shields.io/github/v/release/unmango/charts?filter=actions-runner-*&label=actions-runner)](https://github.com/unmango/charts/releases?q=actions-runner) | Library chart, see [remarks](#actions-runner) |
-| [deemix](./charts/deemix/) | [bambanah/deemix](https://github.com/bambanah/deemix) | [![deemix](https://img.shields.io/github/v/release/unmango/charts?filter=deemix-*&label=deemix)](https://github.com/unmango/charts/releases?q=deemix) | Revived fork, see [remarks](#deemix) |
-| [filebrowser](./charts/filebrowser/) | [filebrowser/filebrowser](https://github.com/filebrowser/filebrowser) | [![filebrowser](https://img.shields.io/github/v/release/unmango/charts?filter=filebrowser-*&label=filebrowser)](https://github.com/unmango/charts/releases?q=filebrowser) | Upstream archived, see [remarks](#filebrowser) |
-| [gha-runner-scale-set](./charts/gha-runner-scale-set/) | [actions/actions-runner-controller](https://github.com/actions/actions-runner-controller) | [![gha-runner-scale-set](https://img.shields.io/github/v/release/unmango/charts?filter=gha-runner-scale-set-*&label=gha-runner-scale-set)](https://github.com/unmango/charts/releases?q=gha-runner-scale-set) | Patched fork, see [remarks](#gha-runner-scale-set) |
-| [hercules-ci-agent](./charts/hercules-ci-agent/) | [hercules-ci/hercules-ci-agent](https://github.com/hercules-ci/hercules-ci-agent) | [![hercules-ci-agent](https://img.shields.io/github/v/release/unmango/charts?filter=hercules-ci-agent-*&label=hercules-ci-agent)](https://github.com/unmango/charts/releases?q=hercules-ci-agent) | Active, see [remarks](#hercules-ci-agent) |
-| [mage-server](./charts/mage-server/) | [magefree/mage](https://github.com/magefree/mage) | [![mage-server](https://img.shields.io/github/v/release/unmango/charts?filter=mage-server-*&label=mage-server)](https://github.com/unmango/charts/releases?q=mage-server) | Active, see [remarks](#xmage) |
+| [actions-runner](./charts/actions-runner/) | [unmango/containers](https://github.com/unmango/containers/tree/main/images/actions-runner) | [![actions-runner](https://img.shields.io/github/v/release/unmango/charts?filter=actions-runner-*&label=actions-runner)](https://github.com/unmango/charts/releases?q=actions-runner) | Library chart |
+| [deemix](./charts/deemix/) | [bambanah/deemix](https://github.com/bambanah/deemix) | [![deemix](https://img.shields.io/github/v/release/unmango/charts?filter=deemix-*&label=deemix)](https://github.com/unmango/charts/releases?q=deemix) | Revived fork |
+| [filebrowser](./charts/filebrowser/) | [filebrowser/filebrowser](https://github.com/filebrowser/filebrowser) | [![filebrowser](https://img.shields.io/github/v/release/unmango/charts?filter=filebrowser-*&label=filebrowser)](https://github.com/unmango/charts/releases?q=filebrowser) | Upstream archived |
+| [gha-runner-scale-set](./charts/gha-runner-scale-set/) | [actions/actions-runner-controller](https://github.com/actions/actions-runner-controller) | [![gha-runner-scale-set](https://img.shields.io/github/v/release/unmango/charts?filter=gha-runner-scale-set-*&label=gha-runner-scale-set)](https://github.com/unmango/charts/releases?q=gha-runner-scale-set) | Patched fork |
+| [hercules-ci-agent](./charts/hercules-ci-agent/) | [hercules-ci/hercules-ci-agent](https://github.com/hercules-ci/hercules-ci-agent) | [![hercules-ci-agent](https://img.shields.io/github/v/release/unmango/charts?filter=hercules-ci-agent-*&label=hercules-ci-agent)](https://github.com/unmango/charts/releases?q=hercules-ci-agent) | Active |
+| [mage-server](./charts/mage-server/) | [magefree/mage](https://github.com/magefree/mage) | [![mage-server](https://img.shields.io/github/v/release/unmango/charts?filter=mage-server-*&label=mage-server)](https://github.com/unmango/charts/releases?q=mage-server) | Active |
 
 ## Remarks
 
