@@ -23,7 +23,8 @@ Every chart is also published as an OCI artifact under `ghcr.io/unmango/charts`,
 helm install filebrowser oci://ghcr.io/unmango/charts/filebrowser --version <version>
 ```
 
-Only `<chart>:<version>` tags are pushed, so `--version` is required.
+Each chart is its own repository, tagged only with released chart versions, so `--version` is required.
+There is no `latest` tag.
 The version table below links to the releases each tag corresponds to.
 
 ## Charts

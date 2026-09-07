@@ -43,7 +43,8 @@ A chart is bumped when a `feat` or `fix` commit touches files under its director
 Both run in `.github/workflows/release.yml` on every push to `main`: `chart-releaser` first publishes any chart whose `version` changed (which happens when the release PR merges), then the `release-please` job runs.
 release-please does not create tags or GitHub releases (`skip-github-release`); chart-releaser creates them as `<chart>-<version>`, and release-please reads those tags to find the last release, which is why it runs second.
 The `release` job also pushes every package in `.cr-release-packages/` to `oci://ghcr.io/unmango/charts`, which is why it needs `packages: write`.
-chart-releaser packages all six charts on every run, so the push step skips a chart whose `<chart>:<version>` tag is already in the registry, mirroring `skip-existing` in `.cr.yaml`.
+Each chart becomes the repository `ghcr.io/unmango/charts/<chart>`, tagged with its chart `version`.
+chart-releaser packages all six charts on every run, so the push step skips a chart whose `version` tag is already in that repository, mirroring `skip-existing` in `.cr.yaml`.
 `make push` does the same by hand against `REGISTRY` (default `ghcr.io/unmango/charts`) after a `helm registry login`, without the skip check.
 `appVersion` tracks the upstream image and is bumped by Renovate via the `# renovate: image=...` comments.
 Renovate updates under `charts/` commit as `fix(deps): ...` so they trigger a patch release.

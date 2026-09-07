@@ -88,10 +88,16 @@ package: .cr-release-packages/actions-runner-$(ACTIONS_RUNNER_VERSION).tgz \
 	.cr-release-packages/hercules-ci-agent-$(HERCULES_CI_AGENT_VERSION).tgz \
 	.cr-release-packages/mage-server-$(MAGE_SERVER_VERSION).tgz
 
-# Requires `helm registry login $(REGISTRY)` first. Release pushes happen in
+# Requires a `helm registry login` against the host in $(REGISTRY) first, e.g.
+# `helm registry login ghcr.io`. Release pushes happen in
 # .github/workflows/release.yml; this is for publishing by hand.
+# The loop is one recipe line, so make only sees its last exit status; set -e
+# stops it on the first failed push instead of reporting a partial publish.
 push: package
-	for pkg in .cr-release-packages/*.tgz; do helm push "$$pkg" oci://$(REGISTRY); done
+	set -e; \
+	for pkg in .cr-release-packages/*.tgz; do \
+		helm push "$$pkg" "oci://$(REGISTRY)"; \
+	done
 
 .kube/config: kind-cluster.yml
 	kind create cluster --name chart-testing \
