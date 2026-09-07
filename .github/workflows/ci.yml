@@ -25,24 +25,33 @@ env:
 jobs:
   nix:
     runs-on: thecluster
+    # The runner image ships nix, so nothing installs it here. Its
+    # /etc/nix/nix.conf carries the settings every job wants, and nix merges
+    # NIX_CONFIG on top of that file, which is where anything specific to this
+    # deployment belongs.
+    #
+    # Only extra-* settings, because a plain assignment replaces the image's
+    # value rather than adding to it. pipe-operators is already in the image;
+    # naming it again costs nothing and keeps the job working on a runner whose
+    # image does not.
+    env:
+      NIX_CONFIG: |
+        extra-trusted-public-keys = ncps.thecluster.lan:D8fcKW2/D+zjKOABa3bDjEe8x+EPZpXnBDm+XwtNrhI=
+        extra-substituters = https://ncps.thecluster.lan
+        extra-experimental-features = nix-command flakes pipe-operators
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
-      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31
-        with:
-          extra_nix_config: |
-            extra-trusted-public-keys = ncps.thecluster.lan:D8fcKW2/D+zjKOABa3bDjEe8x+EPZpXnBDm+XwtNrhI=
-            extra-substituters = https://ncps.thecluster.lan
-            # nix-command and flakes are restated because install-nix-action sets
-            # them with this same key, and a second assignment of an extra-*
-            # setting overrides the first rather than adding to it.
-            extra-experimental-features = nix-command flakes pipe-operators
+      # cachix-action installs cachix with `nix-env -i`, which lands in
+      # ~/.nix-profile/bin, and then looks the binary up on PATH. Adding that
+      # directory used to be install-nix-action's doing; without this the step
+      # installs cachix and fails with `not found: cachix`.
+      - name: Put the nix profile on PATH
+        run: echo "$HOME/.nix-profile/bin" >> "$GITHUB_PATH"
 
       - uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866 # v17
         with:
           name: unstoppablemango
-
-      - uses: DeterminateSystems/magic-nix-cache-action@908b263ff629f4cc17666315b7fd3ec127c6244d # v14
 
       - run: nix flake check
 

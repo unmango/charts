@@ -14,19 +14,22 @@ jobs:
     runs-on: thecluster
     permissions:
       contents: read
+    # Same arrangement as ci.yml's nix job: the runner image ships nix, and
+    # anything specific to this deployment arrives as NIX_CONFIG, which nix
+    # merges on top of the image's /etc/nix/nix.conf. Only extra-* settings, so
+    # the image's own values are added to rather than replaced.
+    env:
+      NIX_CONFIG: |
+        extra-trusted-public-keys = ncps.thecluster.lan:D8fcKW2/D+zjKOABa3bDjEe8x+EPZpXnBDm+XwtNrhI=
+        extra-substituters = https://ncps.thecluster.lan
+        extra-experimental-features = nix-command flakes pipe-operators
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31.11.1
-        with:
-          github_access_token: ${{ secrets.GITHUB_TOKEN }}
-          extra_nix_config: |
-            extra-trusted-public-keys = ncps.thecluster.lan:D8fcKW2/D+zjKOABa3bDjEe8x+EPZpXnBDm+XwtNrhI=
-            extra-substituters = https://ncps.thecluster.lan
-            # nix-command and flakes are restated because install-nix-action sets
-            # them with this same key, and a second assignment of an extra-*
-            # setting overrides the first rather than adding to it.
-            extra-experimental-features = nix-command flakes pipe-operators
+      # cachix-action installs cachix into ~/.nix-profile/bin and then looks it
+      # up on PATH, which install-nix-action used to arrange.
+      - name: Put the nix profile on PATH
+        run: echo "$HOME/.nix-profile/bin" >> "$GITHUB_PATH"
 
       - uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866 # v17
         with:

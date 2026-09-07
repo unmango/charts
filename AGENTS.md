@@ -31,7 +31,9 @@ command make package      # cr package into .cr-release-packages/
 
 Every `nix` invocation the Makefile makes goes through its `NIX_FLAGS`, which enables the `pipe-operators` experimental feature that `charts/gha-runner-scale-set/package.nix` needs.
 Run those targets through make rather than calling `nix build` directly.
-CI does not use the Makefile for this: `ci.yml` runs `nix flake check` on its own and gets `pipe-operators` from `install-nix-action`'s `extra_nix_config`, so the feature has to stay enabled in both places.
+CI does not use the Makefile for this: `ci.yml` runs `nix flake check` on its own and gets `pipe-operators` from the `nix` job's `NIX_CONFIG`, so the feature has to stay enabled in both places.
+Nothing installs nix on the `thecluster` runners; their image ships it along with an `/etc/nix/nix.conf` that already sets `experimental-features`, and `NIX_CONFIG` merges on top of that file.
+Only `extra-*` settings belong there, since a plain assignment replaces the image's value instead of adding to it.
 
 `KUBECONFIG` is exported by the Makefile to `.kube/config`, so `kubectl`/`helm` in this directory target the local kind cluster.
 `kubectl` is not in the devshell; `gateway-api` and `install` need it on `PATH` separately.
