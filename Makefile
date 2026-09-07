@@ -2,7 +2,7 @@ export KUBECONFIG := ${CURDIR}/.kube/config
 
 # lint-% targets are intentionally omitted: .PHONY disables implicit rule
 # search, which would stop them matching the lint-% pattern rule below.
-.PHONY: lint lint-actions-runner lint-hercules-ci-agent lint-mage-server test install changed update check build format fmt kind package gateway-api chart-gha-runner-scale-set
+.PHONY: lint lint-actions-runner lint-hercules-ci-agent lint-mage-server test install changed update check build format fmt kind package push gateway-api chart-gha-runner-scale-set
 
 # charts/gha-runner-scale-set/package.nix uses `|>`, which is still an
 # experimental Nix feature. CI enables it through install-nix-action; this is
@@ -11,6 +11,9 @@ NIX_FLAGS ?= --extra-experimental-features pipe-operators
 
 # renovate: datasource=github-releases depName=kubernetes-sigs/gateway-api
 GATEWAY_API_VERSION := 1.6.2
+
+# OCI destination for `make push`. Charts land at $(REGISTRY)/<chart>:<version>.
+REGISTRY ?= ghcr.io/unmango/charts
 
 ACTIONS_RUNNER_VERSION := $(shell awk '/^version:/{print $$2}' charts/actions-runner/Chart.yaml)
 DEEMIX_VERSION := $(shell awk '/^version:/{print $$2}' charts/deemix/Chart.yaml)
@@ -84,6 +87,17 @@ package: .cr-release-packages/actions-runner-$(ACTIONS_RUNNER_VERSION).tgz \
 	.cr-release-packages/gha-runner-scale-set-$(GHA_RUNNER_SCALE_SET_VERSION).tgz \
 	.cr-release-packages/hercules-ci-agent-$(HERCULES_CI_AGENT_VERSION).tgz \
 	.cr-release-packages/mage-server-$(MAGE_SERVER_VERSION).tgz
+
+# Requires a `helm registry login` against the host in $(REGISTRY) first, e.g.
+# `helm registry login ghcr.io`. Release pushes happen in
+# .github/workflows/release.yml; this is for publishing by hand.
+# The loop is one recipe line, so make only sees its last exit status; set -e
+# stops it on the first failed push instead of reporting a partial publish.
+push: package
+	set -e; \
+	for pkg in .cr-release-packages/*.tgz; do \
+		helm push "$$pkg" "oci://$(REGISTRY)"; \
+	done
 
 .kube/config: kind-cluster.yml
 	kind create cluster --name chart-testing \
