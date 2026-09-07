@@ -1,7 +1,7 @@
 {{/* vim: set filetype=mustache: */}}
 
 {{- define "image" -}}
-{{ include "common.images.image" (dict "imageRoot" .Values.image "global" .Values.global "defaultVersion" .Chart.AppVersion) }}
+{{ include "common.images.image" (dict "imageRoot" .Values.image "global" .Values.global "chart" .Chart) }}
 {{- end -}}
 
 {{/*
@@ -25,30 +25,6 @@ true
 {{- end -}}
 
 {{/*
-https://github.com/bitnami/charts/blob/74e1f3fcbe3c1848895df175557f83a53f9cdffc/bitnami/common/templates/_images.tpl#L7-L30
-*/}}
-{{- define "common.images.image" -}}
-{{- $registryName := .imageRoot.registry -}}
-{{- $repositoryName := .imageRoot.repository -}}
-{{- $separator := ":" -}}
-{{- $termination := .imageRoot.tag | default .defaultVersion | toString -}}
-{{- if .global }}
-    {{- if .global.imageRegistry }}
-     {{- $registryName = .global.imageRegistry -}}
-    {{- end -}}
-{{- end -}}
-{{- if .imageRoot.digest }}
-    {{- $separator = "@" -}}
-    {{- $termination = .imageRoot.digest | toString -}}
-{{- end -}}
-{{- if $registryName }}
-    {{- printf "%s/%s%s%s" $registryName $repositoryName $separator $termination -}}
-{{- else -}}
-    {{- printf "%s%s%s"  $repositoryName $separator $termination -}}
-{{- end -}}
-{{- end -}}
-
-{{/*
 Labels that identify the release. Selectors are immutable, so these must not
 include anything that changes between versions.
 */}}
@@ -57,6 +33,9 @@ app.kubernetes.io/name: {{ .Chart.Name }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end -}}
 
+{{/*
+The full recommended label set, for object and pod metadata.
+*/}}
 {{- define "labels" -}}
 helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{ include "selectorLabels" . }}
