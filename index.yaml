@@ -1,5 +1,23 @@
 apiVersion: v1
 entries:
+  actions-runner:
+  - apiVersion: v2
+    appVersion: 2.337.0
+    created: "2026-09-07T03:38:00.419515513Z"
+    description: Library chart for running GitHub Actions runners with a Nix store
+    digest: 72f1250d71085360ea38d3f3be055ecfdc2b8886ecd77a0dd470094041b91f98
+    kubeVersion: '>= 1.25'
+    maintainers:
+    - name: UnstoppableMango
+      url: https://github.com/UnstoppableMango
+    name: actions-runner
+    sources:
+    - https://github.com/unmango/charts/tree/main/charts/actions-runner
+    - https://github.com/unmango/containers
+    type: library
+    urls:
+    - https://github.com/unmango/charts/releases/download/actions-runner-0.1.0/actions-runner-0.1.0.tgz
+    version: 0.1.0
   deemix:
   - apiVersion: v2
     appVersion: v4.7.0
@@ -272,6 +290,29 @@ entries:
     urls:
     - https://github.com/unmango/charts/releases/download/filebrowser-0.1.0/filebrowser-0.1.0.tgz
     version: 0.1.0
+  gha-runner-scale-set:
+  - apiVersion: v2
+    appVersion: 0.14.2
+    created: "2026-09-07T03:38:00.769514926Z"
+    dependencies:
+    - name: actions-runner
+      repository: file://../actions-runner
+      version: '>= 0.1.0'
+    description: Helm chart for deploying an AutoScalingRunnerSet that builds with
+      Nix
+    digest: e6eaf040e5aecc5b830436ddcedb6ecbb5527d68397d4fc2c7c58e28085333cd
+    kubeVersion: '>= 1.25'
+    maintainers:
+    - name: UnstoppableMango
+      url: https://github.com/UnstoppableMango
+    name: gha-runner-scale-set
+    sources:
+    - https://github.com/actions/actions-runner-controller
+    - https://github.com/unmango/charts/tree/main/charts/gha-runner-scale-set
+    type: application
+    urls:
+    - https://github.com/unmango/charts/releases/download/gha-runner-scale-set-0.1.0/gha-runner-scale-set-0.1.0.tgz
+    version: 0.1.0
   hercules-ci-agent:
   - apiVersion: v2
     appVersion: 0.10.8
@@ -308,4 +349,4 @@ entries:
     urls:
     - https://github.com/unmango/charts/releases/download/mage-server-0.1.0/mage-server-0.1.0.tgz
     version: 0.1.0
-generated: "2026-09-06T03:46:52.610825143Z"
+generated: "2026-09-07T03:38:01.070366689Z"
