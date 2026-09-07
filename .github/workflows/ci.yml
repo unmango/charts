@@ -4,6 +4,10 @@ on:
   pull_request:
     branches: [main]
 
+# Nothing here writes to the repository; linting and testing only read it.
+permissions:
+  contents: read
+
 env:
   # renovate: datasource=github-releases depName=helm/chart-testing
   CHART_TESTING_VERSION: 3.14.0
@@ -29,6 +33,10 @@ jobs:
           extra_nix_config: |
             extra-trusted-public-keys = ncps.thecluster.lan:D8fcKW2/D+zjKOABa3bDjEe8x+EPZpXnBDm+XwtNrhI=
             extra-substituters = https://ncps.thecluster.lan
+            # nix-command and flakes are restated because install-nix-action sets
+            # them with this same key, and a second assignment of an extra-*
+            # setting overrides the first rather than adding to it.
+            extra-experimental-features = nix-command flakes pipe-operators
 
       - uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866 # v17
         with:
@@ -37,6 +45,18 @@ jobs:
       - uses: DeterminateSystems/magic-nix-cache-action@908b263ff629f4cc17666315b7fd3ec127c6244d # v14
 
       - run: nix flake check
+
+      # charts/gha-runner-scale-set's templates and values.yaml are generated from the pinned
+      # upstream chart and the patches beside them, and committed so that ct,
+      # chart-releaser and helm all work against the worktree. Regenerating
+      # here is what keeps the two from drifting apart.
+      - name: Check charts/gha-runner-scale-set is up to date
+        run: |
+          make chart-gha-runner-scale-set
+          git diff --exit-code -- charts/gha-runner-scale-set
+          # git diff says nothing about a file that has never been added, so a
+          # regeneration that produces a new template would otherwise pass.
+          test -z "$(git ls-files --others --exclude-standard -- charts/gha-runner-scale-set)"
 
   lint:
     runs-on: thecluster
@@ -97,4 +117,4 @@ jobs:
           kubectl wait --for=condition=Established --timeout=60s crd/httproutes.gateway.networking.k8s.io
 
       # hercules-ci-agent can't reach Ready without a real cluster join token
-      - run: ct install --config .ct.yaml --all --excluded-charts hercules-ci-agent --github-groups
+      - run: ct install --config .ct.yaml --all --excluded-charts actions-runner,gha-runner-scale-set,hercules-ci-agent --github-groups

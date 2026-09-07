@@ -1,0 +1,284 @@
+Inject the nix store volume, its mount and NIX_CONFIG into the runner
+container, following the pattern this chart already uses for DOCKER_HOST and
+the GitHub TLS certificate: scan what the user supplied, and append only what
+is absent. That is what keeps the wiring in place when a consumer overrides
+template.spec.containers or template.spec.volumes, which Helm replaces
+wholesale rather than merging.
+
+A claim-backed store additionally needs an fsGroup, so securityContext comes
+out of the passthrough loop to have one added.
+
+kubernetes-novolume mode takes NIX_CONFIG without a volume, since asking for
+no volumes is the whole point of it.
+
+--- a/templates/_helpers.tpl
++++ b/templates/_helpers.tpl
+@@ -228,6 +228,9 @@
+       {{- $setNodeExtraCaCerts = 1 }}
+       {{- $setRunnerUpdateCaCerts = 1 }}
+     {{- end }}
++    {{- $nix := default (dict) $.Values.nix }}
++    {{- $setNixConfig := ne (include "actions-runner.nix.env" $nix | trim) "" }}
++    {{- $mountNix := ne (include "actions-runner.nix.volumeMount" $nix | trim) "" }}
+ env:
+     {{- with $container.env }}
+       {{- range $i, $env := . }}
+@@ -240,6 +243,9 @@
+         {{- if eq $env.name "NODE_EXTRA_CA_CERTS" }}
+           {{- $setNodeExtraCaCerts = 0 }}
+         {{- end }}
++        {{- if eq $env.name "NIX_CONFIG" }}
++          {{- $setNixConfig = false }}
++        {{- end }}
+         {{- if eq $env.name "RUNNER_UPDATE_CA_CERTS" }}
+           {{- $setRunnerUpdateCaCerts = 0 }}
+         {{- end }}
+@@ -262,6 +268,9 @@
+   - name: RUNNER_UPDATE_CA_CERTS
+     value: "1"
+     {{- end }}
++    {{- if $setNixConfig }}
++      {{- include "actions-runner.nix.env" $nix | nindent 2 }}
++    {{- end }}
+     {{- $mountWork := 1 }}
+     {{- $mountDindCert := 1 }}
+     {{- $mountGitHubServerTLS := 0 }}
+@@ -277,6 +286,9 @@
+         {{- if eq $volMount.name "dind-sock" }}
+           {{- $mountDindCert = 0 }}
+         {{- end }}
++        {{- if eq $volMount.mountPath (include "actions-runner.nix.mountPath" $nix) }}
++          {{- $mountNix = false }}
++        {{- end }}
+         {{- if eq $volMount.name "github-server-tls-cert" }}
+           {{- $mountGitHubServerTLS = 0 }}
+         {{- end }}
+@@ -296,6 +308,9 @@
+     mountPath: {{ clean (print $tlsConfig.runnerMountPath "/" $tlsConfig.certificateFrom.configMapKeyRef.key) }}
+     subPath: {{ $tlsConfig.certificateFrom.configMapKeyRef.key }}
+     {{- end }}
++    {{- if $mountNix }}
++      {{- include "actions-runner.nix.volumeMount" $nix | nindent 2 }}
++    {{- end }}
+   {{- end }}
+ {{- end }}
+ {{- end }}
+@@ -318,6 +333,9 @@
+       {{- $setNodeExtraCaCerts = 1 }}
+       {{- $setRunnerUpdateCaCerts = 1 }}
+     {{- end }}
++    {{- $nix := default (dict) $.Values.nix }}
++    {{- $setNixConfig := ne (include "actions-runner.nix.env" $nix | trim) "" }}
++    {{- $mountNix := ne (include "actions-runner.nix.volumeMount" $nix | trim) "" }}
+ env:
+     {{- with $container.env }}
+       {{- range $i, $env := . }}
+@@ -333,6 +351,9 @@
+         {{- if eq $env.name "NODE_EXTRA_CA_CERTS" }}
+           {{- $setNodeExtraCaCerts = 0 }}
+         {{- end }}
++        {{- if eq $env.name "NIX_CONFIG" }}
++          {{- $setNixConfig = false }}
++        {{- end }}
+         {{- if eq $env.name "RUNNER_UPDATE_CA_CERTS" }}
+           {{- $setRunnerUpdateCaCerts = 0 }}
+         {{- end }}
+@@ -361,6 +382,9 @@
+   - name: RUNNER_UPDATE_CA_CERTS
+     value: "1"
+     {{- end }}
++    {{- if $setNixConfig }}
++      {{- include "actions-runner.nix.env" $nix | nindent 2 }}
++    {{- end }}
+     {{- $mountWork := 1 }}
+     {{- $mountGitHubServerTLS := 0 }}
+     {{- if $tlsConfig.runnerMountPath }}
+@@ -372,6 +396,9 @@
+         {{- if eq $volMount.name "work" }}
+           {{- $mountWork = 0 }}
+         {{- end }}
++        {{- if eq $volMount.mountPath (include "actions-runner.nix.mountPath" $nix) }}
++          {{- $mountNix = false }}
++        {{- end }}
+         {{- if eq $volMount.name "github-server-tls-cert" }}
+           {{- $mountGitHubServerTLS = 0 }}
+         {{- end }}
+@@ -387,6 +414,9 @@
+     mountPath: {{ clean (print $tlsConfig.runnerMountPath "/" $tlsConfig.certificateFrom.configMapKeyRef.key) }}
+     subPath: {{ $tlsConfig.certificateFrom.configMapKeyRef.key }}
+     {{- end }}
++    {{- if $mountNix }}
++      {{- include "actions-runner.nix.volumeMount" $nix | nindent 2 }}
++    {{- end }}
+   {{- end }}
+ {{- end }}
+ {{- end }}
+@@ -414,6 +444,9 @@
+       {{- $setNodeExtraCaCerts = 1 }}
+       {{- $setRunnerUpdateCaCerts = 1 }}
+     {{- end }}
++    {{- $nix := default (dict) $.Values.nix }}
++    {{- $setNixConfig := ne (include "actions-runner.nix.env" $nix | trim) "" }}
++    {{- $mountNix := ne (include "actions-runner.nix.volumeMount" $nix | trim) "" }}
+ env:
+     {{- with $container.env }}
+       {{- range $i, $env := . }}
+@@ -432,6 +465,9 @@
+         {{- if eq $env.name "NODE_EXTRA_CA_CERTS" }}
+           {{- $setNodeExtraCaCerts = 0 }}
+         {{- end }}
++        {{- if eq $env.name "NIX_CONFIG" }}
++          {{- $setNixConfig = false }}
++        {{- end }}
+         {{- if eq $env.name "RUNNER_UPDATE_CA_CERTS" }}
+           {{- $setRunnerUpdateCaCerts = 0 }}
+         {{- end }}
+@@ -464,6 +500,9 @@
+   - name: RUNNER_UPDATE_CA_CERTS
+     value: "1"
+     {{- end }}
++    {{- if $setNixConfig }}
++      {{- include "actions-runner.nix.env" $nix | nindent 2 }}
++    {{- end }}
+     {{- $mountGitHubServerTLS := 0 }}
+     {{- if $tlsConfig.runnerMountPath }}
+       {{- $mountGitHubServerTLS = 1 }}
+@@ -510,13 +549,19 @@
+   {{- end }}
+ 
+   {{- $mountGitHubServerTLS := 0 }}
+-  {{- if or $container.env $setNodeExtraCaCerts $setRunnerUpdateCaCerts }}
++  {{- $nix := default (dict) $.Values.nix }}
++  {{- $setNixConfig := ne (include "actions-runner.nix.env" $nix | trim) "" }}
++  {{- $mountNix := ne (include "actions-runner.nix.volumeMount" $nix | trim) "" }}
++  {{- if or $container.env $setNodeExtraCaCerts $setRunnerUpdateCaCerts $setNixConfig }}
+   env:
+     {{- with $container.env }}
+       {{- range $i, $env := . }}
+         {{- if eq $env.name "NODE_EXTRA_CA_CERTS" }}
+           {{- $setNodeExtraCaCerts = 0 }}
+         {{- end }}
++        {{- if eq $env.name "NIX_CONFIG" }}
++          {{- $setNixConfig = false }}
++        {{- end }}
+         {{- if eq $env.name "RUNNER_UPDATE_CA_CERTS" }}
+           {{- $setRunnerUpdateCaCerts = 0 }}
+         {{- end }}
+@@ -531,15 +576,21 @@
+     - name: RUNNER_UPDATE_CA_CERTS
+       value: "1"
+     {{- end }}
++    {{- if $setNixConfig }}
++      {{- include "actions-runner.nix.env" $nix | nindent 4 }}
++    {{- end }}
+     {{- if $tlsConfig.runnerMountPath }}
+       {{- $mountGitHubServerTLS = 1 }}
+     {{- end }}
+   {{- end }}
+ 
+-  {{- if or $container.volumeMounts $mountGitHubServerTLS }}
++  {{- if or $container.volumeMounts $mountGitHubServerTLS $mountNix }}
+   volumeMounts:
+     {{- with $container.volumeMounts }}
+       {{- range $i, $volMount := . }}
++        {{- if eq $volMount.mountPath (include "actions-runner.nix.mountPath" $nix) }}
++          {{- $mountNix = false }}
++        {{- end }}
+         {{- if eq $volMount.name "github-server-tls-cert" }}
+           {{- $mountGitHubServerTLS = 0 }}
+         {{- end }}
+@@ -551,6 +602,9 @@
+       mountPath: {{ clean (print $tlsConfig.runnerMountPath "/" $tlsConfig.certificateFrom.configMapKeyRef.key) }}
+       subPath: {{ $tlsConfig.certificateFrom.configMapKeyRef.key }}
+     {{- end }}
++    {{- if $mountNix }}
++      {{- include "actions-runner.nix.volumeMount" $nix | nindent 4 }}
++    {{- end }}
+   {{- end}}
+ {{- end }}
+ {{- end }}
+@@ -685,3 +739,23 @@
+   {{- .Release.Namespace }}
+ {{- end }}
+ {{- end }}
++
++{{- define "gha-runner-scale-set.nix-volume" -}}
++{{- /*
++  kubernetes-novolume mode renders `volumes: []` and mounts nothing, so a store
++  volume here would only ever go unused.
++*/}}
++{{- if ne (default (dict) .Values.containerMode).type "kubernetes-novolume" }}
++{{- $nix := default (dict) .Values.nix }}
++{{- $name := include "actions-runner.nix.volumeName" $nix }}
++{{- $present := false }}
++{{- range $i, $volume := .Values.template.spec.volumes }}
++  {{- if eq $volume.name $name }}
++    {{- $present = true }}
++  {{- end }}
++{{- end }}
++{{- if not $present }}
++{{- include "actions-runner.nix.volume" $nix }}
++{{- end }}
++{{- end }}
++{{- end }}
+--- a/templates/autoscalingrunnerset.yaml
++++ b/templates/autoscalingrunnerset.yaml
+@@ -221,10 +221,24 @@
+     {{- end }}
+     spec:
+       {{- range $key, $val := .Values.template.spec }}
+-        {{- if and (ne $key "containers") (ne $key "volumes") (ne $key "initContainers") (ne $key "serviceAccountName") }}
++        {{- if and (ne $key "containers") (ne $key "volumes") (ne $key "initContainers") (ne $key "serviceAccountName") (ne $key "securityContext") }}
+       {{ $key }}: {{ $val | toYaml | nindent 8 }}
+         {{- end }}
+       {{- end }}
++      {{- /*
++        securityContext comes out of the loop so an fsGroup can be added to it.
++        A claim-backed nix store arrives owned by root, which the runner user
++        cannot write, and that is a failure this chart can prevent. An fsGroup
++        the user set wins.
++      */}}
++      {{- $nix := default (dict) .Values.nix }}
++      {{- $securityContext := deepCopy (default (dict) .Values.template.spec.securityContext) }}
++      {{- if and (include "actions-runner.nix.needsFsGroup" $nix | trim) (not (hasKey $securityContext "fsGroup")) }}
++        {{- $_ := set $securityContext "fsGroup" (include "actions-runner.nix.fsGroup" $nix | atoi) }}
++      {{- end }}
++      {{- with $securityContext }}
++      securityContext: {{ toYaml . | nindent 8 }}
++      {{- end }}
+       {{- if not .Values.template.spec.restartPolicy }}
+       restartPolicy: Never
+       {{- end }}
+@@ -269,7 +283,8 @@
+       {{- include "gha-runner-scale-set.default-mode-runner-containers" . | nindent 6 }}
+       {{- end }}
+       {{- $tlsConfig := (default (dict) .Values.githubServerTLS) }}
+-      {{- if or .Values.template.spec.volumes (eq $containerMode.type "dind") (eq $containerMode.type "kubernetes") $tlsConfig.runnerMountPath }}
++      {{- $nixVolume := include "gha-runner-scale-set.nix-volume" . }}
++      {{- if or .Values.template.spec.volumes (eq $containerMode.type "dind") (eq $containerMode.type "kubernetes") $tlsConfig.runnerMountPath (trim $nixVolume) }}
+       volumes:
+         {{- if $tlsConfig.runnerMountPath }}
+           {{- include "gha-runner-scale-set.tls-volume" $tlsConfig | nindent 6 }}
+@@ -278,13 +293,22 @@
+           {{- include "gha-runner-scale-set.dind-volume" . | nindent 6 }}
+           {{- include "gha-runner-scale-set.dind-work-volume" . | nindent 6 }}
+           {{- include "gha-runner-scale-set.non-work-volumes" . | nindent 6 }}
++          {{- with (trim $nixVolume) }}
++        {{- . | nindent 6 }}
++          {{- end }}
+         {{- else if eq $containerMode.type "kubernetes" }}
+           {{- include "gha-runner-scale-set.kubernetes-mode-work-volume" . | nindent 6 }}
+           {{- include "gha-runner-scale-set.non-work-volumes" . | nindent 6 }}
++          {{- with (trim $nixVolume) }}
++        {{- . | nindent 6 }}
++          {{- end }}
+         {{- else }}
+           {{- with .Values.template.spec.volumes }}
+         {{- toYaml . | nindent 6 }}
+           {{- end }}
++          {{- with (trim $nixVolume) }}
++        {{- . | nindent 6 }}
++          {{- end }}
+         {{- end }}
+       {{- else if eq $containerMode.type "kubernetes-novolume" }}
+       volumes: []

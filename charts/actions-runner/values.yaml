@@ -1,0 +1,6 @@
+# A library chart renders nothing of its own, and its values land under
+# `.Values.actions-runner` in whatever chart depends on it, where they would sit
+# beside that chart's own `nix` block rather than in it. Every template here
+# takes the block as an argument instead, so defaults belong to the consumer.
+#
+# `charts/gha-runner-scale-set/values.yaml` is the worked example of the shape they expect.

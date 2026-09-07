@@ -1,0 +1,144 @@
+Default to the nix-enabled runner image and document the nix values block.
+
+--- a/values.yaml
++++ b/values.yaml
+@@ -416,7 +416,13 @@
+   spec:
+     containers:
+       - name: runner
+-        image: ghcr.io/actions/actions-runner:latest
++        ## Defaults to the nix-enabled runner this chart is built around. It
++        ## carries nix, make and xz as static binaries in /usr/local, ships
++        ## nothing under /nix, and sets `store = local` so nix builds the store
++        ## layout inside whatever is mounted there. Upstream's
++        ## ghcr.io/actions/actions-runner works too, with nix.enabled=false.
++        # renovate: datasource=docker depName=ghcr.io/unmango/actions-runner
++        image: ghcr.io/unmango/actions-runner:2.337.0
+         command: ["/home/runner/run.sh"]
+ ## Optional controller service account that needs to have required Role and RoleBinding
+ ## to operate this gha-runner-scale-set installation.
+@@ -428,6 +434,124 @@
+ #   namespace: arc-system
+ #   name: test-arc-gha-runner-scale-set-controller
+ 
++## Nix store and settings for the runner container.
++##
++## The volume, its mount and NIX_CONFIG are injected into whatever
++## template.spec you supply, the same way this chart injects DOCKER_HOST and
++## the GitHub TLS certificate. Supplying your own containers or volumes list
++## does not drop them, and naming a /nix mount or a NIX_CONFIG env of your own
++## takes precedence over what would have been injected.
++nix:
++  enabled: true
++
++  ## containerMode.type=kubernetes-novolume is the exception to everything
++  ## below. It renders `volumes: []` and mounts nothing by design, so the store
++  ## settings are ignored there and only the nix.conf settings are injected.
++  ## A runner in that mode builds on the container's overlayfs, which is what
++  ## the store volume exists to avoid, so it should not be the mode you pick
++  ## for a runner that builds.
++
++  store:
++    ## Where the store lives.
++    ##
++    ##   emptyDir      discarded with the pod, prepared by nothing. Kubelet
++    ##                 creates it mode 0777 and nix creates store, var and its
++    ##                 build directory with its own modes, so it needs neither
++    ##                 an fsGroup nor an initContainer.
++    ##   ephemeral     a volumeClaimTemplate, discarded with the pod. Needs
++    ##                 fsGroup 1001, which this chart sets for you.
++    ##   existingClaim a PersistentVolumeClaim you manage. Same fsGroup.
++    ##   hostPath      a directory on the node, shared by every runner
++    ##                 scheduled there, so a job lands warm. Concurrent pods
++    ##                 sharing one store are fine, that being the same thing as
++    ##                 several users on one machine. Needs gc below, and is
++    ##                 forbidden by the baseline and restricted pod security
++    ##                 standards, so a local PersistentVolume is the shape that
++    ##                 passes admission.
++    ##                 The node directory has to be writable by the runner
++    ##                 already. Kubernetes does not apply fsGroup to a
++    ##                 hostPath, and DirectoryOrCreate makes it root:root
++    ##                 0755, so an unprepared node leaves the runner unable to
++    ##                 write /nix at all. Prepare it out of band, or use a
++    ##                 local PersistentVolume through existingClaim, which
++    ##                 does get the fsGroup.
++    ##   none          no volume. The store lands on the container's overlayfs,
++    ##                 where nix cannot tear down a build directory it has just
++    ##                 emptied and fails with `cannot unlink ...: Directory not
++    ##                 empty`. Derivations that write many small files hit it
++    ##                 reliably, so this is for a runner that never builds.
++    ##
++    ## Never share one store across nodes over ReadWriteMany. A nix store is
++    ## SQLite plus flock, and that pairing on NFS or CephFS is where stores get
++    ## corrupted rather than merely slow.
++    backing: emptyDir
++
++    ## Passed through to the volume, e.g. { sizeLimit: 20Gi }
++    emptyDir: {}
++
++    ## backing: ephemeral
++    ephemeral:
++      accessModes: [ReadWriteOnce]
++      storageClassName: ''
++      size: 50Gi
++
++    ## backing: existingClaim
++    existingClaim: ''
++
++    ## backing: hostPath
++    hostPath:
++      path: /var/lib/nix
++      type: DirectoryOrCreate
++
++    ## The gid given to the pod as fsGroup for the claim backings, so the
++    ## runner can write a volume that arrives owned by root. 1001 is the runner
++    ## user in the default image; change it only alongside the image. An
++    ## fsGroup you set on template.spec.securityContext yourself wins.
++    fsGroup: 1001
++
++    ## The volume's name. Where it is mounted is not configurable: nix compiles
++    ## /nix/store in, and a store anywhere else is one no substituter can
++    ## serve, so mounting elsewhere would look like it worked and quietly
++    ## leave the runner building everything from source.
++    volumeName: nix
++
++  ## Substituters to add to the image's. Rendered as extra-substituters and
++  ## extra-trusted-public-keys, which append rather than replace, so
++  ## cache.nixos.org survives. With an ephemeral store this is the only thing
++  ## standing between a job and downloading its whole closure from upstream.
++  substituters: []
++  trustedPublicKeys: []
++
++  ## Build parallelism, left unset because only you know what the pod is
++  ## allowed. max-jobs is nix's default of 1, so a runner builds one derivation
++  ## at a time whatever it is given. `auto` is not the fix: nix reads the
++  ## machine's core count rather than the cgroup's CPU limit, so a pod limited
++  ## to 2 cores on a 24 core node resolves it to 24. cores, which a builder
++  ## gets as -j, defaults to 0 and means the same thing. Set both to the
++  ## number the pod is actually allowed.
++  maxJobs: ''
++  cores: ''
++
++  ## Garbage collection, correct only for a store that outlives the pod. nix
++  ## collects mid-build, whenever free space falls under minFree, until maxFree
++  ## is available again. Values are bytes, and are a fraction of a disk this
++  ## chart knows nothing about, so leave headroom rather than setting minFree
++  ## at the last free byte. Temporary roots keep a collection from taking paths
++  ## a running build is using, so concurrent runners sharing one store are fine.
++  gc:
++    minFree: ''
++    maxFree: ''
++
++  ## Further nix.conf settings, merged on top of the image's rather than
++  ## replacing them, so `store = local` and experimental-features survive. A
++  ## map for the settings themselves, a string for anything the map cannot say.
++  ## Both win over everything computed above.
++  ##   conf:
++  ##     fallback: true
++  ##     auto-optimise-store: true
++  conf: {}
++  extraConf: ''
++
+ # Overrides the default `.Release.Namespace` for all resources in this chart.
+ namespaceOverride: ""
+ 

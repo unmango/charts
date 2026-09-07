@@ -6,7 +6,7 @@ Read that file before making changes.
 Key points:
 
 - This is a Helm chart repository published to GitHub Pages by `chart-releaser`.
-  Charts live under `charts/`: `deemix`, `filebrowser`, `hercules-ci-agent`, and `mage-server`.
+  Charts live under `charts/`: `actions-runner`, `deemix`, `filebrowser`, `gha-runner-scale-set`, `hercules-ci-agent`, and `mage-server`.
 - All tooling (`helm`, `ct`, `cr`, `kind`, `nixfmt`) comes from the Nix devshell in `flake.nix`, loaded by direnv.
   Do not install tools separately.
 - Common targets: `make lint`, `make test`, `make check`, `make fmt`, `make package`.
