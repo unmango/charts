@@ -2,7 +2,7 @@ export KUBECONFIG := ${CURDIR}/.kube/config
 
 # lint-% targets are intentionally omitted: .PHONY disables implicit rule
 # search, which would stop them matching the lint-% pattern rule below.
-.PHONY: lint lint-actions-runner lint-hercules-ci-agent lint-mage-server test install changed update check build format fmt kind package push gateway-api chart-gha-runner-scale-set
+.PHONY: lint lint-actions-runner lint-hercules-ci-agent test install changed update check build format fmt kind package push gateway-api chart-gha-runner-scale-set
 
 # charts/gha-runner-scale-set/package.nix uses `|>`, which is still an
 # experimental Nix feature. CI enables it through install-nix-action; this is
@@ -27,20 +27,17 @@ lint-%: charts/%/Chart.yaml charts/%/Chart.lock .ct.yaml
 	helm lint $(dir $<)
 	ct lint --config .ct.yaml $(dir $<)
 
-# actions-runner, hercules-ci-agent and mage-server have no dependencies, so no Chart.lock to depend on
-# actions-runner is a library chart, which helm lint accepts but ct install cannot deploy
+# actions-runner has no dependencies, so no Chart.lock to depend on, and it is a
+# library chart, which helm lint accepts but ct install cannot deploy
 lint-actions-runner: charts/actions-runner/Chart.yaml .ct.yaml
 	helm lint charts/actions-runner
 	ct lint --config .ct.yaml charts/actions-runner
 
-# hercules-ci-agent and mage-server have no dependencies, so no Chart.lock to depend on
-lint-hercules-ci-agent: charts/hercules-ci-agent/Chart.yaml .ct.yaml
+# helm lint warns about the missing clusterJoinToken unless it is pointed at the
+# ci values, which the lint-% pattern rule has no way to pass
+lint-hercules-ci-agent: charts/hercules-ci-agent/Chart.yaml charts/hercules-ci-agent/Chart.lock .ct.yaml
 	helm lint charts/hercules-ci-agent --values charts/hercules-ci-agent/ci/default-values.yaml
 	ct lint --config .ct.yaml charts/hercules-ci-agent
-
-lint-mage-server: charts/mage-server/Chart.yaml .ct.yaml
-	helm lint charts/mage-server
-	ct lint --config .ct.yaml charts/mage-server
 
 test: install
 

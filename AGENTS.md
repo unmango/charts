@@ -51,13 +51,13 @@ Renovate updates under `charts/` commit as `fix(deps): ...` so they trigger a pa
 
 ## Chart conventions
 
-- Every application chart vendors an identical `common.images.image` helper in `templates/_helpers.tpl`, copied from bitnami/common, alongside the `labels` and `selectorLabels` helpers.
-  `actions-runner` deliberately does not: template names are global to a release, so a library defining unprefixed names would silently override the consumer's own.
+- `deemix`, `filebrowser`, `hercules-ci-agent` and `mage-server` depend on `common` from `oci://registry-1.docker.io/bitnamicharts` for `common.images.image`, and wrap it in local `image` / `init.image` helpers so templates never call it directly.
+  Renovate bumps the pin; a signature change upstream lands in those four wrappers and nowhere else.
+  Each also defines its own `labels` and `selectorLabels`, which are still duplicated.
+  `actions-runner` takes neither: template names are global to a release, so a library defining unprefixed names would silently override the consumer's own.
   Everything it defines is prefixed `actions-runner.`.
 - `gha-runner-scale-set` keeps upstream's `gha-runner-scale-set.labels` rather than this repo's `labels`.
   Upstream already emits the full `app.kubernetes.io/*` set, and its `app.kubernetes.io/name` is the scale set name that the ARC controller keys on.
-  Templates call the local `image` / `init.image` wrappers rather than the bitnami one directly.
-  A change to one chart's helper usually needs mirroring in the others.
 - `actions-runner` is a library chart, so it renders nothing and cannot be installed; `ct install` excludes it, and its `lint-actions-runner` target is explicit because the `lint-%` pattern rule wants a `Chart.lock`.
   Its templates take the `nix` block as an argument rather than reading `.Values`, since a library's own values land under `.Values.actions-runner` in the consumer.
   `gha-runner-scale-set` depends on it through `file://../actions-runner`, so editing the library means re-running `helm dep update charts/gha-runner-scale-set` before templating, or the stale vendored copy is what renders.
@@ -67,7 +67,7 @@ Renovate updates under `charts/` commit as `fix(deps): ...` so they trigger a pa
   `Chart.yaml` is hand-written and deliberately not generated, because release-please rewrites its `version` and a regeneration would revert it.
   To change a patch, unpack the upstream chart, edit, `diff -ruN` against a pristine copy, and rewrite the patch file.
 - `deemix` and `filebrowser` declare `oauth2-proxy` as an optional dependency gated on `oauth2-proxy.enabled`.
-  `hercules-ci-agent` and `mage-server` have no dependencies and no `Chart.lock`.
+  Every chart but `actions-runner` has a `Chart.lock`, so the `lint-%` pattern rule covers them all; `lint-actions-runner` and `lint-hercules-ci-agent` stay explicit for other reasons.
   `charts/*/charts/` is gitignored, so `helm dep update` is required before linting or templating.
 - Each chart has a `values.schema.json` that Helm enforces at install time.
   Adding or renaming anything in `values.yaml` requires updating that schema, or installs fail with a validation error.
