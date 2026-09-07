@@ -1,3 +1,4 @@
+{{- include "validateSecrets" . -}}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -89,8 +90,20 @@ spec:
           configMap:
             name: {{ printf "%s-config" .Release.Name }}
         - name: secrets
-          secret:
-            secretName: {{ include "secretName" . }}
+          projected:
+            sources:
+              {{- /* kubelet merges sources in order, so the Secret is last: a
+                     binary-caches.json in it wins over the chart's ConfigMap
+                     rather than having its credentials overwritten. */}}
+              {{- if or .Values.binaryCaches (not .Values.existingSecret) }}
+              - configMap:
+                  name: {{ printf "%s-config" .Release.Name }}
+                  items:
+                    - key: binary-caches.json
+                      path: binary-caches.json
+              {{- end }}
+              - secret:
+                  name: {{ .Values.existingSecret | default (include "secretName" .) }}
         - name: tmp
           emptyDir:
             sizeLimit: {{ .Values.tmpDir.sizeLimit }}
