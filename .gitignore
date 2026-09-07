@@ -7,3 +7,4 @@ charts/*/charts/
 tmpcharts-*/
 .kube/
 .envrc
+*.local.*
