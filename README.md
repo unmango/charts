@@ -4,9 +4,11 @@
 [![Release](https://github.com/unmango/charts/actions/workflows/release.yml/badge.svg)](https://github.com/unmango/charts/actions/workflows/release.yml)
 [![License](https://img.shields.io/github/license/unmango/charts)](./LICENSE)
 [![Helm repo](https://img.shields.io/badge/helm-repo-0F1689?logo=helm&logoColor=white)](https://unmango.github.io/charts)
+[![Built with Nix](https://img.shields.io/static/v1?label=Built%20with&message=Nix&color=5277C3&logo=nixos&logoColor=white&style=flat-square)](https://builtwithnix.org)
+[![Last commit](https://img.shields.io/github/last-commit/unmango/actions)](https://github.com/unmango/actions/commits/main)
 
 Random Helm charts you may or may not find useful.
-Very much a work in progress, use at your own risk.
+Use at your own risk.
 
 ## Usage
 
@@ -19,115 +21,59 @@ helm install filebrowser unmango/filebrowser
 
 | Chart | Upstream | Version | Status |
 | --- | --- | --- | --- |
-| [actions-runner](./charts/actions-runner/) | [unmango/containers](https://github.com/unmango/containers/tree/main/images/actions-runner) | [![actions-runner](https://img.shields.io/github/v/release/unmango/charts?filter=actions-runner-*&label=actions-runner)](https://github.com/unmango/charts/releases?q=actions-runner) | Library chart, see [remarks](#actions-runner) |
-| [deemix](./charts/deemix/) | [bambanah/deemix](https://github.com/bambanah/deemix) | [![deemix](https://img.shields.io/github/v/release/unmango/charts?filter=deemix-*&label=deemix)](https://github.com/unmango/charts/releases?q=deemix) | Revived fork, see [remarks](#deemix) |
-| [filebrowser](./charts/filebrowser/) | [filebrowser/filebrowser](https://github.com/filebrowser/filebrowser) | [![filebrowser](https://img.shields.io/github/v/release/unmango/charts?filter=filebrowser-*&label=filebrowser)](https://github.com/unmango/charts/releases?q=filebrowser) | Upstream archived, see [remarks](#filebrowser) |
-| [gha-runner-scale-set](./charts/gha-runner-scale-set/) | [actions/actions-runner-controller](https://github.com/actions/actions-runner-controller) | [![gha-runner-scale-set](https://img.shields.io/github/v/release/unmango/charts?filter=gha-runner-scale-set-*&label=gha-runner-scale-set)](https://github.com/unmango/charts/releases?q=gha-runner-scale-set) | Patched fork, see [remarks](#gha-runner-scale-set) |
-| [hercules-ci-agent](./charts/hercules-ci-agent/) | [hercules-ci/hercules-ci-agent](https://github.com/hercules-ci/hercules-ci-agent) | [![hercules-ci-agent](https://img.shields.io/github/v/release/unmango/charts?filter=hercules-ci-agent-*&label=hercules-ci-agent)](https://github.com/unmango/charts/releases?q=hercules-ci-agent) | Active, see [remarks](#hercules-ci-agent) |
-| [mage-server](./charts/mage-server/) | [magefree/mage](https://github.com/magefree/mage) | [![mage-server](https://img.shields.io/github/v/release/unmango/charts?filter=mage-server-*&label=mage-server)](https://github.com/unmango/charts/releases?q=mage-server) | Active, see [remarks](#xmage) |
+| [actions-runner](./charts/actions-runner/) | [unmango/containers](https://github.com/unmango/containers/tree/main/images/actions-runner) | [![actions-runner](https://img.shields.io/github/v/release/unmango/charts?filter=actions-runner-*&label=actions-runner)](https://github.com/unmango/charts/releases?q=actions-runner) | Library chart |
+| [deemix](./charts/deemix/) | [bambanah/deemix](https://github.com/bambanah/deemix) | [![deemix](https://img.shields.io/github/v/release/unmango/charts?filter=deemix-*&label=deemix)](https://github.com/unmango/charts/releases?q=deemix) | Revived fork |
+| [filebrowser](./charts/filebrowser/) | [filebrowser/filebrowser](https://github.com/filebrowser/filebrowser) | [![filebrowser](https://img.shields.io/github/v/release/unmango/charts?filter=filebrowser-*&label=filebrowser)](https://github.com/unmango/charts/releases?q=filebrowser) | Upstream archived |
+| [gha-runner-scale-set](./charts/gha-runner-scale-set/) | [actions/actions-runner-controller](https://github.com/actions/actions-runner-controller) | [![gha-runner-scale-set](https://img.shields.io/github/v/release/unmango/charts?filter=gha-runner-scale-set-*&label=gha-runner-scale-set)](https://github.com/unmango/charts/releases?q=gha-runner-scale-set) | Patched fork |
+| [hercules-ci-agent](./charts/hercules-ci-agent/) | [hercules-ci/hercules-ci-agent](https://github.com/hercules-ci/hercules-ci-agent) | [![hercules-ci-agent](https://img.shields.io/github/v/release/unmango/charts?filter=hercules-ci-agent-*&label=hercules-ci-agent)](https://github.com/unmango/charts/releases?q=hercules-ci-agent) | Active |
+| [mage-server](./charts/mage-server/) | [magefree/mage](https://github.com/magefree/mage) | [![mage-server](https://img.shields.io/github/v/release/unmango/charts?filter=mage-server-*&label=mage-server)](https://github.com/unmango/charts/releases?q=mage-server) | Active |
 
 ## Remarks
 
 ### actions-runner
 
-A library chart, so it installs nothing.
-It holds the pod spec fragments a GitHub Actions runner needs to build with Nix: the store volume, its mount, and `NIX_CONFIG`.
-`gha-runner-scale-set` is the reference consumer, and `charts/gha-runner-scale-set/values.yaml` documents the `nix` block every template here expects.
-
-Each template takes that block as its argument rather than reading `.Values`, so a chart can keep it wherever it likes:
-
-```gotemplate
-volumes:
-  {{- include "actions-runner.nix.volume" .Values.nix | nindent 2 }}
-```
+Library chart, installs nothing.
+Provides pod spec fragments (store volume, mount, `NIX_CONFIG`) for building with Nix.
+Templates take the `nix` block as an argument, not `.Values`; see `charts/gha-runner-scale-set/values.yaml` for its shape.
 
 ### gha-runner-scale-set
 
-Upstream's [gha-runner-scale-set](https://github.com/actions/actions-runner-controller/tree/main/charts/gha-runner-scale-set), fetched at a pinned tag and patched to wire in a Nix store.
-`templates/` and `values.yaml` are generated by `make chart-gha-runner-scale-set` from `upstream.nix` and `patches/`, and committed so that `ct`, `chart-releaser` and `helm template` work against the worktree without a Nix step.
-CI regenerates and fails on drift.
-Change the patches, not the generated files.
+Upstream chart, patched to wire in a Nix store.
+`templates/` and `values.yaml` are generated (`make chart-gha-runner-scale-set`); edit `patches/`, never the generated files.
 
-The runner image defaults to [ghcr.io/unmango/actions-runner](https://github.com/unmango/containers/tree/main/images/actions-runner), which carries `nix`, `make` and `xz` as static binaries in `/usr/local`, ships nothing under `/nix`, and sets `store = local` so nix builds the store layout inside whatever is mounted there.
-Upstream's own image works with `nix.enabled=false`.
-
-The nix volume, its mount and `NIX_CONFIG` are injected into whatever `template.spec` you supply, the way this chart already injects `DOCKER_HOST` and the GitHub TLS certificate.
-That is the reason for a patched fork rather than a subchart with default values: Helm replaces lists wholesale, so a consumer setting `template.spec.containers` to add a resource limit would otherwise lose the store mount and never notice.
-Naming a `/nix` mount or a `NIX_CONFIG` env of your own takes precedence over what would have been injected.
-
-`nix.store.backing` decides where the store lives, and `emptyDir` is the default worth reaching for.
-Kubelet creates one mode `0777` and nix creates `store`, `var` and its build directory with its own modes rather than the volume's, so nothing has to prepare it.
-`ephemeral` and `existingClaim` arrive owned by root instead, so the chart adds `fsGroup: 1001` for them.
-`hostPath` is what makes a job land warm, every runner scheduled on a node sharing one store, and it is the one backing that needs `nix.gc` set, since nothing else will ever collect it.
-It also needs the node directory to be writable by the runner already: Kubernetes does not apply `fsGroup` to a `hostPath`, and `DirectoryOrCreate` makes it `root:root` `0755`, so an unprepared node leaves the runner unable to write `/nix` at all.
-A local `PersistentVolume` through `existingClaim` avoids that, since a claim does get the `fsGroup`.
-
-`containerMode: kubernetes-novolume` is the exception to all of this.
-It renders `volumes: []` and mounts nothing by design, so the store settings are ignored and only the `nix.conf` settings are injected, leaving the runner building on an overlayfs.
-It is not the mode to pick for a runner that builds.
-
-Two things not to do.
-Do not leave `/nix` unmounted (`backing: none`) for a runner that builds: the store lands on an overlayfs, where nix cannot tear down a build directory it has just emptied and fails with `cannot unlink ...: Directory not empty`.
-Do not share one store across nodes over `ReadWriteMany`: a nix store is SQLite plus `flock`, and that pairing on NFS or CephFS is where stores get corrupted rather than merely slow.
-
-`nix.maxJobs` and `nix.cores` are deliberately unset.
-`max-jobs` is nix's default of 1, so a runner builds one derivation at a time whatever the pod is given, and `auto` is not the fix: nix reads the machine's core count rather than the cgroup's CPU limit, so a pod limited to 2 cores on a 24 core node resolves it to 24.
-Set both to the number the pod is actually allowed.
-
-Unlike the other charts here, `gha-runner-scale-set` keeps upstream's labels rather than this repository's `labels` helper.
-Upstream already emits the full `app.kubernetes.io/*` set, and its `app.kubernetes.io/name` is the scale set name the controller keys on.
+- `nix.store.backing: hostPath` needs the node directory pre-created and writable; prefer `existingClaim` unless you need a shared warm store.
+- Never `backing: none` for a runner that builds (overlayfs breaks nix's build-dir teardown).
+- Never share one store via `ReadWriteMany` (SQLite + flock corrupts over NFS/CephFS).
+- Set `nix.maxJobs`/`nix.cores` explicitly, nix ignores cgroup CPU limits and defaults to 1 job.
+- `containerMode: kubernetes-novolume` mounts nothing; not for a runner that builds.
+- Keeps upstream's `labels` helper, since the controller keys on `app.kubernetes.io/name`.
 
 ### Hercules CI Agent
 
-Hercules CI publishes no container image and no Helm chart.
-The image this chart deploys comes from [unmango/containers](https://github.com/unmango/containers/tree/main/images/hercules-ci-agent).
+No upstream image or chart; uses `unmango/containers`.
 
-Set `clusterJoinToken` to the token from the Hercules CI dashboard, or point `existingSecret` at a Secret holding `cluster-join-token.key`, `binary-caches.json`, and `secrets.json`.
-The agent only reads the token at startup.
-Changing the chart-managed Secret restarts the pod through a checksum annotation; rotating an `existingSecret` requires restarting the pod by hand.
-
-The image sets `SSL_CERT_FILE` and `NIX_SSL_CERT_FILE` to a store path it does not actually contain, which makes every HTTPS request fail with `unable to get local issuer certificate`.
-The chart overrides both to `/etc/ssl/certs/ca-bundle.crt`, which the image does contain.
-Once the image is fixed, `caCertFile` can point back at whatever it ships.
-
-There is no `/nix/var/nix` in the image, so Nix chroot stores into `/var/lib/hercules-ci-agent/.local/share/nix/root`.
-That makes the agent's state volume the build cache as well, which is why `persistence.size` defaults to `100Gi`.
-Losing that volume costs both the warm store and the agent's session key, so the agent registers again as a new one.
-
-The image ships a `/etc/nix/nix.conf` containing the `narinfo-cache-negative-ttl = 0` the agent requires.
-Setting `nixConf` or `extraNixConf` replaces that file with a generated one; the required setting is merged in and cannot be overridden.
-`extraNixConf: 'trusted-users = root hercules-ci-agent'` silences the agent's trusted-user warning.
-
-Effects run in a nested container and need `effects.enabled: true`, which makes the pod privileged.
-
-The agent only makes outbound connections, so the chart ships no Ingress or HTTPRoute.
-The headless Service exists only to satisfy `StatefulSet.spec.serviceName`.
-For the same reason the chart is excluded from `ct install`: without a real join token the agent exits on a 401 and can never reach Ready.
+- Set `clusterJoinToken` or `existingSecret` (`cluster-join-token.key`, `binary-caches.json`, `secrets.json`); rotating `existingSecret` needs a manual pod restart.
+- Chart overrides the image's broken `SSL_CERT_FILE`/`NIX_SSL_CERT_FILE` paths.
+- No `/nix/var/nix`; Nix chroots into the persistent volume, so `persistence.size` defaults to `100Gi` and losing the volume also loses the agent's session key.
+- `effects.enabled: true` runs the pod privileged.
+- Excluded from `ct install`: without a real join token it never reaches Ready.
 
 ### XMage
 
-XMage publishes no container image.
-The image this chart deploys comes from [xmage-docker](https://github.com/UnstoppableMango/xmage-docker), which builds the upstream `Mage.Server` and wraps it in an entrypoint that writes `XMAGE_*` environment variables into `config.xml`.
-The `server` values map onto those variables, and `server.extraSettings` covers any attribute the chart does not name.
-`existingConfigMap` mounts a complete `config.xml` instead, in which case the entrypoint performs no substitution and the `server` and `mail` values are ignored.
+No upstream image; uses `xmage-docker`.
+`server.*` values map to `XMAGE_*` env vars; `existingConfigMap` bypasses that mapping entirely.
 
-XMage clients speak a raw TCP protocol on `17171`, plus `17179` for the secondary socket, so the chart ships no Ingress or HTTPRoute.
-Expose the Service as `LoadBalancer` or `NodePort`, or attach a Gateway API `TCPRoute` from the experimental channel.
-`server.address` is the address the server binds and advertises to clients; the default `0.0.0.0` works behind a Service.
-
-The server loads its card database before it listens, which takes a few minutes on first start.
-The readiness probe allows ten minutes for this.
-
-The image runs as root, so the chart drops all capabilities and blocks privilege escalation by default but does not set `runAsNonRoot`.
-`server.secondaryBindPort` must be a fixed port: XMage picks an arbitrary one when it is `-1`, and a Service cannot expose that.
+- Raw TCP on `17171`/`17179`, no Ingress/HTTPRoute, expose via LoadBalancer, NodePort, or TCPRoute.
+- `server.secondaryBindPort` must be a fixed port (not `-1`).
+- First start takes minutes to load the card database; readiness probe allows 10 minutes.
+- Runs as root; capabilities are dropped but `runAsNonRoot` is not set.
 
 ### Filebrowser
 
-Upstream File Browser is [archived](https://github.com/filebrowser/filebrowser#project-status) as of 2026-09-01.
-The last planned release has shipped, and there are no further releases, bug fixes, or security fixes.
-The chart keeps working against the final image, but that image receives no updates, so weigh the risk before exposing it.
+Upstream is archived (2026-09-01), no further releases or fixes.
+The chart still works against the final image.
 
 ### Deemix
 
-The original deemix by RemixDev is abandoned.
-This chart deploys the revived fork at [bambanah/deemix](https://github.com/bambanah/deemix), which is actively maintained and publishes the `ghcr.io/bambanah/deemix` image.
+Upstream (RemixDev) is abandoned.
+The chart deploys the maintained fork at [bambanah/deemix](https://github.com/bambanah/deemix).
