@@ -124,7 +124,10 @@ jobs:
       - name: Check for changed charts
         id: changed
         run: |
-          if [ -n "$(ct list-changed --config .ct.yaml --excluded-charts "$EXCLUDED_CHARTS")" ]; then
+          # Assigning in its own statement so a ct failure fails the step
+          # instead of reading as "no charts changed".
+          changed="$(ct list-changed --config .ct.yaml --excluded-charts "$EXCLUDED_CHARTS")"
+          if [ -n "$changed" ]; then
             echo 'charts=true' >> "$GITHUB_OUTPUT"
           fi
 
