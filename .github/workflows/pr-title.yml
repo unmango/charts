@@ -36,7 +36,7 @@ jobs:
             deps
             style
           requireScope: false
-          subjectPattern: ^(?![A-Z]).+[^.]$
+          subjectPattern: ^[a-z](?:.*[^.])?$
           subjectPatternError: >
             The subject "{subject}" of "{title}" must start with a lowercase
             character and must not end with a period.
