@@ -25,6 +25,11 @@ secretsJson: {}
 
 agent:
   apiBaseUrl: 'https://hercules-ci.com'
+  # Tasks the agent runs at once. "auto" resolves to the CPU budget in
+  # resources below, rounded down and never less than 2, since
+  # import-from-derivation deadlocks with a single task. With no budget set it
+  # reaches the agent as "auto", which counts the host's CPUs and so
+  # oversubscribes a pod on a large node. Set resources, or set an integer here.
   concurrentTasks: auto
   logLevel: InfoS
   labels: {}
@@ -66,6 +71,9 @@ tmpDir:
 effects:
   enabled: false
 
+# Upstream recommends one larger agent over several smaller ones, since each
+# split of resources means another cold Nix store and more downloads. Scale by
+# raising the CPU budget here rather than replicaCount.
 resources: {}
 
 securityContext: {}

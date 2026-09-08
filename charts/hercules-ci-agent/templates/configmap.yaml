@@ -8,8 +8,11 @@ cannot indent correctly.
   "baseDirectory" "/var/lib/hercules-ci-agent"
   "staticSecretsDirectory" "/etc/hercules-ci-agent/secrets"
   "clusterJoinTokenPath" (printf "/etc/hercules-ci-agent/secrets/%s" .Values.existingSecretKey)
-  "concurrentTasks" .Values.agent.concurrentTasks
   "logLevel" .Values.agent.logLevel -}}
+{{- /* "auto" is a JSON string to the agent, a count is a JSON number */ -}}
+{{- $tasks := include "concurrentTasks" . -}}
+{{- if eq $tasks "auto" }}{{ $_ := set $cfg "concurrentTasks" $tasks }}
+{{- else }}{{ $_ := set $cfg "concurrentTasks" (atoi $tasks) }}{{ end -}}
 {{- with .Values.agent.labels }}{{ $_ := set $cfg "labels" . }}{{ end -}}
 {{- range $k, $v := .Values.agent.extraSettings }}{{ $_ := set $cfg $k $v }}{{ end -}}
 apiVersion: v1

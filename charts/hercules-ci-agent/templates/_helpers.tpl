@@ -39,6 +39,34 @@ owns them only in its absence.
 {{- end -}}
 
 {{/*
+Number of tasks the agent runs at once. The agent's "auto" counts the
+host's CPUs rather than the pod's cgroup quota, so on a large node it claims
+far more tasks than the pod can run, and every one of them crawls. Resolve
+"auto" against the pod's CPU budget instead, preferring the limit that sets
+the quota and falling back to the request. The floor is two tasks, matching
+the agent's "auto", because import-from-derivation deadlocks with one.
+An explicit number, or "auto" with no budget set, is passed through.
+*/}}
+{{- define "concurrentTasks" -}}
+{{- $tasks := .Values.agent.concurrentTasks -}}
+{{- if kindIs "invalid" $tasks -}}
+{{- $tasks = "auto" -}}
+{{- end -}}
+{{- $cpu := dig "limits" "cpu" (dig "requests" "cpu" "" .Values.resources) .Values.resources -}}
+{{- if and (eq (toString $tasks) "auto") $cpu -}}
+{{- $cores := toString $cpu -}}
+{{- if hasSuffix "m" $cores -}}
+{{- $cores = divf (float64 (trimSuffix "m" $cores)) 1000.0 -}}
+{{- else -}}
+{{- $cores = float64 $cores -}}
+{{- end -}}
+{{- max 2 (floor $cores) -}}
+{{- else -}}
+{{- $tasks -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Labels that identify the release. Selectors are immutable, so these must not
 include anything that changes between versions.
 */}}

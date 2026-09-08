@@ -65,13 +65,13 @@ Renovate updates under `charts/` commit as `fix(deps): ...` so they trigger a pa
 
 - `deemix`, `filebrowser`, `hercules-ci-agent` and `mage-server` depend on `common` from `oci://registry-1.docker.io/bitnamicharts` for `common.images.image`, and wrap it in local `image` / `init.image` helpers so templates never call it directly.
   Renovate bumps the pin; a signature change upstream lands in those four wrappers and nowhere else.
-  Each also defines its own `labels` and `selectorLabels`, which are still duplicated.
-  `actions-runner` takes neither: template names are global to a release, so a library defining unprefixed names would silently override the consumer's own.
+  Each also defines its `labels` and `selectorLabels`, which are still duplicated.
+  `actions-runner` takes neither: template names are global to a release, so a library defining unprefixed names would silently override the consumer's.
   Everything it defines is prefixed `actions-runner.`.
 - `gha-runner-scale-set` keeps upstream's `gha-runner-scale-set.labels` rather than this repo's `labels`.
   Upstream already emits the full `app.kubernetes.io/*` set, and its `app.kubernetes.io/name` is the scale set name that the ARC controller keys on.
 - `actions-runner` is a library chart, so it renders nothing and cannot be installed; `ct install` excludes it, and its `lint-actions-runner` target is explicit because the `lint-%` pattern rule wants a `Chart.lock`.
-  Its templates take the `nix` block as an argument rather than reading `.Values`, since a library's own values land under `.Values.actions-runner` in the consumer.
+  Its templates take the `nix` block as an argument rather than reading `.Values`, since a library's values land under `.Values.actions-runner` in the consumer.
   `gha-runner-scale-set` depends on it through `file://../actions-runner`, so editing the library means re-running `helm dep update charts/gha-runner-scale-set` before templating, or the stale vendored copy is what renders.
   That dependency is constrained as `>= 0.1.0` rather than pinned, so a release-please bump of the library does not break `gha-runner-scale-set`'s `helm dep update`.
 - `gha-runner-scale-set`'s `templates/` and `values.yaml` are generated: `make chart-gha-runner-scale-set` fetches the tag in `charts/gha-runner-scale-set/upstream.nix` and applies `charts/gha-runner-scale-set/patches/*.patch`.
