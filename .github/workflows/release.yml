@@ -73,6 +73,22 @@ jobs:
       contents: write
       pull-requests: write
     steps:
+      # skip-github-release means release-please never relabels a merged
+      # release PR, and it aborts while one is still labelled pending. The
+      # preceding job's chart-releaser step created the tags, so mark them
+      # tagged here or no further release PR is ever opened.
+      - name: Mark merged release PRs tagged
+        run: |
+          gh pr list --repo "$GITHUB_REPOSITORY" --state merged \
+            --label 'autorelease: pending' --json number --jq '.[].number' |
+            while read -r pr; do
+              gh pr edit "$pr" --repo "$GITHUB_REPOSITORY" \
+                --remove-label 'autorelease: pending' \
+                --add-label 'autorelease: tagged'
+            done
+        env:
+          GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
+
       # A pull request opened with GITHUB_TOKEN does not trigger workflows,
       # so the release PR arrives with no CI. RELEASE_PLEASE_TOKEN is a PAT
       # that fixes that; without one this still works, the release PR just
