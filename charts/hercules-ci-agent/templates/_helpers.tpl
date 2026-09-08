@@ -43,11 +43,15 @@ Number of tasks the agent runs at once. The agent's "auto" counts the
 host's CPUs rather than the pod's cgroup quota, so on a large node it claims
 far more tasks than the pod can run, and every one of them crawls. Resolve
 "auto" against the pod's CPU budget instead, preferring the limit that sets
-the quota and falling back to the request. A budget below one core still gets
-one task. An explicit number, or "auto" with no budget set, is passed through.
+the quota and falling back to the request. The floor is two tasks, matching
+the agent's own "auto", because import-from-derivation deadlocks with one.
+An explicit number, or "auto" with no budget set, is passed through.
 */}}
 {{- define "concurrentTasks" -}}
-{{- $tasks := .Values.agent.concurrentTasks | default "auto" -}}
+{{- $tasks := .Values.agent.concurrentTasks -}}
+{{- if kindIs "invalid" $tasks -}}
+{{- $tasks = "auto" -}}
+{{- end -}}
 {{- $cpu := dig "limits" "cpu" (dig "requests" "cpu" "" .Values.resources) .Values.resources -}}
 {{- if and (eq (toString $tasks) "auto") $cpu -}}
 {{- $cores := toString $cpu -}}
@@ -56,7 +60,7 @@ one task. An explicit number, or "auto" with no budget set, is passed through.
 {{- else -}}
 {{- $cores = float64 $cores -}}
 {{- end -}}
-{{- max 1 (floor $cores) -}}
+{{- max 2 (floor $cores) -}}
 {{- else -}}
 {{- $tasks -}}
 {{- end -}}
