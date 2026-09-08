@@ -1,9 +1,0 @@
-dependencies:
-- name: common
-  repository: oci://registry-1.docker.io/bitnamicharts
-  version: 2.41.0
-- name: oauth2-proxy
-  repository: https://oauth2-proxy.github.io/manifests
-  version: 10.7.0
-digest: sha256:c94963f83409765e19b204da930ce3aad6e42f6a3a3222a6112d12f660ffdf2b
-generated: "2026-09-07T11:34:05.169875063-05:00"

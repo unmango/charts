@@ -94,9 +94,12 @@ jobs:
           yamale_version: ${{ env.YAMALE_VERSION }}
           yamllint_version: ${{ env.YAMLLINT_VERSION }}
 
+      # dep build, not dep update: update rewrites Chart.lock in the workspace and
+      # so cannot fail on a stale one, which is how a lock that broke the release
+      # job passed lint.
       - run: |
           for chart in charts/*; do
-            helm dep update "$chart"
+            helm dep build "$chart"
           done
 
       - run: ct lint --config .ct.yaml --github-groups
