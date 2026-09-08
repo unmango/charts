@@ -79,14 +79,10 @@ jobs:
       # tagged here or no further release PR is ever opened.
       - name: Mark merged release PRs tagged
         run: |
-          gh pr list --repo "$GITHUB_REPOSITORY" --state merged \
-            --label 'autorelease: pending' --json number --jq '.[].number' |
-            while read -r pr; do
-              gh pr edit "$pr" --repo "$GITHUB_REPOSITORY" \
-                --remove-label 'autorelease: pending' \
-                --add-label 'autorelease: tagged'
-            done
+          gh pr list --state merged --label 'autorelease: pending' --json number --jq '.[].number' |
+            xargs -r -I{} gh pr edit {} --remove-label 'autorelease: pending' --add-label 'autorelease: tagged'
         env:
+          GH_REPO: ${{ github.repository }}
           GH_TOKEN: ${{ secrets.RELEASE_PLEASE_TOKEN || secrets.GITHUB_TOKEN }}
 
       # A pull request opened with GITHUB_TOKEN does not trigger workflows,
