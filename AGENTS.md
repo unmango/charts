@@ -107,4 +107,9 @@ CI (`.github/workflows/ci.yml`) discovers charts automatically through `ct`.
 - CI runs on the self-hosted `thecluster` runner, not a GitHub-hosted one.
 - The `test` job installs every chart except `actions-runner`, `gha-runner-scale-set` and `hercules-ci-agent`, matching the Makefile's `install` target.
   `filebrowser` provisions a PVC and relies on the kind cluster's default `standard` StorageClass; leaving `persistence.storageClassName` empty omits the field so the cluster default applies.
+- `.github/workflows/pr-title.yml` fails a PR whose title is not a Conventional Commit.
+  PRs land as squash merges, so the title becomes the subject on `main` and release-please parses it; a title without a type means no chart is bumped.
+  Its `types` list is `changelog-sections` from `release-please-config.json` plus `deps` and `style`, which are accepted but produce no changelog entry.
+  A type in `changelog-sections` has to be in the workflow's list too, or PRs using it fail the check.
+  Renovate's own titles come from `semanticCommits: enabled` in `.github/renovate.json`.
 - GitHub Action versions are pinned to commit SHAs and updated by Renovate; keep the `# vN` trailing comments when editing.
