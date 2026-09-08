@@ -2,7 +2,7 @@ apiVersion: v2
 name: hercules-ci-agent
 description: Helm chart for installing the Hercules CI agent
 type: application
-version: 0.2.0
+version: 0.2.1
 # renovate: image=ghcr.io/unmango/hercules-ci-agent
 appVersion: 0.10.8
 sources:
