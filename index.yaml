@@ -3,6 +3,23 @@ entries:
   actions-runner:
   - apiVersion: v2
     appVersion: 2.337.0
+    created: "2026-09-08T17:42:25.912667181Z"
+    description: Library chart for running GitHub Actions runners with a Nix store
+    digest: dda40a52107d5c7666a4d4a82154bbb7fedd90ee578cda80a8bd3cd78b32b952
+    kubeVersion: '>= 1.25'
+    maintainers:
+    - name: UnstoppableMango
+      url: https://github.com/UnstoppableMango
+    name: actions-runner
+    sources:
+    - https://github.com/unmango/charts/tree/main/charts/actions-runner
+    - https://github.com/unmango/containers
+    type: library
+    urls:
+    - https://github.com/unmango/charts/releases/download/actions-runner-0.1.1/actions-runner-0.1.1.tgz
+    version: 0.1.1
+  - apiVersion: v2
+    appVersion: 2.337.0
     created: "2026-09-07T03:38:00.419515513Z"
     description: Library chart for running GitHub Actions runners with a Nix store
     digest: 72f1250d71085360ea38d3f3be055ecfdc2b8886ecd77a0dd470094041b91f98
@@ -19,6 +36,31 @@ entries:
     - https://github.com/unmango/charts/releases/download/actions-runner-0.1.0/actions-runner-0.1.0.tgz
     version: 0.1.0
   deemix:
+  - apiVersion: v2
+    appVersion: v4.7.0
+    created: "2026-09-08T17:42:26.173002689Z"
+    dependencies:
+    - name: common
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 2.41.0
+    - condition: oauth2-proxy.enabled
+      name: oauth2-proxy
+      repository: https://oauth2-proxy.github.io/manifests
+      version: 10.7.0
+    description: Helm chart for installing Deemix
+    digest: e3a385450ce6bb950cdf35902e399eea87a32574ed8cfe5b20c36ef32eec226d
+    kubeVersion: '>= 1.25'
+    maintainers:
+    - name: UnstoppableMango
+      url: https://github.com/UnstoppableMango
+    name: deemix
+    sources:
+    - https://github.com/bambanah/deemix
+    - https://github.com/UnstoppableMango/the-cluster/tree/main/charts/deemix
+    type: application
+    urls:
+    - https://github.com/unmango/charts/releases/download/deemix-0.4.1/deemix-0.4.1.tgz
+    version: 0.4.1
   - apiVersion: v2
     appVersion: v4.7.0
     created: "2026-09-07T16:03:59.868502786Z"
@@ -174,6 +216,32 @@ entries:
     - https://github.com/unmango/charts/releases/download/deemix-0.1.0/deemix-0.1.0.tgz
     version: 0.1.0
   filebrowser:
+  - apiVersion: v2
+    appVersion: v2.63.23
+    created: "2026-09-08T17:42:26.452458366Z"
+    dependencies:
+    - name: common
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 2.41.0
+    - condition: oauth2-proxy.enabled
+      name: oauth2-proxy
+      repository: https://oauth2-proxy.github.io/manifests
+      version: 10.7.0
+    description: Helm chart for installing filebrowser
+    digest: 7598324b4e388a55fd7bbf374cc49845f2467eb13ecc218e15beeac12b33a081
+    icon: https://raw.githubusercontent.com/filebrowser/logo/master/icon.png
+    kubeVersion: '>= 1.25'
+    maintainers:
+    - name: UnstoppableMango
+      url: https://github.com/UnstoppableMango
+    name: filebrowser
+    sources:
+    - https://github.com/filebrowser/filebrowser
+    - https://github.com/UnstoppableMango/the-cluster/tree/main/charts/filebrowser
+    type: application
+    urls:
+    - https://github.com/unmango/charts/releases/download/filebrowser-0.3.1/filebrowser-0.3.1.tgz
+    version: 0.3.1
   - apiVersion: v2
     appVersion: v2.63.23
     created: "2026-09-07T16:04:00.066710828Z"
@@ -338,6 +406,28 @@ entries:
   gha-runner-scale-set:
   - apiVersion: v2
     appVersion: 0.14.2
+    created: "2026-09-08T17:42:26.668298809Z"
+    dependencies:
+    - name: actions-runner
+      repository: file://../actions-runner
+      version: '>= 0.1.0'
+    description: Helm chart for deploying an AutoScalingRunnerSet that builds with
+      Nix
+    digest: 1227aa1fd728760269a9acaf57569dae2226ed43a744924be2bae9376a174140
+    kubeVersion: '>= 1.25'
+    maintainers:
+    - name: UnstoppableMango
+      url: https://github.com/UnstoppableMango
+    name: gha-runner-scale-set
+    sources:
+    - https://github.com/actions/actions-runner-controller
+    - https://github.com/unmango/charts/tree/main/charts/gha-runner-scale-set
+    type: application
+    urls:
+    - https://github.com/unmango/charts/releases/download/gha-runner-scale-set-0.1.1/gha-runner-scale-set-0.1.1.tgz
+    version: 0.1.1
+  - apiVersion: v2
+    appVersion: 0.14.2
     created: "2026-09-07T03:38:00.769514926Z"
     dependencies:
     - name: actions-runner
@@ -359,6 +449,27 @@ entries:
     - https://github.com/unmango/charts/releases/download/gha-runner-scale-set-0.1.0/gha-runner-scale-set-0.1.0.tgz
     version: 0.1.0
   hercules-ci-agent:
+  - apiVersion: v2
+    appVersion: 0.10.8
+    created: "2026-09-08T17:42:26.885022218Z"
+    dependencies:
+    - name: common
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 2.41.0
+    description: Helm chart for installing the Hercules CI agent
+    digest: d1ba16c8ea4cd498fe167a1f12575e8bdf5ed9d179f3d3df9a774ef4f6a015e9
+    kubeVersion: '>= 1.25'
+    maintainers:
+    - name: UnstoppableMango
+      url: https://github.com/UnstoppableMango
+    name: hercules-ci-agent
+    sources:
+    - https://github.com/hercules-ci/hercules-ci-agent
+    - https://github.com/unmango/containers/tree/main/images/hercules-ci-agent
+    type: application
+    urls:
+    - https://github.com/unmango/charts/releases/download/hercules-ci-agent-0.2.1/hercules-ci-agent-0.2.1.tgz
+    version: 0.2.1
   - apiVersion: v2
     appVersion: 0.10.8
     created: "2026-09-07T16:04:00.20491185Z"
@@ -396,6 +507,27 @@ entries:
   mage-server:
   - apiVersion: v2
     appVersion: v1.4.58V1r1
+    created: "2026-09-08T17:42:27.139572985Z"
+    dependencies:
+    - name: common
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 2.41.0
+    description: Helm chart for installing an XMage server
+    digest: af500a6e60b1d98efc11ae035803673b9ed634d5cd5933c515fed39ce6f6145b
+    kubeVersion: '>= 1.25'
+    maintainers:
+    - name: UnstoppableMango
+      url: https://github.com/UnstoppableMango
+    name: mage-server
+    sources:
+    - https://github.com/magefree/mage
+    - https://github.com/UnstoppableMango/xmage-docker
+    type: application
+    urls:
+    - https://github.com/unmango/charts/releases/download/mage-server-0.2.1/mage-server-0.2.1.tgz
+    version: 0.2.1
+  - apiVersion: v2
+    appVersion: v1.4.58V1r1
     created: "2026-09-07T16:04:00.317758753Z"
     description: Helm chart for installing an XMage server
     digest: b5f7612df6e6d62e16114374dea195ae93be776d1283b80e576e1b396202478d
@@ -428,4 +560,4 @@ entries:
     urls:
     - https://github.com/unmango/charts/releases/download/mage-server-0.1.0/mage-server-0.1.0.tgz
     version: 0.1.0
-generated: "2026-09-07T16:04:00.317827521Z"
+generated: "2026-09-08T17:42:27.139652553Z"
