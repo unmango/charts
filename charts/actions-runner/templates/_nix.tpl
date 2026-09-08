@@ -108,7 +108,7 @@ does not carry an empty variable.
 The store volume, as a list item.
 
 An emptyDir is the default worth reaching for. Kubelet creates one mode 0777 and
-nix creates store, var and its build directory with its own modes rather than
+nix creates store, var and its build directory with its modes rather than
 the volume's, so it needs neither an fsGroup nor an initContainer to prepare it.
 
 A store on the container filesystem, which is what `none` leaves, is an

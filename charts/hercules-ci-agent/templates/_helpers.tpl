@@ -39,7 +39,7 @@ owns them only in its absence.
 {{- end -}}
 
 {{/*
-Number of tasks the agent runs at once. The agent's own "auto" counts the
+Number of tasks the agent runs at once. The agent's "auto" counts the
 host's CPUs rather than the pod's cgroup quota, so on a large node it claims
 far more tasks than the pod can run, and every one of them crawls. Resolve
 "auto" against the pod's CPU budget instead, preferring the limit that sets

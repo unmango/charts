@@ -456,7 +456,7 @@ nix:
     ##
     ##   emptyDir      discarded with the pod, prepared by nothing. Kubelet
     ##                 creates it mode 0777 and nix creates store, var and its
-    ##                 build directory with its own modes, so it needs neither
+    ##                 build directory with its modes, so it needs neither
     ##                 an fsGroup nor an initContainer.
     ##   ephemeral     a volumeClaimTemplate, discarded with the pod. Needs
     ##                 fsGroup 1001, which this chart sets for you.

@@ -17,7 +17,7 @@ jobs:
     # Same arrangement as ci.yml's nix job: the runner image ships nix, and
     # anything specific to this deployment arrives as NIX_CONFIG, which nix
     # merges on top of the image's /etc/nix/nix.conf. Only extra-* settings, so
-    # the image's own values are added to rather than replaced.
+    # the image's values are added to rather than replaced.
     env:
       NIX_CONFIG: |
         extra-trusted-public-keys = ncps.thecluster.lan:D8fcKW2/D+zjKOABa3bDjEe8x+EPZpXnBDm+XwtNrhI=
