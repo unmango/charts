@@ -1,6 +1,6 @@
 dependencies:
 - name: actions-runner
   repository: file://../actions-runner
-  version: 0.1.0
-digest: sha256:2917ae8f67229e4727ce9894955c33e5cebc78a7d788b20a7dd5499d70f34d00
-generated: "2026-09-06T14:08:34.893435811-05:00"
+  version: 0.1.1
+digest: sha256:81e08b87f4787efb3c56255550436e4167758ffb2b1d6e06b00341fb5d3ee625
+generated: "2026-09-08T08:23:04.894987453-05:00"
