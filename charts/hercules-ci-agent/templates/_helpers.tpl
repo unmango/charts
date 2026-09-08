@@ -44,7 +44,7 @@ host's CPUs rather than the pod's cgroup quota, so on a large node it claims
 far more tasks than the pod can run, and every one of them crawls. Resolve
 "auto" against the pod's CPU budget instead, preferring the limit that sets
 the quota and falling back to the request. The floor is two tasks, matching
-the agent's own "auto", because import-from-derivation deadlocks with one.
+the agent's "auto", because import-from-derivation deadlocks with one.
 An explicit number, or "auto" with no budget set, is passed through.
 */}}
 {{- define "concurrentTasks" -}}
