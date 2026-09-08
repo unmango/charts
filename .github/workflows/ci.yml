@@ -21,6 +21,10 @@ env:
   YAMALE_VERSION: 6.1.0
   # renovate: datasource=pypi depName=yamllint
   YAMLLINT_VERSION: 1.38.0
+  # hercules-ci-agent can't reach Ready without a real cluster join token,
+  # gha-runner-scale-set needs the ARC controller and a real GitHub config, and
+  # actions-runner is a library chart with nothing to deploy.
+  EXCLUDED_CHARTS: actions-runner,gha-runner-scale-set,hercules-ci-agent
 
 jobs:
   nix:
@@ -115,15 +119,28 @@ jobs:
           yamale_version: ${{ env.YAMALE_VERSION }}
           yamllint_version: ${{ env.YAMLLINT_VERSION }}
 
+      # kind, the Gateway API CRDs and ct install are the expensive part of this
+      # job. Nothing below needs to run when the PR changes no installable chart.
+      - name: Check for changed charts
+        id: changed
+        run: |
+          if [ -n "$(ct list-changed --config .ct.yaml --excluded-charts "$EXCLUDED_CHARTS")" ]; then
+            echo 'charts=true' >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: helm/kind-action@ef37e7f390d99f746eb8b610417061a60e82a6cc # v1
+        if: steps.changed.outputs.charts == 'true'
         with:
           version: v${{ env.KIND_VERSION }}
           config: kind-cluster.yml
 
       - name: Install Gateway API CRDs
+        if: steps.changed.outputs.charts == 'true'
         run: |
           kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v${{ env.GATEWAY_API_VERSION }}/standard-install.yaml
           kubectl wait --for=condition=Established --timeout=60s crd/httproutes.gateway.networking.k8s.io
 
-      # hercules-ci-agent can't reach Ready without a real cluster join token
-      - run: ct install --config .ct.yaml --all --excluded-charts actions-runner,gha-runner-scale-set,hercules-ci-agent --github-groups
+      # No --all: ct installs only the charts this PR changed, diffed against
+      # target-branch in .ct.yaml.
+      - if: steps.changed.outputs.charts == 'true'
+        run: ct install --config .ct.yaml --excluded-charts "$EXCLUDED_CHARTS" --github-groups

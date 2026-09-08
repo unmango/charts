@@ -27,7 +27,7 @@ command make package      # cr package into .cr-release-packages/
 ```
 
 `test` runs `install`, which depends on `gateway-api` and passes `--excluded-charts actions-runner,gha-runner-scale-set,hercules-ci-agent`, so it is not a plain `ct install --all`.
-`ci.yml`'s `test` job excludes the same three.
+`ci.yml`'s `test` job excludes the same three through its `EXCLUDED_CHARTS` env var, but drops `--all`, so CI installs only the charts a PR changed while `make test` still installs all of them.
 
 Every `nix` invocation the Makefile makes goes through its `NIX_FLAGS`, which enables the `pipe-operators` experimental feature that `charts/gha-runner-scale-set/package.nix` needs.
 Run those targets through make rather than calling `nix build` directly.
@@ -96,7 +96,7 @@ Renovate updates under `charts/` commit as `fix(deps): ...` so they trigger a pa
 The `lint` and `package` Makefile targets enumerate chart names explicitly; add the new chart to both.
 `push` globs `.cr-release-packages/`, so it picks the chart up through `package` with no edit.
 Its ghcr package starts private and needs its visibility flipped once after the first release.
-A chart that cannot reach Ready in kind also needs adding to `--excluded-charts` in the Makefile's `install` target and in `ci.yml`.
+A chart that cannot reach Ready in kind also needs adding to `--excluded-charts` in the Makefile's `install` target and to `EXCLUDED_CHARTS` in `ci.yml`.
 CI (`.github/workflows/ci.yml`) discovers charts automatically through `ct`.
 
 ## CI notes
@@ -105,6 +105,7 @@ CI (`.github/workflows/ci.yml`) discovers charts automatically through `ct`.
 - `.ct.yaml` sets `check-version-increment: false` because release-please, not the chart PR, bumps `version`.
 - `ct lint` requires full git history to diff against `main`; workflows use `fetch-depth: 0`.
 - CI runs on the self-hosted `thecluster` runner, not a GitHub-hosted one.
-- The `test` job installs every chart except `actions-runner`, `gha-runner-scale-set` and `hercules-ci-agent`, matching the Makefile's `install` target.
+- The `test` job installs each changed chart except `actions-runner`, `gha-runner-scale-set` and `hercules-ci-agent`.
+  A `ct list-changed` step gates kind creation, the Gateway API CRDs and `ct install`, so a PR that touches no installable chart never creates a cluster and the job still reports success.
   `filebrowser` provisions a PVC and relies on the kind cluster's default `standard` StorageClass; leaving `persistence.storageClassName` empty omits the field so the cluster default applies.
 - GitHub Action versions are pinned to commit SHAs and updated by Renovate; keep the `# vN` trailing comments when editing.
