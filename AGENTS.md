@@ -70,18 +70,19 @@ Renovate updates under `charts/` commit as `fix(deps): ...` so they trigger a pa
   Everything it defines is prefixed `actions-runner.`.
 - `gha-runner-scale-set` keeps upstream's `gha-runner-scale-set.labels` rather than this repo's `labels`.
   Upstream already emits the full `app.kubernetes.io/*` set, and its `app.kubernetes.io/name` is the scale set name that the ARC controller keys on.
-- `actions-runner` is a library chart, so it renders nothing and cannot be installed; `ct install` excludes it, and its `lint-actions-runner` target is explicit because the `lint-%` pattern rule wants a `Chart.lock`.
+- `actions-runner` is a library chart, so it renders nothing and cannot be installed; `ct install` excludes it, and its `lint-actions-runner` target is explicit because it declares no dependencies, so the `lint-%` pattern rule's `Chart.lock` prerequisite would never be produced.
   Its templates take the `nix` block as an argument rather than reading `.Values`, since a library's values land under `.Values.actions-runner` in the consumer.
   `gha-runner-scale-set` depends on it through `file://../actions-runner`, so editing the library means re-running `helm dep update charts/gha-runner-scale-set` before templating, or the stale vendored copy is what renders.
-  That dependency is constrained as `>= 0.1.0` rather than pinned, so a release-please bump of the library does not break `gha-runner-scale-set`'s `helm dep update`.
+  That dependency is constrained as `>= 0.1.0` rather than pinned, so a release-please bump of the library resolves without touching `Chart.yaml`.
 - `gha-runner-scale-set`'s `templates/` and `values.yaml` are generated: `make chart-gha-runner-scale-set` fetches the tag in `charts/gha-runner-scale-set/upstream.nix` and applies `charts/gha-runner-scale-set/patches/*.patch`.
   Edit the patches, never the generated files; CI regenerates and fails on drift.
   `Chart.yaml` is hand-written and deliberately not generated, because release-please rewrites its `version` and a regeneration would revert it.
   To change a patch, unpack the upstream chart, edit, `diff -ruN` against a pristine copy, and rewrite the patch file.
 - `deemix` and `filebrowser` declare `oauth2-proxy` as an optional dependency gated on `oauth2-proxy.enabled`.
-  Every chart but `actions-runner` has a `Chart.lock`, so the `lint-%` pattern rule covers them all.
-  `lint-actions-runner` stays explicit because there is no `Chart.lock` to depend on, and `lint-hercules-ci-agent` because `helm lint` needs `--values charts/hercules-ci-agent/ci/default-values.yaml` to supply the otherwise missing `clusterJoinToken`.
-  `charts/*/charts/` is gitignored, so `helm dep update` is required before linting or templating.
+  `Chart.lock` is gitignored like `charts/*/charts/`: it is a build artifact the `charts/%/Chart.lock` rule regenerates from `Chart.yaml`, and a committed one goes stale whenever a dependency declaration in `Chart.yaml` changes, whether that is a version bump or an added or removed dependency.
+  Every chart with dependencies therefore builds a lock on demand, which is what the `lint-%` pattern rule depends on.
+  `lint-actions-runner` stays explicit because it has no dependencies and so produces no lock, and `lint-hercules-ci-agent` because `helm lint` needs `--values charts/hercules-ci-agent/ci/default-values.yaml` to supply the otherwise missing `clusterJoinToken`.
+  Resolve dependencies before linting or templating; `helm dep build` is enough, and CI uses it rather than `helm dep update` so a stale lock cannot pass unnoticed.
 - `deemix` and `filebrowser` render an `HTTPRoute`, so the Gateway API CRDs must exist before `ct install`; that is what `make gateway-api` and the equivalent CI step provide.
   Each has a `ci/httproute-values.yaml` alongside `ci/default-values.yaml`, so `ct` installs them twice.
 - Every chart but `actions-runner` has a `values.schema.json` that Helm enforces at install time.

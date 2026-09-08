@@ -1,5 +1,8 @@
 bin/
 charts/*/charts/
+# Regenerated from Chart.yaml by the charts/%/Chart.lock rule. Committing it only
+# creates a file that goes stale when a dependency version is bumped.
+charts/*/Chart.lock
 .cr-release-packages/
 .envrc
 .vscode/*
