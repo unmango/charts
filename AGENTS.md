@@ -5,7 +5,7 @@ This file provides guidance to coding agents when working with code in this repo
 ## What this is
 
 A Helm chart repository published to GitHub Pages (`gh-pages` branch, `index.yaml`) by `chart-releaser`.
-Six charts live under `charts/`: `actions-runner`, `deemix`, `filebrowser`, `gha-runner-scale-set`, `hercules-ci-agent`, and `mage-server`.
+Seven charts live under `charts/`: `actions-runner`, `deemix`, `filebrowser`, `gha-runner-scale-set`, `gha-runner-scale-sets`, `hercules-ci-agent`, and `mage-server`.
 
 ## Tooling
 
@@ -15,7 +15,7 @@ Do not install them separately.
 Because of the zsh/Prezto autoload issue, prefix make with `command`:
 
 ```sh
-command make lint         # helm lint + ct lint, all six charts
+command make lint         # helm lint + ct lint, all seven charts
 command make lint-deemix
 command make test         # kind cluster + Gateway API CRDs, then ct install
 command make kind         # just create the .kube/config kind cluster
@@ -24,6 +24,8 @@ command make changed      # ct list-changed
 command make check        # nix flake check
 command make fmt          # treefmt (nixfmt, mdformat, actionlint, gofmt)
 command make package      # cr package into .cr-release-packages/
+command make chart-gha-runner-scale-set    # regenerate the single-scale-set chart
+command make chart-gha-runner-scale-sets   # regenerate the fan-out chart
 ```
 
 `test` runs `install`, which depends on `gateway-api` and passes `--excluded-charts actions-runner,gha-runner-scale-set,hercules-ci-agent`, so it is not a plain `ct install --all`.
@@ -56,13 +58,21 @@ Both run in `.github/workflows/release.yml` on every push to `main`: `chart-rele
 release-please does not create tags or GitHub releases (`skip-github-release`); chart-releaser creates them as `<chart>-<version>`, and release-please reads those tags to find the last release, which is why it runs second.
 The `release` job also pushes every package in `.cr-release-packages/` to `oci://ghcr.io/unmango/charts`, which is why it needs `packages: write`.
 Each chart becomes the repository `ghcr.io/unmango/charts/<chart>`, tagged with its chart `version`.
-chart-releaser packages all six charts on every run, so the push step skips a chart whose `version` tag is already in that repository, mirroring `skip-existing` in `.cr.yaml`.
+chart-releaser packages all seven charts on every run, so the push step skips a chart whose `version` tag is already in that repository, mirroring `skip-existing` in `.cr.yaml`.
 `make push` does the same by hand against `REGISTRY` (default `ghcr.io/unmango/charts`) after a `helm registry login`, without the skip check.
 `appVersion` tracks the upstream image and is bumped by Renovate via the `# renovate: image=...` comments.
 Renovate updates under `charts/` commit as `fix(deps): ...` so they trigger a patch release.
 
 ## Chart conventions
 
+- `gha-runner-scale-sets` renders many scale sets from one release with no GitOps engine involved, which is what `helm template` alone cannot do: helm renders a template file once, against one `.Values`.
+  `charts/gha-runner-scale-sets/package.nix` therefore wraps each upstream resource file in a `define` and copies `_helpers.tpl` verbatim into `templates/_upstream.tpl`, and `templates/scale-sets.yaml` includes each one per entry against a synthesized root built with `dict`.
+  That root carries only what upstream reads, verified by grep: `.Values`, `.Release.{Name,Namespace,Service}`, `.Chart` and `.Capabilities`. There is no `.Files` or `.Template.BasePath` use to reproduce.
+  Inside a `define`, `$` is the argument the define was handed, so upstream's `$.Values.nix` resolves to the per-entry values rather than this chart's; that is why the wrap needs no patching.
+  It shares `upstream.nix` and `patches/` with `gha-runner-scale-set`, so a Renovate bump or a patch edit means regenerating both.
+  A single entry renders byte-identically to a standalone `gha-runner-scale-set` install apart from an explicit `runnerScaleSetName` and the `values-hash` annotation that follows from it.
+  Upstream's `values.yaml` is generated alongside as `upstream-values.yaml` and read back with `.Files.Get` at render time, because upstream's templates dereference values keys without guarding them and an entry carrying only a name would fail on a nil map.
+  The render fails on a duplicate `(namespace, scale set name)` and on a duplicate `(githubConfigUrl, scale set name)`; the latter is a constraint GitHub enforces that would otherwise surface as an ARC runtime rejection.
 - `deemix`, `filebrowser`, `hercules-ci-agent` and `mage-server` depend on `common` from `oci://registry-1.docker.io/bitnamicharts` for `common.images.image`, and wrap it in local `image` / `init.image` helpers so templates never call it directly.
   Renovate bumps the pin; a signature change upstream lands in those four wrappers and nowhere else.
   Each also defines its `labels` and `selectorLabels`, which are still duplicated.
@@ -94,7 +104,7 @@ Renovate updates under `charts/` commit as `fix(deps): ...` so they trigger a pa
 
 ## Adding a chart
 
-The `lint` and `package` Makefile targets enumerate chart names explicitly; add the new chart to both.
+The `lint` and `package` Makefile targets enumerate chart names explicitly; add the new chart to both, along with its `*_VERSION` variable and its `.cr-release-packages/...: CHART :=` line.
 `push` globs `.cr-release-packages/`, so it picks the chart up through `package` with no edit.
 Its ghcr package starts private and needs its visibility flipped once after the first release.
 A chart that cannot reach Ready in kind also needs adding to `--excluded-charts` in the Makefile's `install` target and to `EXCLUDED_CHARTS` in `ci.yml`.

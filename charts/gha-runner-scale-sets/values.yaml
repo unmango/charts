@@ -1,0 +1,62 @@
+## Scale set name shared by every entry, i.e. the `runs-on` label.
+##
+## Left empty, each entry defaults to its own `name`, and they can all share the
+## release namespace. Set, every entry registers under this one name, and each
+## needs a namespace of its own, so namespaceTemplate has to be set too.
+##
+## The second mode is for pointing one `runs-on` at many repositories: GitHub
+## allows a scale set name once per configuration URL, so distinct
+## githubConfigUrls sharing a name is a valid registration, and the namespace is
+## the only thing keeping the Kubernetes objects apart.
+runnerScaleSetName: ''
+
+## Namespace for each entry, rendered as a template against the entry, so
+## `{{ .name }}` is the entry's name. Empty puts everything in the release
+## namespace. Dots and underscores in the result become dashes, since a repo
+## name is a legal entry name and an illegal namespace.
+##   namespaceTemplate: 'arc-{{ .name }}'
+namespaceTemplate: ''
+
+## Create the namespaces namespaceTemplate resolves to. Only valid alongside
+## namespaceTemplate, and it never creates the release namespace.
+##
+## Leave it off when something else owns those namespaces, which is usually the
+## case: the githubConfigSecret below is not created by this chart and has to
+## already exist in each one.
+createNamespaces: false
+
+## Merged under every entry, over upstream's own defaults.
+## These are gha-runner-scale-set values, so anything valid there works here.
+## namespaceOverride and runnerScaleSetName are set per entry by the chart and
+## cannot be overridden from here.
+##
+## Careful: a list is replaced wholesale rather than appended, so an entry
+## supplying its own template.spec.containers drops the ones set here. Repeat
+## whichever list you override.
+defaults: {}
+# githubConfigSecret: github-token
+# minRunners: 0
+# maxRunners: 10
+
+## One entry per scale set.
+##
+## Required: name, and githubConfigUrl on the entry or in defaults.
+## Optional: namespace and runnerScaleSetName, each overriding what the values
+## above resolve to for that entry.
+## Everything else is a gha-runner-scale-set value: minRunners, containerMode,
+## template, listenerTemplate, nix, and the rest.
+scaleSets: []
+# - name: dotfiles
+#   githubConfigUrl: https://github.com/UnstoppableMango/dotfiles
+#   minRunners: 1
+#
+# - name: the-cluster
+#   githubConfigUrl: https://github.com/UnstoppableMango/the-cluster
+#   containerMode:
+#     type: dind
+#   nix:
+#     store:
+#       backing: ephemeral
+#       ephemeral:
+#         storageClassName: ssd-rbd
+#         size: 75Gi

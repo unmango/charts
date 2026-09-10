@@ -46,6 +46,12 @@
           # into the worktree and CI checks for drift.
           packages.gha-runner-scale-set = pkgs.callPackage ./charts/gha-runner-scale-set/package.nix { };
 
+          # The generated half of charts/gha-runner-scale-sets, which
+          # `make chart-gha-runner-scale-sets` copies into the worktree and CI
+          # checks for drift. Same upstream pin and patches as above, wrapped
+          # so one release can render many scale sets.
+          packages.gha-runner-scale-sets = pkgs.callPackage ./charts/gha-runner-scale-sets/package.nix { };
+
           devShells.default = pkgs.mkShellNoCC {
             packages = with pkgs; [
               chart-releaser

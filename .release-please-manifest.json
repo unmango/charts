@@ -3,6 +3,7 @@
   "charts/deemix": "0.4.1",
   "charts/filebrowser": "0.3.1",
   "charts/gha-runner-scale-set": "0.1.1",
+  "charts/gha-runner-scale-sets": "0.1.0",
   "charts/hercules-ci-agent": "0.2.1",
   "charts/mage-server": "0.2.1"
 }

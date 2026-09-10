@@ -1,0 +1,18 @@
+apiVersion: v2
+name: gha-runner-scale-sets
+description: Renders many AutoscalingRunnerSets that build with Nix from a single release
+type: application
+version: 0.1.0
+# renovate: image=ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set
+appVersion: '0.14.2'
+sources:
+- https://github.com/actions/actions-runner-controller
+- https://github.com/unmango/charts/tree/main/charts/gha-runner-scale-sets
+kubeVersion: '>= 1.25'
+maintainers:
+- name: UnstoppableMango
+  url: https://github.com/UnstoppableMango
+dependencies:
+- name: actions-runner
+  version: '>= 0.1.0'
+  repository: file://../actions-runner
