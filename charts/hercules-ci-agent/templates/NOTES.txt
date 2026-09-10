@@ -1,0 +1,19 @@
+The agent reads three files from /etc/hercules-ci-agent/secrets, assembled by
+a projected volume. For this release they come from:
+
+  {{ .Values.existingSecretKey }}
+    {{ if .Values.existingSecret }}Secret {{ .Values.existingSecret }}{{ else }}Secret {{ include "secretName" . }}, rendered from .Values.clusterJoinToken{{ end }}
+
+  binary-caches.json
+    {{ if or .Values.binaryCaches (not .Values.existingSecret) }}ConfigMap {{ printf "%s-config" .Release.Name }}, rendered from .Values.binaryCaches{{ else }}Secret {{ .Values.existingSecret }}{{ end }}
+
+  secrets.json
+    {{ if .Values.secretsJson }}Secret {{ include "secretName" . }}, rendered from .Values.secretsJson{{ else if .Values.existingSecret }}Secret {{ .Values.existingSecret }}, if it has that key{{ else }}not provided; effects that request secrets will fail{{ end }}
+
+Two sources claiming one file is not an error: kubelet merges them in order
+and the last one silently wins. Setting existingSecret alongside
+clusterJoinToken or secretsJson is therefore rejected at render time. The one
+case the chart cannot check for you is a binary-caches.json key in
+{{ .Values.existingSecret | default "existingSecret" }} while binaryCaches is also set. Your Secret is projected last and
+wins there, so binaryCaches is the value that goes missing; leave it empty
+when your Secret carries that file.

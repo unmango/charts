@@ -1,0 +1,18 @@
+Connect an XMage client to the server at:
+{{- if eq .Values.service.type "LoadBalancer" }}
+
+  $(kubectl get svc --namespace {{ .Release.Namespace }} {{ .Release.Name }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}{.status.loadBalancer.ingress[0].hostname}'):{{ .Values.service.port }}
+{{- else if eq .Values.service.type "NodePort" }}
+
+  <node-ip>:$(kubectl get svc --namespace {{ .Release.Namespace }} {{ .Release.Name }} -o jsonpath='{.spec.ports[0].nodePort}')
+{{- else }}
+
+  localhost:{{ .Values.service.port }}
+
+after running:
+
+  kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ .Release.Name }} {{ .Values.service.port }}:xmage
+{{- end }}
+
+The server loads its card database before accepting connections, so the pod
+takes a few minutes to become Ready.

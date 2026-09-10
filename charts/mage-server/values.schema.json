@@ -1,0 +1,325 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"type": "object",
+	"required": [
+		"image",
+		"java",
+		"persistence",
+		"server",
+		"service"
+	],
+	"properties": {
+		"affinity": {
+			"type": "object"
+		},
+		"existingConfigMap": {
+			"type": "string"
+		},
+		"extraEnv": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": [
+					"name"
+				],
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"value": {
+						"type": "string"
+					},
+					"valueFrom": {
+						"type": "object"
+					}
+				}
+			}
+		},
+		"extraVolumeMounts": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": [
+					"name",
+					"mountPath"
+				],
+				"properties": {
+					"mountPath": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"subPath": {
+						"type": "string"
+					}
+				}
+			}
+		},
+		"extraVolumes": {
+			"type": "array"
+		},
+		"global": {
+			"type": "object",
+			"properties": {
+				"imageRegistry": {
+					"type": "string"
+				}
+			}
+		},
+		"image": {
+			"type": "object",
+			"properties": {
+				"registry": {
+					"type": "string"
+				},
+				"repository": {
+					"type": "string"
+				},
+				"tag": {
+					"type": "string"
+				},
+				"digest": {
+					"type": "string"
+				}
+			}
+		},
+		"java": {
+			"type": "object",
+			"required": [
+				"maxMemory"
+			],
+			"properties": {
+				"maxMemory": {
+					"type": "string"
+				},
+				"minMemory": {
+					"type": "string"
+				}
+			}
+		},
+		"livenessProbe": {
+			"type": "object"
+		},
+		"mail": {
+			"type": "object",
+			"properties": {
+				"smtpHost": {
+					"type": "string"
+				},
+				"smtpPort": {
+					"type": [
+						"string",
+						"integer"
+					]
+				},
+				"user": {
+					"type": "string"
+				},
+				"fromAddress": {
+					"type": "string"
+				},
+				"mailgunDomain": {
+					"type": "string"
+				},
+				"password": {
+					"type": "string"
+				},
+				"mailgunApiKey": {
+					"type": "string"
+				},
+				"existingSecret": {
+					"type": "string"
+				}
+			}
+		},
+		"nodeSelector": {
+			"type": "object"
+		},
+		"persistence": {
+			"type": "object",
+			"required": [
+				"db",
+				"saved"
+			],
+			"additionalProperties": false,
+			"properties": {
+				"db": {
+					"$ref": "#/$defs/claim"
+				},
+				"saved": {
+					"$ref": "#/$defs/claim"
+				}
+			}
+		},
+		"podSecurityContext": {
+			"type": "object"
+		},
+		"readinessProbe": {
+			"type": "object"
+		},
+		"replicaCount": {
+			"type": "integer",
+			"minimum": 1
+		},
+		"resources": {
+			"type": "object",
+			"properties": {
+				"limits": {
+					"type": "object",
+					"properties": {
+						"cpu": {
+							"type": [
+								"string",
+								"number"
+							]
+						},
+						"memory": {
+							"type": "string"
+						}
+					}
+				},
+				"requests": {
+					"type": "object",
+					"properties": {
+						"cpu": {
+							"type": [
+								"string",
+								"number"
+							]
+						},
+						"memory": {
+							"type": "string"
+						}
+					}
+				}
+			}
+		},
+		"securityContext": {
+			"type": "object"
+		},
+		"server": {
+			"type": "object",
+			"required": [
+				"address",
+				"name",
+				"port",
+				"secondaryBindPort"
+			],
+			"properties": {
+				"name": {
+					"type": "string"
+				},
+				"address": {
+					"type": "string"
+				},
+				"port": {
+					"type": "integer",
+					"minimum": 1,
+					"maximum": 65535
+				},
+				"secondaryBindPort": {
+					"type": "integer",
+					"minimum": 1,
+					"maximum": 65535
+				},
+				"maxGameThreads": {
+					"type": "integer",
+					"minimum": 1
+				},
+				"maxSecondsIdle": {
+					"type": "integer",
+					"minimum": 0
+				},
+				"maxAiOpponents": {
+					"type": "integer",
+					"minimum": 0
+				},
+				"saveGameActivated": {
+					"type": "boolean"
+				},
+				"authenticationActivated": {
+					"type": "boolean"
+				},
+				"extraSettings": {
+					"type": "object",
+					"additionalProperties": {
+						"type": [
+							"string",
+							"integer",
+							"boolean"
+						]
+					}
+				}
+			}
+		},
+		"service": {
+			"type": "object",
+			"required": [
+				"type",
+				"port"
+			],
+			"properties": {
+				"type": {
+					"type": "string",
+					"enum": [
+						"ClusterIP",
+						"NodePort",
+						"LoadBalancer"
+					]
+				},
+				"port": {
+					"type": "integer",
+					"minimum": 1,
+					"maximum": 65535
+				},
+				"secondaryPort": {
+					"type": "integer",
+					"minimum": 1,
+					"maximum": 65535
+				},
+				"clusterIP": {
+					"type": "string"
+				},
+				"loadBalancerIP": {
+					"type": "string"
+				}
+			}
+		},
+		"tolerations": {
+			"type": "array"
+		}
+	},
+	"$defs": {
+		"claim": {
+			"type": "object",
+			"required": [
+				"enabled"
+			],
+			"properties": {
+				"enabled": {
+					"type": "boolean"
+				},
+				"size": {
+					"type": "string"
+				},
+				"storageClassName": {
+					"type": "string"
+				},
+				"accessModes": {
+					"type": "array",
+					"minItems": 1,
+					"items": {
+						"type": "string",
+						"enum": [
+							"ReadWriteOnce",
+							"ReadOnlyMany",
+							"ReadWriteMany",
+							"ReadWriteOncePod"
+						]
+					}
+				}
+			}
+		}
+	}
+}

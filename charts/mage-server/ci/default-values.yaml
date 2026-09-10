@@ -1,0 +1,8 @@
+persistence:
+  db:
+    enabled: false
+  saved:
+    enabled: false
+resources:
+  limits:
+    memory: 2Gi

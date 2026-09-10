@@ -1,0 +1,152 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+
+# Nothing here writes to the repository; linting and testing only read it.
+permissions:
+  contents: read
+
+env:
+  # renovate: datasource=github-releases depName=helm/chart-testing
+  CHART_TESTING_VERSION: 3.14.0
+  # renovate: datasource=github-releases depName=kubernetes-sigs/gateway-api
+  GATEWAY_API_VERSION: 1.6.2
+  # renovate: datasource=github-releases depName=helm/helm
+  HELM_VERSION: 4.2.4
+  # renovate: datasource=github-releases depName=kubernetes-sigs/kind
+  KIND_VERSION: 0.33.0
+  # renovate: datasource=pypi depName=yamale
+  YAMALE_VERSION: 6.1.0
+  # renovate: datasource=pypi depName=yamllint
+  YAMLLINT_VERSION: 1.38.0
+  # hercules-ci-agent can't reach Ready without a real cluster join token,
+  # gha-runner-scale-set needs the ARC controller and a real GitHub config, and
+  # actions-runner is a library chart with nothing to deploy.
+  EXCLUDED_CHARTS: actions-runner,gha-runner-scale-set,hercules-ci-agent
+
+jobs:
+  nix:
+    runs-on: thecluster
+    # The runner image ships nix, so nothing installs it here. Its
+    # /etc/nix/nix.conf carries the settings every job wants, and nix merges
+    # NIX_CONFIG on top of that file, which is where anything specific to this
+    # deployment belongs.
+    #
+    # Only extra-* settings, because a plain assignment replaces the image's
+    # value rather than adding to it. pipe-operators is already in the image;
+    # naming it again costs nothing and keeps the job working on a runner whose
+    # image does not.
+    env:
+      NIX_CONFIG: |
+        extra-trusted-public-keys = ncps.thecluster.lan:D8fcKW2/D+zjKOABa3bDjEe8x+EPZpXnBDm+XwtNrhI=
+        extra-substituters = https://ncps.thecluster.lan
+        extra-experimental-features = nix-command flakes pipe-operators
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      # cachix-action installs cachix with `nix-env -i`, which lands in
+      # ~/.nix-profile/bin, and then looks the binary up on PATH. Adding that
+      # directory used to be install-nix-action's doing; without this the step
+      # installs cachix and fails with `not found: cachix`.
+      - name: Put the nix profile on PATH
+        run: echo "$HOME/.nix-profile/bin" >> "$GITHUB_PATH"
+
+      - uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866 # v17
+        with:
+          name: unstoppablemango
+
+      - run: nix flake check
+
+      # charts/gha-runner-scale-set's templates and values.yaml are generated from the pinned
+      # upstream chart and the patches beside them, and committed so that ct,
+      # chart-releaser and helm all work against the worktree. Regenerating
+      # here is what keeps the two from drifting apart.
+      - name: Check charts/gha-runner-scale-set is up to date
+        run: |
+          make chart-gha-runner-scale-set
+          git diff --exit-code -- charts/gha-runner-scale-set
+          # git diff says nothing about a file that has never been added, so a
+          # regeneration that produces a new template would otherwise pass.
+          test -z "$(git ls-files --others --exclude-standard -- charts/gha-runner-scale-set)"
+
+  lint:
+    runs-on: thecluster
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+
+      # Required by yamale and yamllint
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.x'
+
+      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5
+        with:
+          version: v${{ env.HELM_VERSION }}
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@6ec842c01de15ebb84c8627d2744a0c2f2755c9f # v2.8.0
+        with:
+          version: ${{ env.CHART_TESTING_VERSION }}
+          yamale_version: ${{ env.YAMALE_VERSION }}
+          yamllint_version: ${{ env.YAMLLINT_VERSION }}
+
+      # dep build, not dep update: update rewrites Chart.lock in the workspace and
+      # so cannot fail on a stale one, which is how a lock that broke the release
+      # job passed lint.
+      - run: |
+          for chart in charts/*; do
+            helm dep build "$chart"
+          done
+
+      - run: ct lint --config .ct.yaml --github-groups
+
+  test:
+    runs-on: thecluster
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+
+      - uses: azure/setup-helm@9bc31f4ebc9c6b171d7bfbaa5d006ae7abdb4310 # v5
+        with:
+          version: v${{ env.HELM_VERSION }}
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@6ec842c01de15ebb84c8627d2744a0c2f2755c9f # v2.8.0
+        with:
+          version: ${{ env.CHART_TESTING_VERSION }}
+          yamale_version: ${{ env.YAMALE_VERSION }}
+          yamllint_version: ${{ env.YAMLLINT_VERSION }}
+
+      # kind, the Gateway API CRDs and ct install are the expensive part of this
+      # job. Nothing below needs to run when the PR changes no installable chart.
+      - name: Check for changed charts
+        id: changed
+        run: |
+          # Assigning in its own statement so a ct failure fails the step
+          # instead of reading as "no charts changed".
+          changed="$(ct list-changed --config .ct.yaml --excluded-charts "$EXCLUDED_CHARTS")"
+          if [ -n "$changed" ]; then
+            echo 'charts=true' >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: helm/kind-action@ef37e7f390d99f746eb8b610417061a60e82a6cc # v1
+        if: steps.changed.outputs.charts == 'true'
+        with:
+          version: v${{ env.KIND_VERSION }}
+          config: kind-cluster.yml
+
+      - name: Install Gateway API CRDs
+        if: steps.changed.outputs.charts == 'true'
+        run: |
+          kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v${{ env.GATEWAY_API_VERSION }}/standard-install.yaml
+          kubectl wait --for=condition=Established --timeout=60s crd/httproutes.gateway.networking.k8s.io
+
+      # No --all: ct installs only the charts this PR changed, diffed against
+      # target-branch in .ct.yaml.
+      - if: steps.changed.outputs.charts == 'true'
+        run: ct install --config .ct.yaml --excluded-charts "$EXCLUDED_CHARTS" --github-groups

@@ -1,0 +1,86 @@
+global:
+  registry: 'docker.io'
+  uid: 911
+  gid: 911
+
+address: 0.0.0.0
+port: 8080
+baseUrl: /
+viewMode: list
+existingConfigMap: ''
+extraVolumes: []
+extraVolumeMounts: []
+securityContext: {}
+
+branding:
+  name: ''
+  theme: dark
+  disableUsedPercentage:
+  disableExternal:
+  files:
+
+auth:
+  method: proxy
+  header: X-Forwarded-User
+
+httpRoute:
+  enabled: false
+  annotations: {}
+  parentRefs: []
+  hostnames: []
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+
+ingress:
+  enabled: false
+  annotations: {}
+  ingressClassName: ''
+  host: ''
+  path: /
+  pathType: ImplementationSpecific
+  tls:
+    enabled: false
+
+persistence:
+  enabled: true
+  storageClassName: ''
+  size: 1Gi
+
+image:
+  registry: docker.io
+  repository: filebrowser/filebrowser
+  tag: ''
+  digest: ''
+
+readinessProbe:
+  enabled: true
+
+livenessProbe:
+  enabled: true
+
+resources: {}
+
+init:
+  image:
+    registry: docker.io
+    repository: filebrowser/filebrowser
+    tag: ''
+    digest: ''
+  securityContext:
+    allowPrivilegeEscalation: false
+    runAsNonRoot: false  # So we can chown the right dirs
+    runAsUser: 0
+  resources: {}
+
+service:
+  type: ClusterIP
+  port: 8080
+  clusterIP: ''
+  loadBalancerIP: ''
+
+oauth2-proxy:
+  enabled: false
+  resources: {}

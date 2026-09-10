@@ -1,0 +1,36 @@
+name: Copilot
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+  pull_request:
+    paths:
+      - .github/workflows/copilot-setup-steps.yml
+
+jobs:
+  copilot-setup-steps:
+    runs-on: thecluster
+    permissions:
+      contents: read
+    # Same arrangement as ci.yml's nix job: the runner image ships nix, and
+    # anything specific to this deployment arrives as NIX_CONFIG, which nix
+    # merges on top of the image's /etc/nix/nix.conf. Only extra-* settings, so
+    # the image's values are added to rather than replaced.
+    env:
+      NIX_CONFIG: |
+        extra-trusted-public-keys = ncps.thecluster.lan:D8fcKW2/D+zjKOABa3bDjEe8x+EPZpXnBDm+XwtNrhI=
+        extra-substituters = https://ncps.thecluster.lan
+        extra-experimental-features = nix-command flakes pipe-operators
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # cachix-action installs cachix into ~/.nix-profile/bin and then looks it
+      # up on PATH, which install-nix-action used to arrange.
+      - name: Put the nix profile on PATH
+        run: echo "$HOME/.nix-profile/bin" >> "$GITHUB_PATH"
+
+      - uses: cachix/cachix-action@38b082610b782e7e93e209c35fd730d399dee866 # v17
+        with:
+          name: unstoppablemango

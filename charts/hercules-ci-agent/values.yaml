@@ -1,0 +1,88 @@
+global: {}
+
+image:
+  registry: 'ghcr.io'
+  repository: unmango/hercules-ci-agent
+  tag: ''
+  digest: ''
+
+replicaCount: 1
+
+# The supported way to give the agent its secrets. Every key is mounted into
+# the agent's static secrets directory, so one Secret can supply the cluster
+# join token, secrets.json, and a binary-caches.json that carries auth tokens
+# or signing keys.
+existingSecret: ''
+# Key in the Secret holding the token. The agent is pointed at this file.
+existingSecretKey: cluster-join-token.key
+
+# Escape hatch: setting either makes the chart render and own a Secret, which
+# puts the raw values in release state. Prefer existingSecret, which rejects
+# both rather than letting two sources claim the same file.
+# clusterJoinToken is the raw token from the Hercules CI dashboard.
+clusterJoinToken: ''
+secretsJson: {}
+
+agent:
+  apiBaseUrl: 'https://hercules-ci.com'
+  # Tasks the agent runs at once. "auto" resolves to the CPU budget in
+  # resources below, rounded down and never less than 2, since
+  # import-from-derivation deadlocks with a single task. With no budget set it
+  # reaches the agent as "auto", which counts the host's CPUs and so
+  # oversubscribes a pod on a large node. Set resources, or set an integer here.
+  concurrentTasks: auto
+  logLevel: InfoS
+  labels: {}
+  extraSettings: {}
+    # allowInsecureBuiltinFetchers: false
+    # nixSettings:
+    #   substituters: https://cache.nixos.org
+
+# Rendered into the ConfigMap as plain agent config, then projected into the
+# agent's secrets directory. A ConfigMap is readable by anyone with get access
+# in the namespace, so an authToken or signingKeys here is rejected: leave this
+# empty and put a binary-caches.json key in existingSecret instead. The same
+# goes for credentials embedded in a storeURI, which the chart cannot detect.
+binaryCaches: {}
+
+# Setting either replaces the image's /etc/nix/nix.conf with a generated
+# file. The narinfo-cache-negative-ttl = 0 the agent requires is always
+# included. Leave both empty to keep the image's file.
+nixConf: {}
+extraNixConf: ''
+
+# The image's SSL_CERT_FILE points at a store path it does not contain, so
+# the chart points both cert variables at the bundle that is present.
+caCertFile: /etc/ssl/certs/ca-bundle.crt
+
+# The agent's state directory. Nix has no /nix/var/nix here, so it chroot
+# stores into this directory too, which makes it the build cache as well.
+persistence:
+  enabled: true
+  storageClassName: ''
+  size: 100Gi
+  accessModes: [ReadWriteOnce]
+
+# Scratch space for builds
+tmpDir:
+  sizeLimit: 20Gi
+
+# Effects run in a nested container and need elevated privileges
+effects:
+  enabled: false
+
+# Upstream recommends one larger agent over several smaller ones, since each
+# split of resources means another cold Nix store and more downloads. Scale by
+# raising the CPU budget here rather than replicaCount.
+resources: {}
+
+securityContext: {}
+podSecurityContext:
+  fsGroup: 1000  # The image runs as the hercules-ci-agent user
+
+extraEnv: []
+extraVolumes: []
+extraVolumeMounts: []
+nodeSelector: {}
+tolerations: []
+affinity: {}

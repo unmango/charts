@@ -1,0 +1,16 @@
+{{/*
+The agent only makes outbound connections, so this Service exposes no ports.
+It exists to satisfy StatefulSet.spec.serviceName.
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    {{- include "selectorLabels" . | nindent 4 }}
