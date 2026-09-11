@@ -55,13 +55,19 @@ extraNixConf: ''
 # the chart points both cert variables at the bundle that is present.
 caCertFile: /etc/ssl/certs/ca-bundle.crt
 
-# The agent's state directory. Nix has no /nix/var/nix here, so it chroot
-# stores into this directory too, which makes it the build cache as well.
+# The agent's state directory. It also holds the Nix store, so it is the build
+# cache as well.
 persistence:
   enabled: true
   storageClassName: ''
   size: 100Gi
   accessModes: [ReadWriteOnce]
+
+# Directory on the state volume mounted at /nix. Its last component must be
+# `nix`. A volume that already holds a chroot store from an older release can
+# keep it by pointing this at .local/share/nix/root/nix.
+nixStore:
+  subPath: nix
 
 # Scratch space for builds
 tmpDir:

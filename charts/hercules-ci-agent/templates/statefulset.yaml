@@ -22,6 +22,34 @@ spec:
         checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
         {{- end }}
     spec:
+      initContainers:
+        # Registers the image's store on the state volume, so the agent's own
+        # closure exists under the /nix mount below. Paths already valid there
+        # are skipped, which makes every start after the first quick.
+        - name: seed-store
+          image: {{ include "image" . }}
+          command:
+            - nix
+            - --extra-experimental-features
+            - nix-command
+            - copy
+            - --all
+            - --no-check-sigs
+            - --to
+            - {{ printf "local?root=%s" (include "nixStoreRoot" .) | quote }}
+          volumeMounts:
+            - name: state
+              mountPath: /var/lib/hercules-ci-agent
+        {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+        {{- end }}
+        {{- /* The pod reserves the larger of this and the agent's budget, so
+               sharing the agent's values adds nothing to the reservation. */}}
+        {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+        {{- end }}
       containers:
         - name: hercules-ci-agent
           image: {{ include "image" . }}
@@ -50,6 +78,9 @@ spec:
               readOnly: true
             - name: state
               mountPath: /var/lib/hercules-ci-agent
+            - name: state
+              mountPath: /nix
+              subPath: {{ .Values.nixStore.subPath }}
             - name: tmp
               mountPath: /tmp
           {{- with .Values.extraVolumeMounts }}
