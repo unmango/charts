@@ -142,6 +142,21 @@
 		"nixConf": {
 			"type": "object"
 		},
+		"nixStore": {
+			"type": "object",
+			"required": [
+				"subPath"
+			],
+			"properties": {
+				"subPath": {
+					"type": "string",
+					"allOf": [
+						{ "pattern": "^(?:[A-Za-z0-9._-]+/)*nix$" },
+						{ "not": { "pattern": "(^|/)\\.\\.?/" } }
+					]
+				}
+			}
+		},
 		"nodeSelector": {
 			"type": "object"
 		},

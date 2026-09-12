@@ -1,0 +1,5 @@
+clusterJoinToken: dummy-token-for-linting
+persistence:
+  enabled: false
+nixStore:
+  subPath: .local/share/nix/root/nix

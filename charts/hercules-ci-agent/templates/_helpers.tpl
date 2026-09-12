@@ -1,7 +1,27 @@
 {{/* vim: set filetype=mustache: */}}
 
+{{/*
+The -standalone variant ships a registered store, which the seed-store init
+container copies onto the state volume. The plain variant expects a host /nix;
+without one Nix falls back to a chroot store under $HOME, and cachix, which
+reads /nix/store directly to push, fails on every path.
+*/}}
 {{- define "image" -}}
-{{ include "common.images.image" (dict "imageRoot" .Values.image "global" .Values.global "chart" .Chart) }}
+{{- $image := deepCopy .Values.image -}}
+{{- if not $image.tag -}}
+{{- $_ := set $image "tag" (printf "%s-standalone" .Chart.AppVersion) -}}
+{{- end -}}
+{{ include "common.images.image" (dict "imageRoot" $image "global" .Values.global "chart" .Chart) }}
+{{- end -}}
+
+{{/*
+Store root the seed-store init container copies into. A `local?root=R` store
+keeps its files under R/nix, so R is the parent of nixStore.subPath. The
+schema requires that last component to be `nix` and limits the path to
+characters that need no escaping in the store URI.
+*/}}
+{{- define "nixStoreRoot" -}}
+{{- clean (printf "/var/lib/hercules-ci-agent/%s" (dir .Values.nixStore.subPath)) -}}
 {{- end -}}
 
 {{/*
