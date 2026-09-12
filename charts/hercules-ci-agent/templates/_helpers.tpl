@@ -16,8 +16,9 @@ reads /nix/store directly to push, fails on every path.
 
 {{/*
 Store root the seed-store init container copies into. A `local?root=R` store
-keeps its files under R/nix, so R is the parent of nixStore.subPath, whose
-last component the schema requires to be `nix`.
+keeps its files under R/nix, so R is the parent of nixStore.subPath. The
+schema requires that last component to be `nix` and limits the path to
+characters that need no escaping in the store URI.
 */}}
 {{- define "nixStoreRoot" -}}
 {{- clean (printf "/var/lib/hercules-ci-agent/%s" (dir .Values.nixStore.subPath)) -}}

@@ -150,7 +150,10 @@
 			"properties": {
 				"subPath": {
 					"type": "string",
-					"pattern": "(^|/)nix$"
+					"allOf": [
+						{ "pattern": "^(?:[A-Za-z0-9._-]+/)*nix$" },
+						{ "not": { "pattern": "(^|/)\\.\\.?/" } }
+					]
 				}
 			}
 		},
