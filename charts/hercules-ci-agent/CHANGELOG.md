@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/unmango/charts/compare/hercules-ci-agent-0.2.1...hercules-ci-agent-0.2.2) (2026-09-12)
+
+
+### Bug Fixes
+
+* **hercules-ci-agent:** run the standalone image with /nix on the state volume ([#103](https://github.com/unmango/charts/issues/103)) ([6785097](https://github.com/unmango/charts/commit/678509789b743d82cad94690c804a394049f66f8))
+
 ## [0.2.1](https://github.com/unmango/charts/compare/hercules-ci-agent-0.2.0...hercules-ci-agent-0.2.1) (2026-09-08)
 
 
