@@ -62,6 +62,11 @@ persistence:
   storageClassName: ''
   size: 100Gi
   accessModes: [ReadWriteOnce]
+  # With enabled: false the state directory is an emptyDir, which starts empty
+  # on every new pod. Past sizeLimit the kubelet evicts the pod, so the limit
+  # bounds the store without Nix GC. Empty means no limit.
+  emptyDir:
+    sizeLimit: ''
 
 # Directory on the state volume mounted at /nix. Its last component must be
 # `nix`. A volume that already holds a chroot store from an older release can

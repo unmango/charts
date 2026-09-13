@@ -140,7 +140,12 @@ spec:
             sizeLimit: {{ .Values.tmpDir.sizeLimit }}
         {{- if not .Values.persistence.enabled }}
         - name: state
+          {{- with dig "emptyDir" "sizeLimit" "" .Values.persistence }}
+          emptyDir:
+            sizeLimit: {{ . }}
+          {{- else }}
           emptyDir: {}
+          {{- end }}
         {{- end }}
         {{- with .Values.extraVolumes }}
         {{- toYaml . | nindent 8 }}
