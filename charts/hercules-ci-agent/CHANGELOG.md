@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/unmango/charts/compare/hercules-ci-agent-0.2.2...hercules-ci-agent-0.2.3) (2026-09-14)
+
+
+### Features
+
+* **hercules-ci-agent:** add persistence.emptyDir.sizeLimit ([#106](https://github.com/unmango/charts/issues/106)) ([5798ad5](https://github.com/unmango/charts/commit/5798ad5e52c411d879930b666535bb2af92fb154))
+
 ## [0.2.2](https://github.com/unmango/charts/compare/hercules-ci-agent-0.2.1...hercules-ci-agent-0.2.2) (2026-09-12)
 
 
