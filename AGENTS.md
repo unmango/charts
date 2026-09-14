@@ -50,6 +50,7 @@ ct install --config .ct.yaml --charts charts/deemix
 
 Versions are managed by release-please (`release-please-config.json`, `.release-please-manifest.json`), one `helm` package per chart directory.
 On every push to `main` it opens or updates a `chore(main): release` PR that bumps `version` in each affected `Chart.yaml` and writes that chart's `CHANGELOG.md`.
+The release-please job authenticates as the thecluster[bot] GitHub App through `vars.RELEASE_APP_CLIENT_ID` and `secrets.RELEASE_APP_PRIVATE_KEY`, so the release PR triggers CI and its commits are signed.
 Never hand-edit `version` or `CHANGELOG.md`; the release PR owns them.
 A chart is bumped when a `feat` or `fix` commit touches files under its directory, so use Conventional Commits and scope PR titles to the chart.
 Both run in `.github/workflows/release.yml` on every push to `main`: `chart-releaser` first publishes any chart whose `version` changed (which happens when the release PR merges), then the `release-please` job runs.
