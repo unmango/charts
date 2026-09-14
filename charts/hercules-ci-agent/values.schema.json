@@ -175,6 +175,14 @@
 				"storageClassName": {
 					"type": "string"
 				},
+				"emptyDir": {
+					"type": "object",
+					"properties": {
+						"sizeLimit": {
+							"type": "string"
+						}
+					}
+				},
 				"accessModes": {
 					"type": "array",
 					"minItems": 1,
