@@ -105,6 +105,7 @@ CI (`.github/workflows/ci.yml`) discovers charts automatically through `ct`.
 
 - `ct` validates `Chart.yaml` against `chart_schema.yaml` (yamale) and YAML style against `lintconf.yaml` (yamllint).
 - `.ct.yaml` sets `check-version-increment: false` because release-please, not the chart PR, bumps `version`.
+- `.ct.yaml` sets `helm-extra-args: --timeout 10m`, which `ct install` passes to `helm install`, `test`, and `uninstall` in both CI and `make test`; Helm's 5m default is short enough that a slow image pull on the runner fails charts with long startup probes.
 - `ct lint` requires full git history to diff against `main`; workflows use `fetch-depth: 0`.
 - CI runs on the self-hosted `thecluster` runner, not a GitHub-hosted one.
 - The `test` job installs each changed chart except `actions-runner`, `gha-runner-scale-set` and `hercules-ci-agent`.

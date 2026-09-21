@@ -5,3 +5,6 @@ chart-dirs:
 chart-repos:
   - oauth2proxy=https://oauth2-proxy.github.io/manifests
 check-version-increment: false
+# Helm's default install timeout is 5m, which a cold image pull on the runner
+# can use up before a chart's startup probes have had their full window.
+helm-extra-args: --timeout 10m
