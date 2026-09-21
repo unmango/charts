@@ -34,8 +34,9 @@ database:
   authSource: admin
 
 # A MongoDB StatefulSet deployed alongside the controller. Its init script
-# creates database.username with dbOwner on database.name and the _stat and
-# _audit databases the controller derives from it. The script only runs
+# creates database.username in admin with clusterMonitor and dbOwner on
+# database.name and the _stat, _audit, and _restore databases the controller
+# derives from it. The script only runs
 # against an empty data directory, so changing database.* afterwards does
 # not alter the existing user.
 mongodb:
@@ -76,6 +77,8 @@ persistence:
 # UniFi devices reach the controller on inform and stun, so the Service has to
 # be reachable from their network. The web UI serves a self-signed
 # certificate on https, which is why the chart ships no Ingress or HTTPRoute.
+# NodePort is not offered: devices must reach inform on the same port the
+# controller advertises, 8080, and a node port would differ.
 service:
   type: ClusterIP
   annotations: {}

@@ -1,4 +1,7 @@
 {{- if .Values.mongodb.enabled }}
+{{- if ne .Values.database.authSource "admin" }}
+{{- fail "database.authSource must be admin when mongodb.enabled is true: the bundled init script creates the user there" }}
+{{- end }}
 {{- $persistence := .Values.mongodb.persistence }}
 apiVersion: apps/v1
 kind: StatefulSet

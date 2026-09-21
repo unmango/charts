@@ -94,7 +94,7 @@ No upstream image; uses `xmage-docker`.
 
 ### UniFi
 
-Uses the linuxserver image, which needs an external MongoDB.
+Uses the linuxserver image, which needs a separate MongoDB service; the chart deploys one or connects to yours through `database.host`.
 
 - `mongodb.enabled: true` (default) deploys `mongo:8.0` beside the controller; set it `false` and fill `database.host` to use your own.
 - MongoDB 8.0 is the newest the controller supports; Renovate holds the bundled image below 8.1.
