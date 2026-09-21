@@ -1,0 +1,21 @@
+Connect a Palworld client to:
+{{- if eq .Values.service.type "LoadBalancer" }}
+
+  $(kubectl get svc --namespace {{ .Release.Namespace }} {{ .Release.Name }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}{.status.loadBalancer.ingress[0].hostname}'):{{ .Values.server.port }}
+{{- else if eq .Values.service.type "NodePort" }}
+
+  <node-ip>:$(kubectl get svc --namespace {{ .Release.Namespace }} {{ .Release.Name }} -o jsonpath='{.spec.ports[0].nodePort}')
+{{- else }}
+
+  the Service {{ .Release.Name }}.{{ .Release.Namespace }} on UDP {{ .Values.server.port }}.
+  It is ClusterIP, so expose it with a LoadBalancer or NodePort for players.
+{{- end }}
+
+The first start downloads the game through steamcmd, several GB, before the
+server listens.
+{{- if not .Values.auth.existingSecret }}
+
+Admin password:
+
+  kubectl get secret --namespace {{ .Release.Namespace }} {{ include "secretName" . }} -o jsonpath='{.data.{{ .Values.auth.adminPasswordKey }}}' | base64 -d
+{{- end }}

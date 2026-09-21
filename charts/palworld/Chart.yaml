@@ -1,0 +1,17 @@
+apiVersion: v2
+name: palworld
+description: Helm chart for installing a Palworld dedicated server
+type: application
+version: 0.1.0
+# renovate: image=docker.io/thijsvanloef/palworld-server-docker
+appVersion: v2.7.3
+sources:
+  - https://github.com/thijsvanloef/palworld-server-docker
+kubeVersion: '>= 1.29'
+maintainers:
+  - name: UnstoppableMango
+    url: https://github.com/UnstoppableMango
+dependencies:
+  - name: common
+    repository: oci://registry-1.docker.io/bitnamicharts
+    version: 2.41.0

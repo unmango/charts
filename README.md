@@ -37,6 +37,7 @@ The version table below links to the releases each tag corresponds to.
 | [gha-runner-scale-set](./charts/gha-runner-scale-set/) | [actions/actions-runner-controller](https://github.com/actions/actions-runner-controller) | [![gha-runner-scale-set](https://img.shields.io/github/v/release/unmango/charts?filter=gha-runner-scale-set-*&label=gha-runner-scale-set)](https://github.com/unmango/charts/releases?q=gha-runner-scale-set) | [Patched fork](#gha-runner-scale-set) |
 | [hercules-ci-agent](./charts/hercules-ci-agent/) | [hercules-ci/hercules-ci-agent](https://github.com/hercules-ci/hercules-ci-agent) | [![hercules-ci-agent](https://img.shields.io/github/v/release/unmango/charts?filter=hercules-ci-agent-*&label=hercules-ci-agent)](https://github.com/unmango/charts/releases?q=hercules-ci-agent) | [Active](#hercules-ci-agent) |
 | [mage-server](./charts/mage-server/) | [magefree/mage](https://github.com/magefree/mage) | [![mage-server](https://img.shields.io/github/v/release/unmango/charts?filter=mage-server-*&label=mage-server)](https://github.com/unmango/charts/releases?q=mage-server) | [Active](#xmage) |
+| [palworld](./charts/palworld/) | [thijsvanloef/palworld-server-docker](https://github.com/thijsvanloef/palworld-server-docker) | [![palworld](https://img.shields.io/github/v/release/unmango/charts?filter=palworld-*&label=palworld)](https://github.com/unmango/charts/releases?q=palworld) | [Active](#palworld) |
 
 ## Remarks
 
@@ -77,6 +78,17 @@ No upstream image; uses `xmage-docker`.
 - `server.secondaryBindPort` must be a fixed port (not `-1`).
 - First start takes minutes to load the card database; readiness probe allows 10 minutes.
 - Runs as root; capabilities are dropped but `runAsNonRoot` is not set.
+
+### Palworld
+
+Upstream ships raw manifests only; this chart wraps its image.
+`server.*` values map to the image's env vars; `server.settings` takes any other one in camelCase.
+
+- amd64 only, like the image.
+- First start downloads the game through steamcmd (several GB) before the server listens.
+- `auth.adminPassword` is generated and kept across upgrades when unset; an empty `serverPassword` leaves the server open.
+- `saveRamdisk.enabled` keeps `Pal/Saved` in a memory-backed volume, seeded from the claim and mirrored back on an interval and at shutdown; it needs `persistence.enabled`, and `resources.limits.memory` must leave room for `sizeLimit`.
+- The StatefulSet is named after the release with a `data` claim template, so existing `data-<release>-0` claims bind as-is.
 
 ### Filebrowser
 
