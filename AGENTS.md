@@ -55,10 +55,10 @@ Never hand-edit `version` or `CHANGELOG.md`; the release PR owns them.
 A chart is bumped when a `feat` or `fix` commit touches files under its directory, so use Conventional Commits and scope PR titles to the chart.
 Both run in `.github/workflows/release.yml` on every push to `main`: `chart-releaser` first publishes any chart whose `version` changed (which happens when the release PR merges), then the `release-please` job runs.
 release-please does not create tags or GitHub releases (`skip-github-release`); chart-releaser creates them as `<chart>-<version>`, and release-please reads those tags to find the last release, which is why it runs second.
-The `release` job also pushes every package in `.cr-release-packages/` to `oci://ghcr.io/unmango/charts`, which is why it needs `packages: write`.
+chart-releaser also pushes every package in `.cr-release-packages/` to `oci://ghcr.io/unmango/charts` through `cr push`, driven by the action's `oci_registry_url` input, which is why the `release` job needs `packages: write`.
 Each chart becomes the repository `ghcr.io/unmango/charts/<chart>`, tagged with its chart `version`.
-chart-releaser packages all six charts on every run, so the push step skips a chart whose `version` tag is already in that repository, mirroring `skip-existing` in `.cr.yaml`.
-`make push` does the same by hand against `REGISTRY` (default `ghcr.io/unmango/charts`) after a `helm registry login`, without the skip check.
+The action's `skip_existing` input applies to both `cr upload` and `cr push`, so a chart whose `version` tag is already in the registry is skipped and its published digest stays stable.
+`make push` runs the same `cr push` by hand against `REGISTRY` (default `ghcr.io/unmango/charts`) after a `helm registry login`, and skips existing tags through `skip-existing` in `.cr.yaml`.
 `appVersion` tracks the upstream image and is bumped by Renovate via the `# renovate: image=...` comments.
 Renovate updates under `charts/` commit as `fix(deps): ...` so they trigger a patch release.
 

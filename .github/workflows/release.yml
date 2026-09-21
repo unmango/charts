@@ -30,38 +30,21 @@ jobs:
 
       - run: helm repo add oauth2-proxy https://oauth2-proxy.github.io/manifests
 
+      # oci_registry_url makes the action run `cr push` after `cr upload`,
+      # sending every packaged chart to <registry>/<chart>:<version>.
+      # skip_existing covers both: `cr upload` skips existing GitHub releases
+      # and `cr push` skips tags already in the registry, so republishing an
+      # unchanged chart never replaces its digest.
       - name: Run chart-releaser
         uses: helm/chart-releaser-action@cae68fefc6b5f367a0275617c9f83181ba54714f # v1.7.0
         with:
           config: .cr.yaml
+          skip_existing: true
+          oci_registry_url: oci://ghcr.io/unmango/charts
+          oci_username: ${{ github.actor }}
+          oci_password: ${{ secrets.GITHUB_TOKEN }}
         env:
           CR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Log in to ghcr.io
-        run: |
-          echo "$GITHUB_TOKEN" |
-            helm registry login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # chart-releaser packages every chart on every run, so the tag for an
-      # unchanged chart is already in the registry. Skipping it keeps the
-      # published digest stable, the same way skip-existing does for releases.
-      - name: Push charts to ghcr.io
-        run: |
-          shopt -s nullglob
-          for pkg in .cr-release-packages/*.tgz; do
-            chart="$(helm show chart "$pkg")"
-            name="$(awk '/^name:/{print $2}' <<< "$chart")"
-            version="$(awk '/^version:/{print $2}' <<< "$chart")"
-            if helm show chart "oci://$REGISTRY/$name" --version "$version" >/dev/null 2>&1; then
-              echo "skipping $name-$version, already in $REGISTRY"
-              continue
-            fi
-            helm push "$pkg" "oci://$REGISTRY"
-          done
-        env:
-          REGISTRY: ghcr.io/unmango/charts
 
   release-please:
     name: Release Please
