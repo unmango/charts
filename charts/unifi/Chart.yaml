@@ -1,0 +1,17 @@
+apiVersion: v2
+name: unifi
+description: Helm chart for installing the UniFi Network Application
+type: application
+version: 0.1.0
+# renovate: image=lscr.io/linuxserver/unifi-network-application
+appVersion: 10.6.106-ls146
+sources:
+  - https://github.com/linuxserver/docker-unifi-network-application
+kubeVersion: '>= 1.26'
+maintainers:
+  - name: UnstoppableMango
+    url: https://github.com/UnstoppableMango
+dependencies:
+  - name: common
+    repository: oci://registry-1.docker.io/bitnamicharts
+    version: 2.41.0

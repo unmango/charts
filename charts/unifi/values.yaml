@@ -1,0 +1,125 @@
+global: {}
+
+image:
+  registry: lscr.io
+  repository: linuxserver/unifi-network-application
+  tag: ''
+  digest: ''
+
+# Read by the linuxserver image's init scripts
+puid: 1000
+pgid: 1000
+timezone: UTC
+
+java:
+  # Heap ceiling and initial size in MB, passed as MEM_LIMIT and MEM_STARTUP.
+  # Empty leaves the image default.
+  memLimit: ''
+  memStartup: ''
+
+# How the controller reaches MongoDB. Used by both the bundled StatefulSet
+# (mongodb.enabled) and an external server.
+database:
+  name: unifi
+  username: unifi
+  # Written to a chart-managed Secret. Generated when empty, and kept across
+  # upgrades. Ignored when existingSecret is set.
+  password: ''
+  # Secret holding the mongodb-password key, plus mongodb-root-password when
+  # mongodb.enabled is true
+  existingSecret: ''
+  # Required when mongodb.enabled is false
+  host: ''
+  port: 27017
+  authSource: admin
+
+# A MongoDB StatefulSet deployed alongside the controller. Its init script
+# creates database.username with dbOwner on database.name and the _stat and
+# _audit databases the controller derives from it. The script only runs
+# against an empty data directory, so changing database.* afterwards does
+# not alter the existing user.
+mongodb:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: library/mongo
+    # 8.0 is the newest MongoDB the UniFi Network Application supports
+    tag: 8.0.32
+    digest: ''
+  rootUsername: root
+  # Generated when empty, like database.password
+  rootPassword: ''
+  persistence:
+    enabled: true
+    storageClassName: ''
+    size: 5Gi
+    accessModes: [ReadWriteOnce]
+  resources: {}
+  readinessProbe:
+    exec:
+      command: [mongosh, --quiet, --eval, "db.adminCommand('ping')"]
+    periodSeconds: 10
+    timeoutSeconds: 5
+  podSecurityContext: {}
+  securityContext: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+persistence:
+  # Controller config, backups, and certificates under /config
+  enabled: true
+  storageClassName: ''
+  size: 5Gi
+  accessModes: [ReadWriteOnce]
+
+# UniFi devices reach the controller on inform and stun, so the Service has to
+# be reachable from their network. The web UI serves a self-signed
+# certificate on https, which is why the chart ships no Ingress or HTTPRoute.
+service:
+  type: ClusterIP
+  annotations: {}
+  loadBalancerIP: ''
+  ports:
+    https: 8443
+    inform: 8080
+    stun: 3478
+    discovery: 10001
+
+resources: {}
+
+# The controller migrates its database and generates keys on first start
+startupProbe:
+  httpGet:
+    path: /status
+    port: https
+    scheme: HTTPS
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 60
+livenessProbe:
+  httpGet:
+    path: /status
+    port: https
+    scheme: HTTPS
+  periodSeconds: 30
+  timeoutSeconds: 5
+readinessProbe:
+  httpGet:
+    path: /status
+    port: https
+    scheme: HTTPS
+  periodSeconds: 10
+  timeoutSeconds: 5
+
+# The image starts as root and drops to puid/pgid itself, so runAsNonRoot is
+# not set here
+securityContext: {}
+podSecurityContext: {}
+
+extraEnv: []
+extraVolumes: []
+extraVolumeMounts: []
+nodeSelector: {}
+tolerations: []
+affinity: {}

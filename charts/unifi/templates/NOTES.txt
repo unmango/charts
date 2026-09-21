@@ -1,0 +1,17 @@
+Open the UniFi Network Application at:
+{{- if eq .Values.service.type "LoadBalancer" }}
+
+  https://$(kubectl get svc --namespace {{ .Release.Namespace }} {{ .Release.Name }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}{.status.loadBalancer.ingress[0].hostname}'):{{ .Values.service.ports.https }}
+{{- else }}
+
+  https://localhost:{{ .Values.service.ports.https }}
+
+after running:
+
+  kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ .Release.Name }} {{ .Values.service.ports.https }}:https
+{{- end }}
+
+Devices must reach port {{ .Values.service.ports.inform }} (inform) and
+{{ .Values.service.ports.stun }}/udp (STUN) on this Service. Discovery broadcasts do
+not cross subnets, so devices on another network need `set-inform` pointed at
+http://<address>:{{ .Values.service.ports.inform }}/inform before they can be adopted.

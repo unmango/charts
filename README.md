@@ -40,6 +40,7 @@ The version table below links to the releases each tag corresponds to.
 | [hercules-ci-agent](./charts/hercules-ci-agent/) | [hercules-ci/hercules-ci-agent](https://github.com/hercules-ci/hercules-ci-agent) | [![hercules-ci-agent](https://img.shields.io/github/v/release/unmango/charts?filter=hercules-ci-agent-*&label=hercules-ci-agent)](https://github.com/unmango/charts/releases?q=hercules-ci-agent) | [Active](#hercules-ci-agent) |
 | [mage-server](./charts/mage-server/) | [magefree/mage](https://github.com/magefree/mage) | [![mage-server](https://img.shields.io/github/v/release/unmango/charts?filter=mage-server-*&label=mage-server)](https://github.com/unmango/charts/releases?q=mage-server) | [Active](#xmage) |
 | [qbittorrent](./charts/qbittorrent/) | [linuxserver/docker-qbittorrent](https://github.com/linuxserver/docker-qbittorrent) | [![qbittorrent](https://img.shields.io/github/v/release/unmango/charts?filter=qbittorrent-*&label=qbittorrent)](https://github.com/unmango/charts/releases?q=qbittorrent) | [Active](#deluge-and-qbittorrent) |
+| [unifi](./charts/unifi/) | [linuxserver/docker-unifi-network-application](https://github.com/linuxserver/docker-unifi-network-application) | [![unifi](https://img.shields.io/github/v/release/unmango/charts?filter=unifi-*&label=unifi)](https://github.com/unmango/charts/releases?q=unifi) | [Active](#unifi) |
 
 ## Remarks
 
@@ -90,6 +91,17 @@ No upstream image; uses `xmage-docker`.
 - `server.secondaryBindPort` must be a fixed port (not `-1`).
 - First start takes minutes to load the card database; readiness probe allows 10 minutes.
 - Runs as root; capabilities are dropped but `runAsNonRoot` is not set.
+
+### UniFi
+
+Uses the linuxserver image, which needs an external MongoDB.
+
+- `mongodb.enabled: true` (default) deploys `mongo:8.0` beside the controller; set it `false` and fill `database.host` to use your own.
+- MongoDB 8.0 is the newest the controller supports; Renovate holds the bundled image below 8.1.
+- Passwords are generated and kept across upgrades unless set; `database.existingSecret` needs `mongodb-password`, plus `mongodb-root-password` with the bundled MongoDB.
+- The init script creates the controller user only on an empty data directory; changing `database.*` later does not alter it.
+- Devices need `inform` (TCP 8080) and `stun` (UDP 3478) on the Service; discovery does not cross subnets, so devices elsewhere need `set-inform`.
+- The UI serves a self-signed certificate on 8443, so there is no Ingress or HTTPRoute.
 
 ### Filebrowser
 

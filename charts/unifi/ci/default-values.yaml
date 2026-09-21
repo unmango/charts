@@ -1,0 +1,8 @@
+persistence:
+  enabled: false
+mongodb:
+  persistence:
+    enabled: false
+resources:
+  limits:
+    memory: 2Gi
