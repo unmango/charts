@@ -87,14 +87,10 @@ package: .cr-release-packages/actions-runner-$(ACTIONS_RUNNER_VERSION).tgz \
 
 # Requires a `helm registry login` against the host in $(REGISTRY) first, e.g.
 # `helm registry login ghcr.io`. Release pushes happen in
-# .github/workflows/release.yml; this is for publishing by hand.
-# The loop is one recipe line, so make only sees its last exit status; set -e
-# stops it on the first failed push instead of reporting a partial publish.
+# .github/workflows/release.yml; this is for publishing by hand. skip-existing
+# in .cr.yaml leaves versions already in the registry untouched.
 push: package
-	set -e; \
-	for pkg in .cr-release-packages/*.tgz; do \
-		helm push "$$pkg" "oci://$(REGISTRY)"; \
-	done
+	cr push --config .cr.yaml --registry-url oci://$(REGISTRY)
 
 .kube/config: kind-cluster.yml
 	kind create cluster --name chart-testing \
