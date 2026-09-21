@@ -5,7 +5,7 @@ This file provides guidance to coding agents when working with code in this repo
 ## What this is
 
 A Helm chart repository published to GitHub Pages (`gh-pages` branch, `index.yaml`) by `chart-releaser`.
-Six charts live under `charts/`: `actions-runner`, `deemix`, `filebrowser`, `gha-runner-scale-set`, `hercules-ci-agent`, and `mage-server`.
+Seven charts live under `charts/`: `actions-runner`, `deemix`, `filebrowser`, `gha-runner-scale-set`, `hercules-ci-agent`, `mage-server`, and `palworld`.
 
 ## Tooling
 
@@ -15,7 +15,7 @@ Do not install them separately.
 Because of the zsh/Prezto autoload issue, prefix make with `command`:
 
 ```sh
-command make lint         # helm lint + ct lint, all six charts
+command make lint         # helm lint + ct lint, all seven charts
 command make lint-deemix
 command make test         # kind cluster + Gateway API CRDs, then ct install
 command make kind         # just create the .kube/config kind cluster
@@ -57,15 +57,15 @@ Both run in `.github/workflows/release.yml` on every push to `main`: `chart-rele
 release-please does not create tags or GitHub releases (`skip-github-release`); chart-releaser creates them as `<chart>-<version>`, and release-please reads those tags to find the last release, which is why it runs second.
 The `release` job also pushes every package in `.cr-release-packages/` to `oci://ghcr.io/unmango/charts`, which is why it needs `packages: write`.
 Each chart becomes the repository `ghcr.io/unmango/charts/<chart>`, tagged with its chart `version`.
-chart-releaser packages all six charts on every run, so the push step skips a chart whose `version` tag is already in that repository, mirroring `skip-existing` in `.cr.yaml`.
+chart-releaser packages all seven charts on every run, so the push step skips a chart whose `version` tag is already in that repository, mirroring `skip-existing` in `.cr.yaml`.
 `make push` does the same by hand against `REGISTRY` (default `ghcr.io/unmango/charts`) after a `helm registry login`, without the skip check.
 `appVersion` tracks the upstream image and is bumped by Renovate via the `# renovate: image=...` comments.
 Renovate updates under `charts/` commit as `fix(deps): ...` so they trigger a patch release.
 
 ## Chart conventions
 
-- `deemix`, `filebrowser`, `hercules-ci-agent` and `mage-server` depend on `common` from `oci://registry-1.docker.io/bitnamicharts` for `common.images.image`, and wrap it in local `image` / `init.image` helpers so templates never call it directly.
-  Renovate bumps the pin; a signature change upstream lands in those four wrappers and nowhere else.
+- `deemix`, `filebrowser`, `hercules-ci-agent`, `mage-server` and `palworld` depend on `common` from `oci://registry-1.docker.io/bitnamicharts` for `common.images.image`, and wrap it in local `image` / `init.image` / `saveRamdisk.image` helpers so templates never call it directly.
+  Renovate bumps the pin; a signature change upstream lands in those wrappers and nowhere else.
   Each also defines its `labels` and `selectorLabels`, which are still duplicated.
   `actions-runner` takes neither: template names are global to a release, so a library defining unprefixed names would silently override the consumer's.
   Everything it defines is prefixed `actions-runner.`.
@@ -89,6 +89,8 @@ Renovate updates under `charts/` commit as `fix(deps): ...` so they trigger a pa
 - Every chart but `actions-runner` has a `values.schema.json` that Helm enforces at install time.
   Adding or renaming anything in `values.yaml` requires updating that schema, or installs fail with a validation error.
 - `deemix` renders `Deployment` or `StatefulSet` from `.Values.kind`; PVCs only exist in the `StatefulSet` path via `volumeClaimTemplates`.
+- `palworld`'s `saveRamdisk` adds a `restore` init container and a `sync` native sidecar (`restartPolicy: Always`), which is why its `kubeVersion` is `>= 1.29`.
+  The sidecar's final mirror depends on kubelet stopping sidecars after the game container, so keep it a native sidecar rather than an ordinary container.
 - `mage-server` speaks raw TCP, so it has no Ingress or HTTPRoute; its `server.*` values become `XMAGE_*` environment variables consumed by the image entrypoint.
 - `filebrowser` ships `configmap/*` files (`settings.json`, `setup.sh`) rendered through `tpl` into a ConfigMap, and runs `setup.sh` in an init container to chown volumes and seed the filebrowser DB.
   Edits to `configmap/setup.sh` change runtime behavior, not just packaging.

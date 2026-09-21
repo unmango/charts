@@ -1,0 +1,117 @@
+global: {}
+
+image:
+  registry: docker.io
+  repository: thijsvanloef/palworld-server-docker
+  tag: ''
+  digest: ''
+
+# Read by the image's entrypoint
+puid: 1000
+pgid: 1000
+timezone: UTC
+
+# Rendered into the environment variables the image turns into
+# PalWorldSettings.ini at startup.
+# https://palworld-server-docker.loef.dev/getting-started/configuration/server-settings
+server:
+  name: palworld
+  description: ''
+  players: 16
+  community: false
+  crossplayPlatforms: (Steam,Xbox,PS5,Mac)
+  port: 8211
+  queryPort: 27015
+  restApi:
+    enabled: true
+    port: 8212
+  rcon:
+    enabled: true
+    port: 25575
+  # Any other variable the image reads, camelCase. baseCampWorkerMaxNum: 20
+  # becomes BASE_CAMP_WORKER_MAX_NUM=20.
+  settings: {}
+    # baseCampWorkerMaxNum: 20
+    # enablePerfThreadingArgs: true
+    # workerThreadsServer: 8
+    # backupEnabled: true
+    # difficulty: normal
+
+auth:
+  # Written to a chart-managed Secret. adminPassword is generated when empty
+  # and kept across upgrades; serverPassword stays unset when empty, leaving
+  # the server open. Both are ignored when existingSecret is set.
+  adminPassword: ''
+  serverPassword: ''
+  existingSecret: ''
+  # Keys read from the Secret. A missing server password key leaves the server
+  # open rather than failing the pod.
+  adminPasswordKey: admin-password
+  serverPasswordKey: server-password
+
+persistence:
+  # The game install, which steamcmd writes on first boot and updates in
+  # place, plus the world save under Pal/Saved.
+  enabled: true
+  storageClassName: ''
+  size: 24Gi
+  accessModes: [ReadWriteOnce]
+  # Directory within the claim mounted at /palworld
+  subPath: ''
+
+# Keeps Pal/Saved on a memory-backed emptyDir so autosaves do not wait on
+# storage. An init container seeds it from the claim and a sidecar mirrors it
+# back every syncIntervalSeconds and once more on shutdown, after the game has
+# written its shutdown save. Requires persistence.enabled. The pod cannot move
+# nodes without losing whatever has not been mirrored yet.
+saveRamdisk:
+  enabled: false
+  # A memory-medium emptyDir is charged to the pod, so resources.limits.memory
+  # has to leave room for it.
+  sizeLimit: 2Gi
+  syncIntervalSeconds: 300
+  image:
+    registry: docker.io
+    repository: instrumentisto/rsync-ssh
+    tag: alpine3.23-r3
+    digest: ''
+  # Pages written into a tmpfs are charged to the writer's cgroup, so the
+  # restore limit has to cover all of sizeLimit or seeding OOMs part way.
+  restoreResources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 2304Mi
+  syncResources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+
+# Clients speak UDP to server.port, so the chart ships no Ingress or HTTPRoute.
+service:
+  type: ClusterIP
+  annotations: {}
+  loadBalancerIP: ''
+
+# The game saves on RCON shutdown; with saveRamdisk the sidecar mirrors that
+# save afterwards, and the default 30s does not reliably cover both.
+terminationGracePeriodSeconds: 120
+
+resources: {}
+
+startupProbe: {}
+livenessProbe: {}
+readinessProbe: {}
+
+securityContext: {}
+podSecurityContext: {}
+
+extraEnv: []
+extraVolumes: []
+extraVolumeMounts: []
+nodeSelector: {}
+tolerations: []
+affinity: {}

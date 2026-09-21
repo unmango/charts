@@ -1,0 +1,11 @@
+saveRamdisk:
+  enabled: true
+  sizeLimit: 256Mi
+  restoreResources:
+    limits:
+      memory: 512Mi
+persistence:
+  size: 1Gi
+  subPath: palworld
+auth:
+  serverPassword: ci

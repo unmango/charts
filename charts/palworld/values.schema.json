@@ -1,0 +1,422 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"type": "object",
+	"required": [
+		"auth",
+		"image",
+		"persistence",
+		"saveRamdisk",
+		"server",
+		"service"
+	],
+	"properties": {
+		"affinity": {
+			"type": "object"
+		},
+		"auth": {
+			"type": "object",
+			"required": [
+				"adminPasswordKey",
+				"serverPasswordKey"
+			],
+			"properties": {
+				"adminPassword": {
+					"type": "string"
+				},
+				"serverPassword": {
+					"type": "string"
+				},
+				"existingSecret": {
+					"type": "string"
+				},
+				"adminPasswordKey": {
+					"type": "string",
+					"minLength": 1
+				},
+				"serverPasswordKey": {
+					"type": "string",
+					"minLength": 1
+				}
+			}
+		},
+		"extraEnv": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": [
+					"name"
+				],
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"value": {
+						"type": "string"
+					},
+					"valueFrom": {
+						"type": "object"
+					}
+				}
+			}
+		},
+		"extraVolumeMounts": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": [
+					"name",
+					"mountPath"
+				],
+				"properties": {
+					"mountPath": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"subPath": {
+						"type": "string"
+					}
+				}
+			}
+		},
+		"extraVolumes": {
+			"type": "array"
+		},
+		"global": {
+			"type": "object",
+			"properties": {
+				"imageRegistry": {
+					"type": "string"
+				}
+			}
+		},
+		"image": {
+			"type": "object",
+			"properties": {
+				"registry": {
+					"type": "string"
+				},
+				"repository": {
+					"type": "string"
+				},
+				"tag": {
+					"type": "string"
+				},
+				"digest": {
+					"type": "string"
+				}
+			}
+		},
+		"livenessProbe": {
+			"type": "object"
+		},
+		"nodeSelector": {
+			"type": "object"
+		},
+		"persistence": {
+			"type": "object",
+			"required": [
+				"enabled"
+			],
+			"properties": {
+				"enabled": {
+					"type": "boolean"
+				},
+				"size": {
+					"type": "string"
+				},
+				"storageClassName": {
+					"type": "string"
+				},
+				"subPath": {
+					"type": "string"
+				},
+				"accessModes": {
+					"type": "array",
+					"minItems": 1,
+					"items": {
+						"type": "string",
+						"enum": [
+							"ReadWriteOnce",
+							"ReadOnlyMany",
+							"ReadWriteMany",
+							"ReadWriteOncePod"
+						]
+					}
+				}
+			}
+		},
+		"pgid": {
+			"type": "integer",
+			"minimum": 0
+		},
+		"podSecurityContext": {
+			"type": "object"
+		},
+		"puid": {
+			"type": "integer",
+			"minimum": 0
+		},
+		"readinessProbe": {
+			"type": "object"
+		},
+		"resources": {
+			"type": "object",
+			"properties": {
+				"limits": {
+					"type": "object",
+					"properties": {
+						"cpu": {
+							"type": [
+								"string",
+								"number"
+							]
+						},
+						"memory": {
+							"type": "string"
+						}
+					}
+				},
+				"requests": {
+					"type": "object",
+					"properties": {
+						"cpu": {
+							"type": [
+								"string",
+								"number"
+							]
+						},
+						"memory": {
+							"type": "string"
+						}
+					}
+				}
+			}
+		},
+		"saveRamdisk": {
+			"type": "object",
+			"required": [
+				"enabled"
+			],
+			"properties": {
+				"enabled": {
+					"type": "boolean"
+				},
+				"sizeLimit": {
+					"type": "string"
+				},
+				"syncIntervalSeconds": {
+					"type": "integer",
+					"minimum": 1
+				},
+				"image": {
+					"type": "object",
+					"properties": {
+						"registry": {
+							"type": "string"
+						},
+						"repository": {
+							"type": "string"
+						},
+						"tag": {
+							"type": "string"
+						},
+						"digest": {
+							"type": "string"
+						}
+					}
+				},
+				"restoreResources": {
+					"type": "object",
+					"properties": {
+						"limits": {
+							"type": "object",
+							"properties": {
+								"cpu": {
+									"type": [
+										"string",
+										"number"
+									]
+								},
+								"memory": {
+									"type": "string"
+								}
+							}
+						},
+						"requests": {
+							"type": "object",
+							"properties": {
+								"cpu": {
+									"type": [
+										"string",
+										"number"
+									]
+								},
+								"memory": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				},
+				"syncResources": {
+					"type": "object",
+					"properties": {
+						"limits": {
+							"type": "object",
+							"properties": {
+								"cpu": {
+									"type": [
+										"string",
+										"number"
+									]
+								},
+								"memory": {
+									"type": "string"
+								}
+							}
+						},
+						"requests": {
+							"type": "object",
+							"properties": {
+								"cpu": {
+									"type": [
+										"string",
+										"number"
+									]
+								},
+								"memory": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"securityContext": {
+			"type": "object"
+		},
+		"server": {
+			"type": "object",
+			"required": [
+				"name",
+				"port",
+				"queryPort",
+				"restApi",
+				"rcon"
+			],
+			"properties": {
+				"name": {
+					"type": "string",
+					"minLength": 1
+				},
+				"description": {
+					"type": "string"
+				},
+				"players": {
+					"type": "integer",
+					"minimum": 1,
+					"maximum": 32
+				},
+				"community": {
+					"type": "boolean"
+				},
+				"crossplayPlatforms": {
+					"type": "string"
+				},
+				"port": {
+					"type": "integer",
+					"minimum": 1,
+					"maximum": 65535
+				},
+				"queryPort": {
+					"type": "integer",
+					"minimum": 1,
+					"maximum": 65535
+				},
+				"restApi": {
+					"type": "object",
+					"required": [
+						"enabled",
+						"port"
+					],
+					"properties": {
+						"enabled": {
+							"type": "boolean"
+						},
+						"port": {
+							"type": "integer",
+							"minimum": 1,
+							"maximum": 65535
+						}
+					}
+				},
+				"rcon": {
+					"type": "object",
+					"required": [
+						"enabled",
+						"port"
+					],
+					"properties": {
+						"enabled": {
+							"type": "boolean"
+						},
+						"port": {
+							"type": "integer",
+							"minimum": 1,
+							"maximum": 65535
+						}
+					}
+				},
+				"settings": {
+					"type": "object",
+					"additionalProperties": {
+						"type": [
+							"string",
+							"integer",
+							"number",
+							"boolean"
+						]
+					}
+				}
+			}
+		},
+		"service": {
+			"type": "object",
+			"required": [
+				"type"
+			],
+			"properties": {
+				"type": {
+					"type": "string",
+					"enum": [
+						"ClusterIP",
+						"NodePort",
+						"LoadBalancer"
+					]
+				},
+				"annotations": {
+					"type": "object"
+				},
+				"loadBalancerIP": {
+					"type": "string"
+				}
+			}
+		},
+		"startupProbe": {
+			"type": "object"
+		},
+		"terminationGracePeriodSeconds": {
+			"type": "integer",
+			"minimum": 0
+		},
+		"timezone": {
+			"type": "string"
+		},
+		"tolerations": {
+			"type": "array"
+		}
+	}
+}

@@ -1,0 +1,229 @@
+{{- if and .Values.saveRamdisk.enabled (not .Values.persistence.enabled) }}
+{{- fail "saveRamdisk.enabled requires persistence.enabled" }}
+{{- end }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  serviceName: {{ .Release.Name }}
+  selector:
+    matchLabels:
+      {{- include "selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "labels" . | nindent 8 }}
+    spec:
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      {{- if .Values.saveRamdisk.enabled }}
+      initContainers:
+        - name: restore
+          image: {{ include "saveRamdisk.image" . }}
+          command:
+            - sh
+            - -c
+            # rsync restores ownership from the claim, which is root-owned
+            # before the first sync, so chown afterwards or the game cannot
+            # write as puid.
+            - |
+              set -eu
+              rsync -a --delete /mirror/ /save/
+              chown -R {{ .Values.puid }}:{{ .Values.pgid }} /save
+          securityContext:
+            runAsUser: 0
+          {{- with .Values.saveRamdisk.restoreResources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: save
+              mountPath: /save
+            - name: data
+              mountPath: /mirror
+              subPath: {{ include "saveRamdisk.mirrorPath" . }}
+        # A native sidecar, so kubelet stops it after the game container and
+        # the final mirror runs once the shutdown save exists. sleep is waited
+        # on in the background so SIGTERM flushes without sitting out the
+        # interval.
+        - name: sync
+          image: {{ include "saveRamdisk.image" . }}
+          restartPolicy: Always
+          command:
+            - sh
+            - -c
+            - |
+              set -eu
+              mirror() { rsync -a --delete /save/ /mirror/; }
+              trap 'mirror; exit 0' INT TERM
+              while true; do
+                sleep {{ .Values.saveRamdisk.syncIntervalSeconds }} &
+                wait $!
+                mirror
+              done
+          securityContext:
+            runAsUser: 0
+          {{- with .Values.saveRamdisk.syncResources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: save
+              mountPath: /save
+            - name: data
+              mountPath: /mirror
+              subPath: {{ include "saveRamdisk.mirrorPath" . }}
+      {{- end }}
+      containers:
+        - name: palworld
+          image: {{ include "image" . }}
+          ports:
+            - name: server
+              containerPort: {{ .Values.server.port }}
+              protocol: UDP
+            - name: query
+              containerPort: {{ .Values.server.queryPort }}
+              protocol: UDP
+            {{- if .Values.server.restApi.enabled }}
+            - name: rest
+              containerPort: {{ .Values.server.restApi.port }}
+            {{- end }}
+          env:
+            - name: PUID
+              value: {{ .Values.puid | quote }}
+            - name: PGID
+              value: {{ .Values.pgid | quote }}
+            - name: TZ
+              value: {{ .Values.timezone | quote }}
+            - name: PORT
+              value: {{ .Values.server.port | quote }}
+            - name: QUERY_PORT
+              value: {{ .Values.server.queryPort | quote }}
+            - name: PLAYERS
+              value: {{ .Values.server.players | quote }}
+            - name: COMMUNITY
+              value: {{ .Values.server.community | quote }}
+            - name: SERVER_NAME
+              value: {{ .Values.server.name | quote }}
+            {{- with .Values.server.description }}
+            - name: SERVER_DESCRIPTION
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.server.crossplayPlatforms }}
+            - name: CROSSPLAY_PLATFORMS
+              value: {{ . | quote }}
+            {{- end }}
+            - name: REST_API_ENABLED
+              value: {{ .Values.server.restApi.enabled | quote }}
+            - name: REST_API_PORT
+              value: {{ .Values.server.restApi.port | quote }}
+            - name: RCON_ENABLED
+              value: {{ .Values.server.rcon.enabled | quote }}
+            - name: RCON_PORT
+              value: {{ .Values.server.rcon.port | quote }}
+            - name: ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secretName" . }}
+                  key: {{ .Values.auth.adminPasswordKey }}
+            - name: SERVER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secretName" . }}
+                  key: {{ .Values.auth.serverPasswordKey }}
+                  optional: true
+            {{- range $key, $value := .Values.server.settings }}
+            - name: {{ $key | snakecase | upper }}
+              value: {{ $value | quote }}
+            {{- end }}
+          {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: data
+              mountPath: /palworld
+              {{- with .Values.persistence.subPath }}
+              subPath: {{ . }}
+              {{- end }}
+            {{- if .Values.saveRamdisk.enabled }}
+            # Shadows the copy on the claim; only this subtree is hot.
+            - name: save
+              mountPath: /palworld/Pal/Saved
+            {{- end }}
+          {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if or (not .Values.persistence.enabled) .Values.saveRamdisk.enabled .Values.extraVolumes }}
+      volumes:
+        {{- if not .Values.persistence.enabled }}
+        - name: data
+          emptyDir: {}
+        {{- end }}
+        {{- if .Values.saveRamdisk.enabled }}
+        - name: save
+          emptyDir:
+            medium: Memory
+            sizeLimit: {{ .Values.saveRamdisk.sizeLimit }}
+        {{- end }}
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+      {{- end }}
+  {{- if .Values.persistence.enabled }}
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: data
+      spec:
+        {{- with .Values.persistence.storageClassName }}
+        storageClassName: {{ . }}
+        {{- end }}
+        accessModes:
+        {{- range .Values.persistence.accessModes }}
+          - {{ . }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.size }}
+  {{- end }}
