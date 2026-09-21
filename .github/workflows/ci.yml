@@ -24,7 +24,7 @@ env:
   # hercules-ci-agent can't reach Ready without a real cluster join token,
   # gha-runner-scale-set needs the ARC controller and a real GitHub config, and
   # actions-runner is a library chart with nothing to deploy.
-  EXCLUDED_CHARTS: actions-runner,gha-runner-scale-set,hercules-ci-agent
+  EXCLUDED_CHARTS: actions-runner,gha-runner-scale-set,gluetun,hercules-ci-agent
 
 jobs:
   nix:

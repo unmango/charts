@@ -1,0 +1,127 @@
+{{- $gluetun := dict "gluetun" .Values.gluetun "inputPorts" (list .Values.webui.port .Values.torrentPort .Values.daemonPort) }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels" . | nindent 4 }}
+spec:
+  replicas: 1
+  serviceName: {{ .Release.Name }}
+  selector:
+    matchLabels:
+      {{- include "selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "labels" . | nindent 8 }}
+    spec:
+      {{- with include "gluetun.dnsConfig" $gluetun }}
+      dnsConfig:
+        {{- . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.gluetun.enabled }}
+      initContainers:
+        {{- include "gluetun.initContainers" $gluetun | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: deluge
+          image: {{ include "image" . }}
+          env:
+            - name: PUID
+              value: {{ .Values.puid | quote }}
+            - name: PGID
+              value: {{ .Values.pgid | quote }}
+            - name: TZ
+              value: {{ .Values.timezone | quote }}
+          {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.webui.port }}
+            - name: torrent-tcp
+              containerPort: {{ .Values.torrentPort }}
+              protocol: TCP
+            - name: torrent-udp
+              containerPort: {{ .Values.torrentPort }}
+              protocol: UDP
+            - name: daemon
+              containerPort: {{ .Values.daemonPort }}
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: downloads
+              mountPath: {{ .Values.persistence.downloads.mountPath }}
+          {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: downloads
+          {{- with .Values.persistence.downloads.existingClaim }}
+          persistentVolumeClaim:
+            claimName: {{ . }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        {{- if not .Values.persistence.config.enabled }}
+        - name: config
+          emptyDir: {}
+        {{- end }}
+        {{- include "gluetun.volumes" $gluetun | nindent 8 }}
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+  {{- with .Values.persistence.config }}
+  {{- if .enabled }}
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: config
+      spec:
+        {{- with .storageClassName }}
+        storageClassName: {{ . }}
+        {{- end }}
+        accessModes:
+        {{- range .accessModes }}
+          - {{ . }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ .size }}
+  {{- end }}
+  {{- end }}

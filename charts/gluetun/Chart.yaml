@@ -1,0 +1,14 @@
+apiVersion: v2
+name: gluetun
+description: Library chart for routing a pod's traffic through a gluetun VPN sidecar
+type: library
+version: 0.1.0
+# renovate: image=ghcr.io/qdm12/gluetun
+appVersion: v3.41.3
+sources:
+  - https://github.com/qdm12/gluetun
+  - https://github.com/UnstoppableMango/pia-manual-connections
+kubeVersion: '>= 1.29'
+maintainers:
+  - name: UnstoppableMango
+    url: https://github.com/UnstoppableMango

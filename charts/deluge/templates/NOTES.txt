@@ -1,0 +1,19 @@
+Open the Deluge WebUI:
+{{- if .Values.httpRoute.enabled }}
+{{- range .Values.httpRoute.hostnames }}
+
+  http://{{ . }}
+{{- end }}
+{{- else }}
+
+  kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ .Release.Name }} {{ .Values.service.port }}:http
+
+and browse to http://localhost:{{ .Values.service.port }}
+{{- end }}
+
+The WebUI starts with Deluge's default password, deluge; change it on first login.
+{{- if .Values.gluetun.enabled }}
+
+All traffic leaves through the gluetun sidecar; the pod reports Ready only once
+the tunnel is up.
+{{- end }}

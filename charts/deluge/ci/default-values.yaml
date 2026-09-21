@@ -1,0 +1,5 @@
+gluetun:
+  enabled: false
+persistence:
+  config:
+    enabled: false

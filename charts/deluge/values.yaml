@@ -1,0 +1,91 @@
+global: {}
+
+image:
+  registry: lscr.io
+  repository: linuxserver/deluge
+  tag: ''
+  digest: ''
+
+# Read by the linuxserver image's init scripts
+puid: 1000
+pgid: 1000
+timezone: UTC
+
+webui:
+  port: 8112
+
+# Must match the incoming port set in Deluge's preferences; the image does not
+# read it from the environment.
+torrentPort: 6881
+
+# deluged's RPC port, for thin clients
+daemonPort: 58846
+
+persistence:
+  config:
+    enabled: true
+    storageClassName: ''
+    size: 1Gi
+    accessModes: [ReadWriteOnce]
+  downloads:
+    # Claim mounted at mountPath. Empty uses an emptyDir.
+    existingClaim: ''
+    mountPath: /downloads
+
+# The WebUI
+service:
+  type: ClusterIP
+  port: 8112
+
+# Incoming peer connections on torrentPort, TCP and UDP, plus daemonPort when
+# daemon is true
+torrentService:
+  daemon: true
+  enabled: true
+  type: ClusterIP
+  annotations: {}
+  loadBalancerIP: ''
+
+httpRoute:
+  enabled: false
+  annotations: {}
+  parentRefs: []
+  hostnames: []
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+
+# The VPN sidecar. Defaults come from the gluetun library chart; see
+# charts/gluetun/values.yaml. The WebUI and torrent ports are admitted through
+# its firewall automatically, along with daemonPort.
+gluetun:
+  pia:
+    existingSecret: ''
+  firewall:
+    outboundSubnets: []
+
+resources: {}
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+  periodSeconds: 30
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+  periodSeconds: 10
+
+securityContext: {}
+podSecurityContext:
+  fsGroup: 1000
+
+extraEnv: []
+extraVolumes: []
+extraVolumeMounts: []
+nodeSelector: {}
+tolerations: []
+affinity: {}
