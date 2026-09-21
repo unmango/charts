@@ -11,6 +11,8 @@ puid: 1000
 pgid: 1000
 timezone: UTC
 
+# Must match the WebUI port in /config/web.conf; the image does not read it
+# from the environment.
 webui:
   port: 8112
 

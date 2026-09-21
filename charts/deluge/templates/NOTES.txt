@@ -16,4 +16,10 @@ The WebUI starts with Deluge's default password, deluge; change it on first logi
 
 All traffic leaves through the gluetun sidecar; the pod reports Ready only once
 the tunnel is up.
+{{- if not .Values.gluetun.firewall.outboundSubnets }}
+
+WARNING: gluetun.firewall.outboundSubnets is empty, so the firewall drops
+traffic to the cluster DNS Service and every name lookup fails. Set it to the
+cluster's Service CIDR, plus the pod CIDR if needed.
+{{- end }}
 {{- end }}

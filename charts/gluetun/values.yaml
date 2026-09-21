@@ -15,8 +15,10 @@ image:
 vpnType: wireguard
 
 firewall:
-  # CIDRs the pod may still reach outside the tunnel, normally the cluster's
-  # pod and Service ranges. Empty blocks all in-cluster traffic but replies.
+  # CIDRs the pod may still reach outside the tunnel. Set the cluster's Service
+  # CIDR at least: the firewall covers the whole pod, and the workload still
+  # resolves names through the cluster DNS Service, so an empty list breaks
+  # every lookup. Add the pod CIDR for anything the workload calls directly.
   # https://github.com/qdm12/gluetun-wiki/blob/main/setup/options/firewall.md
   outboundSubnets: []
   # Appended to the ports the consumer passes, which it derives from its own
@@ -70,8 +72,9 @@ pia:
       cpu: 500m
       memory: 256Mi
 
-# Pod dnsConfig. ndots 1 sends dotted external names straight to the resolver
-# instead of walking the cluster search domains through the tunnel first.
+# Pod dnsConfig. ndots 1 sends dotted external names straight to the cluster
+# resolver instead of trying each search domain first. That resolver is only
+# reachable when firewall.outboundSubnets covers the Service CIDR.
 dnsConfig:
   options:
     - name: ndots

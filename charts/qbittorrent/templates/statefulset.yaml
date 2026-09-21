@@ -16,6 +16,12 @@ spec:
     metadata:
       labels:
         {{- include "labels" . | nindent 8 }}
+      {{- if and .Values.auth.password (not .Values.auth.existingSecret) }}
+      # set-webui-password only runs at pod start, so a new password has to
+      # roll the pod.
+      annotations:
+        checksum/auth: {{ .Values.auth.password | sha256sum }}
+      {{- end }}
     spec:
       {{- with include "gluetun.dnsConfig" $gluetun }}
       dnsConfig:

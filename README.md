@@ -55,8 +55,8 @@ Library chart, installs nothing.
 Provides a gluetun VPN sidecar, a Private Internet Access config generator, and the pod DNS setting they need.
 Its defaults land in the consumer under `gluetun`, so a consumer's users override them there; templates take that block plus the ports the firewall must admit.
 
-- `pia.enabled` (default) needs `pia.existingSecret` with the PIA account; without it, set the provider through `env`.
-- `firewall.outboundSubnets` is empty by default, which blocks in-cluster traffic other than replies; set it to the cluster's pod and Service CIDRs.
+- `pia.enabled` (default) needs `pia.existingSecret` with the PIA account. For any other provider, set `pia.enabled: false` and configure it through `env`.
+- `firewall.outboundSubnets` is empty by default and must be set: the firewall covers the whole pod, so without the cluster's Service CIDR the workload cannot reach the cluster DNS Service and every lookup fails. Add the pod CIDR for direct pod traffic.
 - gluetun runs as a native sidecar, so consumers need Kubernetes 1.29 or newer.
 
 ### gha-runner-scale-set
