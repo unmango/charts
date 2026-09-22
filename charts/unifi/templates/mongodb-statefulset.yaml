@@ -5,6 +5,9 @@
 {{- if and .Values.database.tls (not .Values.mongodb.tls.enabled) }}
 {{- fail "mongodb.tls.enabled is required when database.tls is set and mongodb.enabled is true: the controller would speak TLS to a server that does not" }}
 {{- end }}
+{{- if and .Values.mongodb.tls.enabled (eq .Values.mongodb.tls.mode "requireTLS") (not .Values.database.tls) }}
+{{- fail "database.tls is required when mongodb.tls.mode is requireTLS: the server would turn the controller's plaintext connection away" }}
+{{- end }}
 {{- $persistence := .Values.mongodb.persistence }}
 {{- $tls := .Values.mongodb.tls }}
 apiVersion: apps/v1
