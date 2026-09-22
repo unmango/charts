@@ -1,0 +1,154 @@
+global: {}
+
+image:
+  registry: lscr.io
+  repository: linuxserver/unifi-network-application
+  tag: ''
+  digest: ''
+
+# Read by the linuxserver image's init scripts
+puid: 1000
+pgid: 1000
+timezone: UTC
+
+java:
+  # Heap ceiling and initial size in MB, passed as MEM_LIMIT and MEM_STARTUP.
+  # Empty leaves the image default.
+  memLimit: ''
+  memStartup: ''
+
+# How the controller reaches MongoDB. Used by both the bundled StatefulSet
+# (mongodb.enabled) and an external server.
+database:
+  name: unifi
+  username: unifi
+  # Written to a chart-managed Secret. Generated when empty, and kept across
+  # upgrades. Ignored when existingSecret is set.
+  password: ''
+  # Secret holding the mongodb-password key, plus mongodb-root-password when
+  # mongodb.enabled is true
+  existingSecret: ''
+  # Required when mongodb.enabled is false
+  host: ''
+  port: 27017
+  authSource: admin
+  # Reach MongoDB over TLS. The controller validates the server certificate
+  # against the JVM truststore, so a privately issued one needs truststore
+  # below. Only evaluated on the controller's first run, like the rest of
+  # database.*, since the image writes them into its config once.
+  tls: false
+
+# A PKCS12 truststore mounted into the controller and handed to its JVM. The
+# JVM ships public CAs only, so a MongoDB certificate from a private CA needs
+# a truststore holding that CA. It replaces the default one outright, so
+# include the public CAs alongside it to leave the controller's outbound
+# HTTPS (firmware downloads, remote access) working.
+truststore:
+  # One of the two, holding the truststore under key below
+  existingConfigMap: ''
+  existingSecret: ''
+  key: truststore.p12
+  # Passed to the JVM as-is. Empty means a truststore with no password.
+  password: ''
+
+# A MongoDB StatefulSet deployed alongside the controller. Its init script
+# creates database.username in admin with clusterMonitor and dbOwner on
+# database.name and the _stat, _audit, and _restore databases the controller
+# derives from it. The script only runs
+# against an empty data directory, so changing database.* afterwards does
+# not alter the existing user.
+mongodb:
+  enabled: true
+  image:
+    registry: docker.io
+    repository: library/mongo
+    # 8.0 is the newest MongoDB the UniFi Network Application supports
+    tag: 8.0.32
+    digest: ''
+  rootUsername: root
+  # Generated when empty, like database.password
+  rootPassword: ''
+  persistence:
+    enabled: true
+    storageClassName: ''
+    size: 5Gi
+    accessModes: [ReadWriteOnce]
+  resources: {}
+  # Serve TLS, and require it of clients in requireTLS mode. Set database.tls
+  # alongside it so the controller connects over TLS as well.
+  tls:
+    enabled: false
+    # Secret holding the server certificate and its key concatenated into one
+    # PEM file, the layout cert-manager's CombinedPEM output format writes
+    existingSecret: ''
+    key: tls-combined.pem
+    # allowTLS, preferTLS, or requireTLS
+    mode: requireTLS
+  # Empty takes the chart's own probe, a mongosh ping that speaks TLS when
+  # tls.enabled is set.
+  readinessProbe: {}
+  podSecurityContext: {}
+  securityContext: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+persistence:
+  # Controller config, backups, and certificates under /config
+  enabled: true
+  storageClassName: ''
+  size: 5Gi
+  accessModes: [ReadWriteOnce]
+
+# UniFi devices reach the controller on inform and stun, so the Service has to
+# be reachable from their network. The web UI serves a self-signed
+# certificate on https, which is why the chart ships no Ingress or HTTPRoute.
+# NodePort is not offered: devices must reach inform on the same port the
+# controller advertises, 8080, and a node port would differ.
+service:
+  type: ClusterIP
+  annotations: {}
+  loadBalancerIP: ''
+  ports:
+    https: 8443
+    inform: 8080
+    stun: 3478
+    discovery: 10001
+
+resources: {}
+
+# The controller migrates its database and generates keys on first start
+startupProbe:
+  httpGet:
+    path: /status
+    port: https
+    scheme: HTTPS
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 60
+livenessProbe:
+  httpGet:
+    path: /status
+    port: https
+    scheme: HTTPS
+  periodSeconds: 30
+  timeoutSeconds: 5
+readinessProbe:
+  httpGet:
+    path: /status
+    port: https
+    scheme: HTTPS
+  periodSeconds: 10
+  timeoutSeconds: 5
+
+# The image starts as root and drops to puid/pgid itself, so runAsNonRoot is
+# not set here
+securityContext: {}
+podSecurityContext: {}
+
+extraEnv: []
+extraVolumes: []
+extraVolumeMounts: []
+nodeSelector: {}
+tolerations: []
+affinity: {}

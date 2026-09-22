@@ -25,6 +25,7 @@
     "charts/gluetun": { "release-type": "helm", "component": "gluetun" },
     "charts/hercules-ci-agent": { "release-type": "helm", "component": "hercules-ci-agent" },
     "charts/mage-server": { "release-type": "helm", "component": "mage-server" },
-    "charts/qbittorrent": { "release-type": "helm", "component": "qbittorrent" }
+    "charts/qbittorrent": { "release-type": "helm", "component": "qbittorrent" },
+    "charts/unifi": { "release-type": "helm", "component": "unifi" }
   }
 }

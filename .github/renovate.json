@@ -13,6 +13,12 @@
       "matchFileNames": ["charts/**"],
       "semanticCommitType": "fix",
       "semanticCommitScope": "deps"
+    },
+    {
+      "matchFileNames": ["charts/unifi/**"],
+      "matchPackageNames": ["mongo", "library/mongo", "docker.io/library/mongo"],
+      "description": "The UniFi Network Application supports MongoDB up to 8.0.",
+      "allowedVersions": "<8.1"
     }
   ]
 }

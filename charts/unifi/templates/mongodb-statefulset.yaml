@@ -1,0 +1,156 @@
+{{- if .Values.mongodb.enabled }}
+{{- if ne .Values.database.authSource "admin" }}
+{{- fail "database.authSource must be admin when mongodb.enabled is true: the bundled init script creates the user there" }}
+{{- end }}
+{{- if and .Values.database.tls (not .Values.mongodb.tls.enabled) }}
+{{- fail "mongodb.tls.enabled is required when database.tls is set and mongodb.enabled is true: the controller would speak TLS to a server that does not" }}
+{{- end }}
+{{- if and .Values.mongodb.tls.enabled (eq .Values.mongodb.tls.mode "requireTLS") (not .Values.database.tls) }}
+{{- fail "database.tls is required when mongodb.tls.mode is requireTLS: the server would turn the controller's plaintext connection away" }}
+{{- end }}
+{{- $persistence := .Values.mongodb.persistence }}
+{{- $tls := .Values.mongodb.tls }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "mongodb.name" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels" . | nindent 4 }}
+    app.kubernetes.io/component: mongodb
+spec:
+  replicas: 1
+  serviceName: {{ include "mongodb.name" . }}
+  selector:
+    matchLabels:
+      {{- include "selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: mongodb
+  template:
+    metadata:
+      labels:
+        {{- include "labels" . | nindent 8 }}
+        app.kubernetes.io/component: mongodb
+      annotations:
+        checksum/init: {{ include (print $.Template.BasePath "/mongodb-configmap.yaml") . | sha256sum }}
+    spec:
+      containers:
+        - name: mongodb
+          image: {{ include "mongodb.image" . }}
+          {{- if $tls.enabled }}
+          # The image's entrypoint prepends mongod to arguments that start
+          # with a dash, and runs the init scripts against a temporary server
+          # it forces to allowTLS, so these apply to the real one alone.
+          args:
+            - --tlsMode={{ $tls.mode }}
+            - --tlsCertificateKeyFile=/tls/{{ $tls.key }}
+          {{- end }}
+          ports:
+            - name: mongodb
+              containerPort: 27017
+          env:
+            - name: MONGO_INITDB_ROOT_USERNAME
+              value: {{ .Values.mongodb.rootUsername | quote }}
+            - name: MONGO_INITDB_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secretName" . }}
+                  key: mongodb-root-password
+            - name: MONGO_USER
+              value: {{ .Values.database.username | quote }}
+            - name: MONGO_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "secretName" . }}
+                  key: mongodb-password
+            - name: MONGO_DBNAME
+              value: {{ .Values.database.name | quote }}
+          volumeMounts:
+            - name: data
+              mountPath: /data/db
+            - name: init
+              mountPath: /docker-entrypoint-initdb.d
+              readOnly: true
+            {{- if $tls.enabled }}
+            - name: tls
+              mountPath: /tls
+              readOnly: true
+            {{- end }}
+          readinessProbe:
+          {{- with .Values.mongodb.readinessProbe }}
+            {{- toYaml . | nindent 12 }}
+          {{- else }}
+            exec:
+              command:
+                - mongosh
+                - --quiet
+                {{- if $tls.enabled }}
+                - --tls
+                # The probe dials localhost, which the server certificate has
+                # no reason to carry, and a ping needs no server identity.
+                - --tlsAllowInvalidCertificates
+                {{- end }}
+                - --eval
+                - db.adminCommand('ping')
+            periodSeconds: 10
+            timeoutSeconds: 5
+          {{- end }}
+          {{- with .Values.mongodb.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.mongodb.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.mongodb.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.mongodb.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.mongodb.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.mongodb.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: init
+          configMap:
+            name: {{ include "mongodb.name" . }}-init
+            defaultMode: 0555
+        {{- if $tls.enabled }}
+        - name: tls
+          secret:
+            secretName: {{ required "mongodb.tls.existingSecret is required when mongodb.tls.enabled is true" $tls.existingSecret }}
+            # mongod runs as its own user, and the image sets no fsGroup, so
+            # the key is readable by everything in the pod rather than nothing
+            defaultMode: 0444
+        {{- end }}
+        {{- if not $persistence.enabled }}
+        - name: data
+          emptyDir: {}
+        {{- end }}
+  {{- if $persistence.enabled }}
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: data
+      spec:
+        {{- with $persistence.storageClassName }}
+        storageClassName: {{ . }}
+        {{- end }}
+        accessModes:
+        {{- range $persistence.accessModes }}
+          - {{ . }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ $persistence.size }}
+  {{- end }}
+{{- end }}
