@@ -2,7 +2,11 @@
 {{- if ne .Values.database.authSource "admin" }}
 {{- fail "database.authSource must be admin when mongodb.enabled is true: the bundled init script creates the user there" }}
 {{- end }}
+{{- if and .Values.database.tls (not .Values.mongodb.tls.enabled) }}
+{{- fail "mongodb.tls.enabled is required when database.tls is set and mongodb.enabled is true: the controller would speak TLS to a server that does not" }}
+{{- end }}
 {{- $persistence := .Values.mongodb.persistence }}
+{{- $tls := .Values.mongodb.tls }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -29,6 +33,14 @@ spec:
       containers:
         - name: mongodb
           image: {{ include "mongodb.image" . }}
+          {{- if $tls.enabled }}
+          # The image's entrypoint prepends mongod to arguments that start
+          # with a dash, and runs the init scripts against a temporary server
+          # it forces to allowTLS, so these apply to the real one alone.
+          args:
+            - --tlsMode={{ $tls.mode }}
+            - --tlsCertificateKeyFile=/tls/{{ $tls.key }}
+          {{- end }}
           ports:
             - name: mongodb
               containerPort: 27017
@@ -55,9 +67,29 @@ spec:
             - name: init
               mountPath: /docker-entrypoint-initdb.d
               readOnly: true
-          {{- with .Values.mongodb.readinessProbe }}
+            {{- if $tls.enabled }}
+            - name: tls
+              mountPath: /tls
+              readOnly: true
+            {{- end }}
           readinessProbe:
+          {{- with .Values.mongodb.readinessProbe }}
             {{- toYaml . | nindent 12 }}
+          {{- else }}
+            exec:
+              command:
+                - mongosh
+                - --quiet
+                {{- if $tls.enabled }}
+                - --tls
+                # The probe dials localhost, which the server certificate has
+                # no reason to carry, and a ping needs no server identity.
+                - --tlsAllowInvalidCertificates
+                {{- end }}
+                - --eval
+                - db.adminCommand('ping')
+            periodSeconds: 10
+            timeoutSeconds: 5
           {{- end }}
           {{- with .Values.mongodb.resources }}
           resources:
@@ -88,6 +120,14 @@ spec:
           configMap:
             name: {{ include "mongodb.name" . }}-init
             defaultMode: 0555
+        {{- if $tls.enabled }}
+        - name: tls
+          secret:
+            secretName: {{ required "mongodb.tls.existingSecret is required when mongodb.tls.enabled is true" $tls.existingSecret }}
+            # mongod runs as its own user, and the image sets no fsGroup, so
+            # the key is readable by everything in the pod rather than nothing
+            defaultMode: 0444
+        {{- end }}
         {{- if not $persistence.enabled }}
         - name: data
           emptyDir: {}

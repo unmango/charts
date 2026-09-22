@@ -102,6 +102,8 @@ Uses the linuxserver image, which needs a separate MongoDB service; the chart de
 - The init script creates the controller user only on an empty data directory; changing `database.*` later does not alter it.
 - Devices need `inform` (TCP 8080) and `stun` (UDP 3478) on the Service; discovery does not cross subnets, so devices elsewhere need `set-inform`.
 - The UI serves a self-signed certificate on 8443, so there is no Ingress or HTTPRoute.
+- `mongodb.tls.enabled` serves TLS from a secret holding the certificate and its key in one PEM file, the layout cert-manager's `CombinedPEM` output format writes; `database.tls` points the controller at it and is first-run-only, like the rest of `database.*`.
+- The controller validates that certificate against the JVM truststore, so a privately issued one needs `truststore.existingConfigMap` or `truststore.existingSecret` holding a PKCS12 truststore. It replaces the JVM's own, so keep the public CAs in it.
 
 ### Filebrowser
 

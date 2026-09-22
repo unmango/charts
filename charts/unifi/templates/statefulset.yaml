@@ -56,6 +56,14 @@ spec:
               value: {{ .Values.database.name | quote }}
             - name: MONGO_AUTHSOURCE
               value: {{ .Values.database.authSource | quote }}
+            {{- if .Values.database.tls }}
+            - name: MONGO_TLS
+              value: "true"
+            {{- end }}
+            {{- if include "truststore.name" . }}
+            - name: JAVA_TOOL_OPTIONS
+              value: {{ include "truststore.javaOptions" . | quote }}
+            {{- end }}
             - name: MONGO_USER
               value: {{ .Values.database.username | quote }}
             - name: MONGO_PASS
@@ -69,6 +77,11 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /config
+            {{- if include "truststore.name" . }}
+            - name: truststore
+              mountPath: /truststore
+              readOnly: true
+            {{- end }}
           {{- with .Values.extraVolumeMounts }}
             {{- toYaml . | nindent 12 }}
           {{- end }}
@@ -108,11 +121,21 @@ spec:
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if or (not .Values.persistence.enabled) .Values.extraVolumes }}
+      {{- if or (not .Values.persistence.enabled) .Values.extraVolumes (include "truststore.name" .) }}
       volumes:
         {{- if not .Values.persistence.enabled }}
         - name: config
           emptyDir: {}
+        {{- end }}
+        {{- if include "truststore.name" . }}
+        - name: truststore
+          {{- if .Values.truststore.existingConfigMap }}
+          configMap:
+            name: {{ .Values.truststore.existingConfigMap }}
+          {{- else }}
+          secret:
+            secretName: {{ .Values.truststore.existingSecret }}
+          {{- end }}
         {{- end }}
         {{- with .Values.extraVolumes }}
         {{- toYaml . | nindent 8 }}

@@ -32,6 +32,24 @@ database:
   host: ''
   port: 27017
   authSource: admin
+  # Reach MongoDB over TLS. The controller validates the server certificate
+  # against the JVM truststore, so a privately issued one needs truststore
+  # below. Only evaluated on the controller's first run, like the rest of
+  # database.*, since the image writes them into its config once.
+  tls: false
+
+# A PKCS12 truststore mounted into the controller and handed to its JVM. The
+# JVM ships public CAs only, so a MongoDB certificate from a private CA needs
+# a truststore holding that CA. It replaces the default one outright, so
+# include the public CAs alongside it to leave the controller's outbound
+# HTTPS (firmware downloads, remote access) working.
+truststore:
+  # One of the two, holding the truststore under key below
+  existingConfigMap: ''
+  existingSecret: ''
+  key: truststore.p12
+  # Passed to the JVM as-is. Empty means a truststore with no password.
+  password: ''
 
 # A MongoDB StatefulSet deployed alongside the controller. Its init script
 # creates database.username in admin with clusterMonitor and dbOwner on
@@ -56,11 +74,19 @@ mongodb:
     size: 5Gi
     accessModes: [ReadWriteOnce]
   resources: {}
-  readinessProbe:
-    exec:
-      command: [mongosh, --quiet, --eval, "db.adminCommand('ping')"]
-    periodSeconds: 10
-    timeoutSeconds: 5
+  # Serve TLS, and require it of clients in requireTLS mode. Set database.tls
+  # alongside it so the controller connects over TLS as well.
+  tls:
+    enabled: false
+    # Secret holding the server certificate and its key concatenated into one
+    # PEM file, the layout cert-manager's CombinedPEM output format writes
+    existingSecret: ''
+    key: tls-combined.pem
+    # allowTLS, preferTLS, or requireTLS
+    mode: requireTLS
+  # Empty takes the chart's own probe, a mongosh ping that speaks TLS when
+  # tls.enabled is set.
+  readinessProbe: {}
   podSecurityContext: {}
   securityContext: {}
   nodeSelector: {}

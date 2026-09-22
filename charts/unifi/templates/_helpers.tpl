@@ -21,6 +21,32 @@
 {{- end -}}
 
 {{/*
+Name of the ConfigMap or Secret holding the JVM truststore, empty when
+neither is set. Templates branch on this to decide whether to mount one.
+*/}}
+{{- define "truststore.name" -}}
+{{- if and .Values.truststore.existingConfigMap .Values.truststore.existingSecret -}}
+    {{- fail "truststore.existingConfigMap and truststore.existingSecret are mutually exclusive" -}}
+{{- end -}}
+{{- coalesce .Values.truststore.existingConfigMap .Values.truststore.existingSecret -}}
+{{- end -}}
+
+{{/*
+JVM flags pointing at the mounted truststore. They go through
+JAVA_TOOL_OPTIONS, which every JVM reads on its own, because the image offers
+no way to pass options to the controller.
+*/}}
+{{- define "truststore.javaOptions" -}}
+{{- $opts := list
+    (printf "-Djavax.net.ssl.trustStore=/truststore/%s" .Values.truststore.key)
+    "-Djavax.net.ssl.trustStoreType=PKCS12" -}}
+{{- with .Values.truststore.password -}}
+    {{- $opts = append $opts (printf "-Djavax.net.ssl.trustStorePassword=%s" .) -}}
+{{- end -}}
+{{ join " " $opts }}
+{{- end -}}
+
+{{/*
 Name of the Secret holding the MongoDB passwords.
 */}}
 {{- define "secretName" -}}
