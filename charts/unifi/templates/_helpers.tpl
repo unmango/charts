@@ -21,17 +21,6 @@
 {{- end -}}
 
 {{/*
-Name of the ConfigMap or Secret holding the JVM truststore, empty when
-neither is set. Templates branch on this to decide whether to mount one.
-*/}}
-{{- define "truststore.name" -}}
-{{- if and .Values.truststore.existingConfigMap .Values.truststore.existingSecret -}}
-    {{- fail "truststore.existingConfigMap and truststore.existingSecret are mutually exclusive" -}}
-{{- end -}}
-{{- coalesce .Values.truststore.existingConfigMap .Values.truststore.existingSecret -}}
-{{- end -}}
-
-{{/*
 JVM flags pointing at the mounted truststore. They go through
 JAVA_TOOL_OPTIONS, which every JVM reads on its own, because the image offers
 no way to pass options to the controller.

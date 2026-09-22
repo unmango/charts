@@ -1,3 +1,7 @@
+{{- if and .Values.truststore.existingConfigMap .Values.truststore.existingSecret }}
+{{- fail "truststore.existingConfigMap and truststore.existingSecret are mutually exclusive" }}
+{{- end }}
+{{- $truststore := or .Values.truststore.existingConfigMap .Values.truststore.existingSecret }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -60,7 +64,7 @@ spec:
             - name: MONGO_TLS
               value: "true"
             {{- end }}
-            {{- if include "truststore.name" . }}
+            {{- if $truststore }}
             - name: JAVA_TOOL_OPTIONS
               value: {{ include "truststore.javaOptions" . | quote }}
             {{- end }}
@@ -77,7 +81,7 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /config
-            {{- if include "truststore.name" . }}
+            {{- if $truststore }}
             - name: truststore
               mountPath: /truststore
               readOnly: true
@@ -121,13 +125,13 @@ spec:
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if or (not .Values.persistence.enabled) .Values.extraVolumes (include "truststore.name" .) }}
+      {{- if or (not .Values.persistence.enabled) .Values.extraVolumes $truststore }}
       volumes:
         {{- if not .Values.persistence.enabled }}
         - name: config
           emptyDir: {}
         {{- end }}
-        {{- if include "truststore.name" . }}
+        {{- if $truststore }}
         - name: truststore
           {{- if .Values.truststore.existingConfigMap }}
           configMap:
