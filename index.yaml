@@ -215,6 +215,31 @@ entries:
     urls:
     - https://github.com/unmango/charts/releases/download/deemix-0.1.0/deemix-0.1.0.tgz
     version: 0.1.0
+  deluge:
+  - apiVersion: v2
+    appVersion: 2.2.0-ls371
+    created: "2026-09-22T22:47:52.537530852Z"
+    dependencies:
+    - name: common
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 2.41.0
+    - name: gluetun
+      repository: file://../gluetun
+      version: '>= 0.1.0'
+    description: Helm chart for installing Deluge behind a gluetun VPN sidecar
+    digest: d7db92c42558dadc5f2ad9769c70713cb5de67161d1c8e00e71ae0be6409febc
+    kubeVersion: '>= 1.29'
+    maintainers:
+    - name: UnstoppableMango
+      url: https://github.com/UnstoppableMango
+    name: deluge
+    sources:
+    - https://github.com/deluge-torrent/deluge
+    - https://github.com/linuxserver/docker-deluge
+    type: application
+    urls:
+    - https://github.com/unmango/charts/releases/download/deluge-0.1.0/deluge-0.1.0.tgz
+    version: 0.1.0
   filebrowser:
   - apiVersion: v2
     appVersion: v2.63.23
@@ -448,6 +473,24 @@ entries:
     urls:
     - https://github.com/unmango/charts/releases/download/gha-runner-scale-set-0.1.0/gha-runner-scale-set-0.1.0.tgz
     version: 0.1.0
+  gluetun:
+  - apiVersion: v2
+    appVersion: v3.41.3
+    created: "2026-09-22T22:47:52.831508302Z"
+    description: Library chart for routing a pod's traffic through a gluetun VPN sidecar
+    digest: 112d53bb6339a2fe9cc53423ec2c11c01d9d6f7993e602cb04385051ec5bd779
+    kubeVersion: '>= 1.29'
+    maintainers:
+    - name: UnstoppableMango
+      url: https://github.com/UnstoppableMango
+    name: gluetun
+    sources:
+    - https://github.com/qdm12/gluetun
+    - https://github.com/UnstoppableMango/pia-manual-connections
+    type: library
+    urls:
+    - https://github.com/unmango/charts/releases/download/gluetun-0.1.0/gluetun-0.1.0.tgz
+    version: 0.1.0
   hercules-ci-agent:
   - apiVersion: v2
     appVersion: 0.10.8
@@ -602,4 +645,29 @@ entries:
     urls:
     - https://github.com/unmango/charts/releases/download/mage-server-0.1.0/mage-server-0.1.0.tgz
     version: 0.1.0
-generated: "2026-09-14T00:34:36.719410573Z"
+  qbittorrent:
+  - apiVersion: v2
+    appVersion: 5.1.4-r2-ls448
+    created: "2026-09-22T22:47:53.072299987Z"
+    dependencies:
+    - name: common
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 2.41.0
+    - name: gluetun
+      repository: file://../gluetun
+      version: '>= 0.1.0'
+    description: Helm chart for installing qBittorrent behind a gluetun VPN sidecar
+    digest: 1577ffc52f9dd9f43244d76d6a3852eacb52623388a6a31c686d3b9d894108e9
+    kubeVersion: '>= 1.29'
+    maintainers:
+    - name: UnstoppableMango
+      url: https://github.com/UnstoppableMango
+    name: qbittorrent
+    sources:
+    - https://github.com/qbittorrent/qBittorrent
+    - https://github.com/linuxserver/docker-qbittorrent
+    type: application
+    urls:
+    - https://github.com/unmango/charts/releases/download/qbittorrent-0.1.0/qbittorrent-0.1.0.tgz
+    version: 0.1.0
+generated: "2026-09-22T22:47:53.072351042Z"
