@@ -234,6 +234,9 @@
 						"enabled"
 					],
 					"properties": {
+						"caKey": {
+							"type": "string"
+						},
 						"enabled": {
 							"type": "boolean"
 						},
