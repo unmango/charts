@@ -1,0 +1,7 @@
+gluetun:
+  enabled: false
+auth:
+  password: ci-password
+persistence:
+  config:
+    enabled: false

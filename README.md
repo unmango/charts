@@ -33,10 +33,13 @@ The version table below links to the releases each tag corresponds to.
 | --- | --- | --- | --- |
 | [actions-runner](./charts/actions-runner/) | [unmango/containers](https://github.com/unmango/containers/tree/main/images/actions-runner) | [![actions-runner](https://img.shields.io/github/v/release/unmango/charts?filter=actions-runner-*&label=actions-runner)](https://github.com/unmango/charts/releases?q=actions-runner) | [Library chart](#actions-runner) |
 | [deemix](./charts/deemix/) | [bambanah/deemix](https://github.com/bambanah/deemix) | [![deemix](https://img.shields.io/github/v/release/unmango/charts?filter=deemix-*&label=deemix)](https://github.com/unmango/charts/releases?q=deemix) | [Revived fork](#deemix) |
+| [deluge](./charts/deluge/) | [linuxserver/docker-deluge](https://github.com/linuxserver/docker-deluge) | [![deluge](https://img.shields.io/github/v/release/unmango/charts?filter=deluge-*&label=deluge)](https://github.com/unmango/charts/releases?q=deluge) | [Active](#deluge-and-qbittorrent) |
 | [filebrowser](./charts/filebrowser/) | [filebrowser/filebrowser](https://github.com/filebrowser/filebrowser) | [![filebrowser](https://img.shields.io/github/v/release/unmango/charts?filter=filebrowser-*&label=filebrowser)](https://github.com/unmango/charts/releases?q=filebrowser) | [Upstream archived](#filebrowser) |
 | [gha-runner-scale-set](./charts/gha-runner-scale-set/) | [actions/actions-runner-controller](https://github.com/actions/actions-runner-controller) | [![gha-runner-scale-set](https://img.shields.io/github/v/release/unmango/charts?filter=gha-runner-scale-set-*&label=gha-runner-scale-set)](https://github.com/unmango/charts/releases?q=gha-runner-scale-set) | [Patched fork](#gha-runner-scale-set) |
+| [gluetun](./charts/gluetun/) | [qdm12/gluetun](https://github.com/qdm12/gluetun) | [![gluetun](https://img.shields.io/github/v/release/unmango/charts?filter=gluetun-*&label=gluetun)](https://github.com/unmango/charts/releases?q=gluetun) | [Library chart](#gluetun) |
 | [hercules-ci-agent](./charts/hercules-ci-agent/) | [hercules-ci/hercules-ci-agent](https://github.com/hercules-ci/hercules-ci-agent) | [![hercules-ci-agent](https://img.shields.io/github/v/release/unmango/charts?filter=hercules-ci-agent-*&label=hercules-ci-agent)](https://github.com/unmango/charts/releases?q=hercules-ci-agent) | [Active](#hercules-ci-agent) |
 | [mage-server](./charts/mage-server/) | [magefree/mage](https://github.com/magefree/mage) | [![mage-server](https://img.shields.io/github/v/release/unmango/charts?filter=mage-server-*&label=mage-server)](https://github.com/unmango/charts/releases?q=mage-server) | [Active](#xmage) |
+| [qbittorrent](./charts/qbittorrent/) | [linuxserver/docker-qbittorrent](https://github.com/linuxserver/docker-qbittorrent) | [![qbittorrent](https://img.shields.io/github/v/release/unmango/charts?filter=qbittorrent-*&label=qbittorrent)](https://github.com/unmango/charts/releases?q=qbittorrent) | [Active](#deluge-and-qbittorrent) |
 
 ## Remarks
 
@@ -45,6 +48,16 @@ The version table below links to the releases each tag corresponds to.
 Library chart, installs nothing.
 Provides pod spec fragments (store volume, mount, `NIX_CONFIG`) for building with Nix.
 Templates take the `nix` block as an argument, not `.Values`; see `charts/gha-runner-scale-set/values.yaml` for its shape.
+
+### gluetun
+
+Library chart, installs nothing.
+Provides a gluetun VPN sidecar, a Private Internet Access config generator, and the pod DNS setting they need.
+Its defaults land in the consumer under `gluetun`, so a consumer's users override them there; templates take that block plus the ports the firewall must admit.
+
+- `pia.enabled` (default) needs `pia.existingSecret` with the PIA account. For any other provider, set `pia.enabled: false` and configure it through `env`.
+- `firewall.outboundSubnets` is empty by default and must be set: the firewall covers the whole pod, so without the cluster's Service CIDR the workload cannot reach the cluster DNS Service and every lookup fails. Add the pod CIDR for direct pod traffic.
+- gluetun runs as a native sidecar, so consumers need Kubernetes 1.29 or newer.
 
 ### gha-runner-scale-set
 
@@ -87,3 +100,12 @@ The chart still works against the final image.
 
 Upstream (RemixDev) is abandoned.
 The chart deploys the maintained fork at [bambanah/deemix](https://github.com/bambanah/deemix).
+
+### Deluge and qBittorrent
+
+linuxserver images behind the `gluetun` library's VPN sidecar.
+
+- `gluetun.pia.existingSecret` is required unless `gluetun.enabled` is false.
+- The pod is Ready only once the tunnel is up.
+- qBittorrent: `auth.password` or `auth.existingSecret` is written into `qBittorrent.conf` as a PBKDF2 hash on every start; without either, the log shows a temporary password.
+- Deluge: `torrentPort` must match the incoming port in Deluge's preferences, since the image does not read it from the environment. The WebUI starts with the password `deluge`.

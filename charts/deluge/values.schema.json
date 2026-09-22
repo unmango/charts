@@ -1,0 +1,494 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"type": "object",
+	"required": [
+		"daemonPort",
+		"gluetun",
+		"httpRoute",
+		"image",
+		"persistence",
+		"service",
+		"torrentPort",
+		"torrentService",
+		"webui"
+	],
+	"properties": {
+		"affinity": {
+			"type": "object"
+		},
+		"daemonPort": {
+			"type": "integer",
+			"minimum": 1,
+			"maximum": 65535
+		},
+		"extraEnv": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": [
+					"name"
+				],
+				"properties": {
+					"name": {
+						"type": "string"
+					},
+					"value": {
+						"type": "string"
+					},
+					"valueFrom": {
+						"type": "object"
+					}
+				}
+			}
+		},
+		"extraVolumeMounts": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"required": [
+					"name",
+					"mountPath"
+				],
+				"properties": {
+					"mountPath": {
+						"type": "string"
+					},
+					"name": {
+						"type": "string"
+					},
+					"subPath": {
+						"type": "string"
+					}
+				}
+			}
+		},
+		"extraVolumes": {
+			"type": "array"
+		},
+		"global": {
+			"type": "object",
+			"properties": {
+				"imageRegistry": {
+					"type": "string"
+				}
+			}
+		},
+		"gluetun": {
+			"type": "object",
+			"properties": {
+				"enabled": {
+					"type": "boolean"
+				},
+				"image": {
+					"type": "object",
+					"properties": {
+						"registry": {
+							"type": "string"
+						},
+						"repository": {
+							"type": "string"
+						},
+						"tag": {
+							"type": "string"
+						},
+						"digest": {
+							"type": "string"
+						}
+					}
+				},
+				"vpnType": {
+					"type": "string",
+					"enum": [
+						"wireguard",
+						"openvpn"
+					]
+				},
+				"firewall": {
+					"type": "object",
+					"properties": {
+						"outboundSubnets": {
+							"type": "array",
+							"items": {
+								"type": "string"
+							}
+						},
+						"inputPorts": {
+							"type": "array",
+							"items": {
+								"type": "integer",
+								"minimum": 1,
+								"maximum": 65535
+							}
+						}
+					}
+				},
+				"env": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"required": [
+							"name"
+						],
+						"properties": {
+							"name": {
+								"type": "string"
+							},
+							"value": {
+								"type": "string"
+							},
+							"valueFrom": {
+								"type": "object"
+							}
+						}
+					}
+				},
+				"resources": {
+					"type": "object",
+					"properties": {
+						"limits": {
+							"type": "object",
+							"properties": {
+								"cpu": {
+									"type": [
+										"string",
+										"number"
+									]
+								},
+								"memory": {
+									"type": "string"
+								}
+							}
+						},
+						"requests": {
+							"type": "object",
+							"properties": {
+								"cpu": {
+									"type": [
+										"string",
+										"number"
+									]
+								},
+								"memory": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				},
+				"startupProbe": {
+					"type": "object"
+				},
+				"livenessProbe": {
+					"type": "object"
+				},
+				"readinessProbe": {
+					"type": "object"
+				},
+				"dnsConfig": {
+					"type": "object"
+				},
+				"pia": {
+					"type": "object",
+					"properties": {
+						"enabled": {
+							"type": "boolean"
+						},
+						"image": {
+							"type": "object",
+							"properties": {
+								"registry": {
+									"type": "string"
+								},
+								"repository": {
+									"type": "string"
+								},
+								"tag": {
+									"type": "string"
+								},
+								"digest": {
+									"type": "string"
+								}
+							}
+						},
+						"existingSecret": {
+							"type": "string"
+						},
+						"usernameKey": {
+							"type": "string"
+						},
+						"passwordKey": {
+							"type": "string"
+						},
+						"resources": {
+							"type": "object",
+							"properties": {
+								"limits": {
+									"type": "object",
+									"properties": {
+										"cpu": {
+											"type": [
+												"string",
+												"number"
+											]
+										},
+										"memory": {
+											"type": "string"
+										}
+									}
+								},
+								"requests": {
+									"type": "object",
+									"properties": {
+										"cpu": {
+											"type": [
+												"string",
+												"number"
+											]
+										},
+										"memory": {
+											"type": "string"
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"httpRoute": {
+			"type": "object",
+			"required": [
+				"enabled"
+			],
+			"properties": {
+				"enabled": {
+					"type": "boolean"
+				},
+				"annotations": {
+					"type": "object"
+				},
+				"parentRefs": {
+					"type": "array",
+					"items": {
+						"type": "object"
+					}
+				},
+				"hostnames": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				},
+				"rules": {
+					"type": "array",
+					"items": {
+						"type": "object"
+					}
+				}
+			}
+		},
+		"image": {
+			"type": "object",
+			"properties": {
+				"registry": {
+					"type": "string"
+				},
+				"repository": {
+					"type": "string"
+				},
+				"tag": {
+					"type": "string"
+				},
+				"digest": {
+					"type": "string"
+				}
+			}
+		},
+		"livenessProbe": {
+			"type": "object"
+		},
+		"nodeSelector": {
+			"type": "object"
+		},
+		"persistence": {
+			"type": "object",
+			"required": [
+				"config",
+				"downloads"
+			],
+			"properties": {
+				"config": {
+					"type": "object",
+					"required": [
+						"enabled"
+					],
+					"properties": {
+						"enabled": {
+							"type": "boolean"
+						},
+						"size": {
+							"type": "string"
+						},
+						"storageClassName": {
+							"type": "string"
+						},
+						"accessModes": {
+							"type": "array",
+							"minItems": 1,
+							"items": {
+								"type": "string",
+								"enum": [
+									"ReadWriteOnce",
+									"ReadOnlyMany",
+									"ReadWriteMany",
+									"ReadWriteOncePod"
+								]
+							}
+						}
+					}
+				},
+				"downloads": {
+					"type": "object",
+					"required": [
+						"mountPath"
+					],
+					"properties": {
+						"existingClaim": {
+							"type": "string"
+						},
+						"mountPath": {
+							"type": "string",
+							"minLength": 1
+						}
+					}
+				}
+			}
+		},
+		"pgid": {
+			"type": "integer",
+			"minimum": 0
+		},
+		"podSecurityContext": {
+			"type": "object"
+		},
+		"puid": {
+			"type": "integer",
+			"minimum": 0
+		},
+		"readinessProbe": {
+			"type": "object"
+		},
+		"resources": {
+			"type": "object",
+			"properties": {
+				"limits": {
+					"type": "object",
+					"properties": {
+						"cpu": {
+							"type": [
+								"string",
+								"number"
+							]
+						},
+						"memory": {
+							"type": "string"
+						}
+					}
+				},
+				"requests": {
+					"type": "object",
+					"properties": {
+						"cpu": {
+							"type": [
+								"string",
+								"number"
+							]
+						},
+						"memory": {
+							"type": "string"
+						}
+					}
+				}
+			}
+		},
+		"securityContext": {
+			"type": "object"
+		},
+		"service": {
+			"type": "object",
+			"required": [
+				"type",
+				"port"
+			],
+			"properties": {
+				"type": {
+					"type": "string",
+					"enum": [
+						"ClusterIP",
+						"NodePort",
+						"LoadBalancer"
+					]
+				},
+				"port": {
+					"type": "integer",
+					"minimum": 1,
+					"maximum": 65535
+				}
+			}
+		},
+		"timezone": {
+			"type": "string"
+		},
+		"tolerations": {
+			"type": "array"
+		},
+		"torrentPort": {
+			"type": "integer",
+			"minimum": 1,
+			"maximum": 65535
+		},
+		"torrentService": {
+			"type": "object",
+			"required": [
+				"enabled",
+				"type"
+			],
+			"properties": {
+				"enabled": {
+					"type": "boolean"
+				},
+				"type": {
+					"type": "string",
+					"enum": [
+						"ClusterIP",
+						"NodePort",
+						"LoadBalancer"
+					]
+				},
+				"annotations": {
+					"type": "object"
+				},
+				"loadBalancerIP": {
+					"type": "string"
+				},
+				"daemon": {
+					"type": "boolean"
+				}
+			}
+		},
+		"webui": {
+			"type": "object",
+			"required": [
+				"port"
+			],
+			"properties": {
+				"port": {
+					"type": "integer",
+					"minimum": 1,
+					"maximum": 65535
+				}
+			}
+		}
+	}
+}

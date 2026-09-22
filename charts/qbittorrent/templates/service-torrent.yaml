@@ -1,0 +1,29 @@
+{{- if .Values.torrentService.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-torrent
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels" . | nindent 4 }}
+  {{- with .Values.torrentService.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.torrentService.type }}
+  {{- if and (eq .Values.torrentService.type "LoadBalancer") (.Values.torrentService.loadBalancerIP) }}
+  loadBalancerIP: {{ .Values.torrentService.loadBalancerIP }}
+  {{- end }}
+  selector:
+    {{- include "selectorLabels" . | nindent 4 }}
+  ports:
+    - name: torrent-tcp
+      port: {{ .Values.torrentPort }}
+      targetPort: torrent-tcp
+      protocol: TCP
+    - name: torrent-udp
+      port: {{ .Values.torrentPort }}
+      targetPort: torrent-udp
+      protocol: UDP
+{{- end }}

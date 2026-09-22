@@ -1,0 +1,104 @@
+global: {}
+
+image:
+  registry: lscr.io
+  repository: linuxserver/qbittorrent
+  tag: ''
+  digest: ''
+
+# Read by the linuxserver image's init scripts
+puid: 1000
+pgid: 1000
+timezone: UTC
+
+webui:
+  port: 8080
+
+torrentPort: 6881
+
+auth:
+  # Written into qBittorrent.conf as a PBKDF2 hash by an init container on
+  # every start. Empty skips it, and qBittorrent prints a temporary password
+  # to its log instead.
+  password: ''
+  # Secret holding passwordKey. Takes precedence over password.
+  existingSecret: ''
+  passwordKey: password
+  image:
+    registry: docker.io
+    repository: library/python
+    tag: 3.13.3-alpine3.20
+    digest: ''
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      memory: 64Mi
+
+persistence:
+  config:
+    enabled: true
+    storageClassName: ''
+    size: 1Gi
+    accessModes: [ReadWriteOnce]
+  downloads:
+    # Claim mounted at mountPath. Empty uses an emptyDir.
+    existingClaim: ''
+    mountPath: /downloads
+
+# The WebUI
+service:
+  type: ClusterIP
+  port: 8080
+
+# Incoming peer connections on torrentPort, TCP and UDP
+torrentService:
+  enabled: true
+  type: ClusterIP
+  annotations: {}
+  loadBalancerIP: ''
+
+httpRoute:
+  enabled: false
+  annotations: {}
+  parentRefs: []
+  hostnames: []
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+
+# The VPN sidecar. Defaults come from the gluetun library chart; see
+# charts/gluetun/values.yaml. The WebUI and torrent ports are admitted through
+# its firewall automatically.
+gluetun:
+  pia:
+    existingSecret: ''
+  firewall:
+    outboundSubnets: []
+
+resources: {}
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+  periodSeconds: 30
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+  periodSeconds: 10
+
+securityContext: {}
+podSecurityContext:
+  fsGroup: 1000
+
+extraEnv: []
+extraVolumes: []
+extraVolumeMounts: []
+nodeSelector: {}
+tolerations: []
+affinity: {}

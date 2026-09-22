@@ -1,0 +1,81 @@
+# A consumer's `gluetun` block. Helm merges these defaults into the consumer
+# under `.Values.gluetun`, where a user's overrides land too, and the consumer
+# passes that block to every template:
+#
+#   {{- include "gluetun.initContainers" (dict "gluetun" .Values.gluetun "inputPorts" (list 8080)) | nindent 8 }}
+
+enabled: true
+
+image:
+  registry: ghcr.io
+  repository: qdm12/gluetun
+  tag: v3.41.3
+  digest: ''
+
+vpnType: wireguard
+
+firewall:
+  # CIDRs the pod may still reach outside the tunnel. Set the cluster's Service
+  # CIDR at least: the firewall covers the whole pod, and the workload still
+  # resolves names through the cluster DNS Service, so an empty list breaks
+  # every lookup. Add the pod CIDR for anything the workload calls directly.
+  # https://github.com/qdm12/gluetun-wiki/blob/main/setup/options/firewall.md
+  outboundSubnets: []
+  # Appended to the ports the consumer passes, which it derives from its own
+  # container ports.
+  inputPorts: []
+
+# Extra environment for gluetun. With pia.enabled false this is where the
+# provider settings go (VPN_SERVICE_PROVIDER, WIREGUARD_PRIVATE_KEY, ...).
+env: []
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+startupProbe:
+  exec:
+    command: [/gluetun-entrypoint, healthcheck]
+  failureThreshold: 30
+  periodSeconds: 10
+livenessProbe:
+  exec:
+    command: [/gluetun-entrypoint, healthcheck]
+  periodSeconds: 30
+readinessProbe:
+  exec:
+    command: [/gluetun-entrypoint, healthcheck]
+  periodSeconds: 10
+
+# Generates a WireGuard config for Private Internet Access in an init container
+# and hands it to gluetun as a custom provider.
+pia:
+  enabled: true
+  image:
+    registry: ghcr.io
+    repository: unstoppablemango/pia-manual-connections
+    tag: v0.2.2-pia2026-01-30r0
+    digest: ''
+  # Secret holding the PIA account. Required when pia.enabled is true.
+  existingSecret: ''
+  usernameKey: username
+  passwordKey: password
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+# Pod dnsConfig. ndots 1 sends dotted external names straight to the cluster
+# resolver instead of trying each search domain first. That resolver is only
+# reachable when firewall.outboundSubnets covers the Service CIDR.
+dnsConfig:
+  options:
+    - name: ndots
+      value: "1"

@@ -1,0 +1,21 @@
+apiVersion: v2
+name: qbittorrent
+description: Helm chart for installing qBittorrent behind a gluetun VPN sidecar
+type: application
+version: 0.1.0
+# renovate: image=lscr.io/linuxserver/qbittorrent
+appVersion: 5.1.4-r2-ls448
+sources:
+  - https://github.com/qbittorrent/qBittorrent
+  - https://github.com/linuxserver/docker-qbittorrent
+kubeVersion: '>= 1.29'
+maintainers:
+  - name: UnstoppableMango
+    url: https://github.com/UnstoppableMango
+dependencies:
+  - name: common
+    repository: oci://registry-1.docker.io/bitnamicharts
+    version: 2.41.0
+  - name: gluetun
+    version: '>= 0.1.0'
+    repository: file://../gluetun

@@ -1,0 +1,9 @@
+gluetun:
+  enabled: false
+httpRoute:
+  enabled: true
+  parentRefs:
+    - name: chart-testing
+      namespace: default
+  hostnames:
+    - deluge.example.com
