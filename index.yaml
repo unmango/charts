@@ -673,6 +673,26 @@ entries:
   unifi:
   - apiVersion: v2
     appVersion: 10.6.106-ls146
+    created: "2026-09-23T00:51:05.234129288Z"
+    dependencies:
+    - name: common
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 2.41.0
+    description: Helm chart for installing the UniFi Network Application
+    digest: a718fe38c4f9431fe2768f52a10a31fb4db32a068728082f54115b925711702c
+    kubeVersion: '>= 1.26'
+    maintainers:
+    - name: UnstoppableMango
+      url: https://github.com/UnstoppableMango
+    name: unifi
+    sources:
+    - https://github.com/linuxserver/docker-unifi-network-application
+    type: application
+    urls:
+    - https://github.com/unmango/charts/releases/download/unifi-0.1.1/unifi-0.1.1.tgz
+    version: 0.1.1
+  - apiVersion: v2
+    appVersion: 10.6.106-ls146
     created: "2026-09-22T23:22:57.12415847Z"
     dependencies:
     - name: common
@@ -691,4 +711,4 @@ entries:
     urls:
     - https://github.com/unmango/charts/releases/download/unifi-0.1.0/unifi-0.1.0.tgz
     version: 0.1.0
-generated: "2026-09-22T23:22:57.124218894Z"
+generated: "2026-09-23T00:51:05.234198556Z"
