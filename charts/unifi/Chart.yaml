@@ -2,7 +2,7 @@ apiVersion: v2
 name: unifi
 description: Helm chart for installing the UniFi Network Application
 type: application
-version: 0.1.0
+version: 0.1.1
 # renovate: image=lscr.io/linuxserver/unifi-network-application
 appVersion: 10.6.106-ls146
 sources:
