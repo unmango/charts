@@ -8,5 +8,5 @@
   "charts/hercules-ci-agent": "0.2.3",
   "charts/mage-server": "0.2.1",
   "charts/qbittorrent": "0.1.0",
-  "charts/unifi": "0.1.0"
+  "charts/unifi": "0.1.1"
 }
