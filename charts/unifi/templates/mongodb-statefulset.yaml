@@ -43,6 +43,18 @@ spec:
           args:
             - --tlsMode={{ $tls.mode }}
             - --tlsCertificateKeyFile=/tls/{{ $tls.key }}
+            # mongod 8 refuses to start under TLS without a chain of trust,
+            # even where no client presents a certificate. The CA named here
+            # validates client certificates rather than the server's own.
+            {{- if $tls.caKey }}
+            - --tlsCAFile=/tls/{{ $tls.caKey }}
+            {{- else }}
+            - --setParameter
+            - tlsUseSystemCA=true
+            {{- end }}
+            # The controller and the readiness probe both connect without a
+            # certificate, and the chart wires none for either.
+            - --tlsAllowConnectionsWithoutCertificates
           {{- end }}
           ports:
             - name: mongodb

@@ -82,6 +82,11 @@ mongodb:
     # PEM file, the layout cert-manager's CombinedPEM output format writes
     existingSecret: ''
     key: tls-combined.pem
+    # Key in existingSecret holding the CA bundle that validates client
+    # certificates, the ca.crt cert-manager writes beside the certificate.
+    # mongod requires a chain of trust whenever TLS is on, so empty falls back
+    # to the system CA store rather than leaving one unset.
+    caKey: ca.crt
     # allowTLS, preferTLS, or requireTLS
     mode: requireTLS
   # Empty takes the chart's own probe, a mongosh ping that speaks TLS when
