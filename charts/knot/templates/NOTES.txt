@@ -1,0 +1,17 @@
+The knot serves did:web:{{ .Values.hostname }}.
+
+1. Route HTTPS for {{ .Values.hostname }} to the {{ .Release.Name }} Service on port {{ .Values.service.port }}.
+2. Route SSH on port 22 of {{ .Values.hostname }} to the {{ .Release.Name }}-ssh Service.
+   The appview builds clone URLs with no port, so any other port needs each user to configure it.
+3. Check the knot answers with the owner DID:
+
+  curl -s https://{{ .Values.hostname }}/xrpc/sh.tangled.owner
+
+4. Register {{ .Values.hostname }} at https://tangled.org/settings/knots while signed in as {{ first .Values.admins }}.
+{{- if not .Values.masterKey.existingSecret }}
+
+The master key was generated into the Secret {{ include "masterKey.secretName" . }}, which uninstall leaves in place.
+Back it up outside the cluster together with the state volume; neither is usable without the other:
+
+  kubectl get secret --namespace {{ .Release.Namespace }} {{ include "masterKey.secretName" . }} -o jsonpath='{.data.{{ .Values.masterKey.key }}}' | base64 -d
+{{- end }}

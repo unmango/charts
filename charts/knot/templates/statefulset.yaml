@@ -1,0 +1,188 @@
+{{- if not .Values.admins }}
+{{- fail "admins needs at least one DID" }}
+{{- end }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels" . | nindent 4 }}
+spec:
+  # The repositories are the knot's database, so there is exactly one writer
+  replicas: 1
+  serviceName: {{ .Release.Name }}
+  selector:
+    matchLabels:
+      {{- include "selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "labels" . | nindent 8 }}
+      annotations:
+        {{- with .Values.config }}
+        checksum/config: {{ sha256sum . }}
+        {{- end }}
+    spec:
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      containers:
+        - name: knot
+          image: {{ include "image" . }}
+          ports:
+            - name: http
+              containerPort: 5555
+            - name: ssh
+              containerPort: 2222
+          env:
+            - name: KNOT_HOSTNAME
+              value: {{ include "hostname" . | quote }}
+            - name: KNOT_ADMINS
+              value: {{ join "," .Values.admins | quote }}
+            - name: KNOT_PLC_DIRECTORY
+              value: {{ .Values.plcDirectory | quote }}
+            - name: KNOT_APPVIEW_ENDPOINT
+              value: {{ .Values.appviewEndpoint | quote }}
+            - name: KNOT_ADMISSION
+              value: {{ .Values.admission | quote }}
+            - name: KNOT_GIT_OBJECT_FORMAT
+              value: {{ .Values.objectFormat | quote }}
+            - name: KNOT_LISTEN_ADDR
+              value: "[::]:5555"
+            - name: KNOT_SSH_LISTEN_ADDR
+              value: "[::]:2222"
+            - name: KNOT_SCAN_PATH
+              value: /data/repos
+            - name: KNOT_SSH_HOST_KEY_FILE
+              value: /data/state/ssh/host_key
+            - name: KNOT_SEALED_KEY_FILE
+              value: /data/state/secrets/sealed.bin
+            - name: KNOT_MASTER_KEY_ENV
+              value: KNOT_MASTER_KEY
+            - name: KNOT_MASTER_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ include "masterKey.secretName" . }}
+                  key: {{ .Values.masterKey.key }}
+            {{- with .Values.trustedProxyHeader }}
+            - name: KNOT_XRPC_TRUSTED_PROXY_HEADER
+              value: {{ . | quote }}
+            {{- end }}
+            {{- with .Values.trustedProxies }}
+            - name: KNOT_XRPC_TRUSTED_PROXIES
+              value: {{ join "," . | quote }}
+            {{- end }}
+            {{- if .Values.lfs.enabled }}
+            - name: KNOT_LFS_STORE_PATH
+              value: /data/lfs
+            {{- with .Values.lfs.freeSpaceFloorBytes }}
+            - name: KNOT_LFS_FREE_SPACE_FLOOR_BYTES
+              value: {{ . | int64 | toString | quote }}
+            {{- end }}
+            {{- end }}
+          {{- with .Values.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            - name: repos
+              mountPath: /data/repos
+            - name: state
+              mountPath: /data/state
+            {{- if .Values.lfs.enabled }}
+            - name: lfs
+              mountPath: /data/lfs
+            {{- end }}
+            {{- if .Values.config }}
+            - name: config
+              mountPath: /etc/knot
+              readOnly: true
+            {{- end }}
+            - name: tmp
+              mountPath: /tmp
+          {{- with .Values.extraVolumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.startupProbe }}
+          startupProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.livenessProbe }}
+          livenessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.readinessProbe }}
+          readinessProbe:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        {{- if not .Values.persistence.repos.enabled }}
+        - name: repos
+          emptyDir: {}
+        {{- end }}
+        {{- if not .Values.persistence.state.enabled }}
+        - name: state
+          emptyDir: {}
+        {{- end }}
+        {{- if .Values.config }}
+        - name: config
+          configMap:
+            name: {{ .Release.Name }}
+        {{- end }}
+        {{- with .Values.extraVolumes }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+  {{- $claims := dict }}
+  {{- if .Values.persistence.repos.enabled }}
+  {{- $_ := set $claims "repos" .Values.persistence.repos }}
+  {{- end }}
+  {{- if .Values.persistence.state.enabled }}
+  {{- $_ := set $claims "state" .Values.persistence.state }}
+  {{- end }}
+  {{- if .Values.lfs.enabled }}
+  {{- $_ := set $claims "lfs" .Values.lfs.persistence }}
+  {{- end }}
+  {{- with $claims }}
+  volumeClaimTemplates:
+    {{- range $name, $claim := . }}
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: {{ $name }}
+      spec:
+        {{- with $claim.storageClassName }}
+        storageClassName: {{ . }}
+        {{- end }}
+        accessModes:
+        {{- range $claim.accessModes }}
+          - {{ . }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ $claim.size }}
+    {{- end }}
+  {{- end }}

@@ -1,0 +1,18 @@
+apiVersion: v2
+name: knot
+description: Helm chart for installing a Tangled knot, the git server of the Tangled code collaboration platform
+type: application
+version: 0.1.0
+# renovate: image=ghcr.io/unmango/knot
+appVersion: 2.0.0-unstable-20260918
+sources:
+  - https://tangled.org/tangled.org/core
+  - https://github.com/unmango/containers/tree/main/images/knot
+kubeVersion: '>= 1.26'
+maintainers:
+  - name: UnstoppableMango
+    url: https://github.com/UnstoppableMango
+dependencies:
+  - name: common
+    repository: oci://registry-1.docker.io/bitnamicharts
+    version: 2.41.0

@@ -24,6 +24,7 @@
     "charts/gha-runner-scale-set": { "release-type": "helm", "component": "gha-runner-scale-set" },
     "charts/gluetun": { "release-type": "helm", "component": "gluetun" },
     "charts/hercules-ci-agent": { "release-type": "helm", "component": "hercules-ci-agent" },
+    "charts/knot": { "release-type": "helm", "component": "knot" },
     "charts/mage-server": { "release-type": "helm", "component": "mage-server" },
     "charts/qbittorrent": { "release-type": "helm", "component": "qbittorrent" },
     "charts/unifi": { "release-type": "helm", "component": "unifi" }

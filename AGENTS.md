@@ -5,7 +5,7 @@ This file provides guidance to coding agents when working with code in this repo
 ## What this is
 
 A Helm chart repository published to GitHub Pages (`gh-pages` branch, `index.yaml`) by `chart-releaser`.
-Ten charts live under `charts/`: `actions-runner`, `deemix`, `deluge`, `filebrowser`, `gha-runner-scale-set`, `gluetun`, `hercules-ci-agent`, `mage-server`, `qbittorrent`, and `unifi`.
+Eleven charts live under `charts/`: `actions-runner`, `deemix`, `deluge`, `filebrowser`, `gha-runner-scale-set`, `gluetun`, `hercules-ci-agent`, `knot`, `mage-server`, `qbittorrent`, and `unifi`.
 
 ## Tooling
 
@@ -15,7 +15,7 @@ Do not install them separately.
 Because of the zsh/Prezto autoload issue, prefix make with `command`:
 
 ```sh
-command make lint         # helm lint + ct lint, all ten charts
+command make lint         # helm lint + ct lint, all eleven charts
 command make lint-deemix
 command make test         # kind cluster + Gateway API CRDs, then ct install
 command make kind         # just create the .kube/config kind cluster
@@ -57,14 +57,14 @@ Both run in `.github/workflows/release.yml` on every push to `main`: `chart-rele
 release-please does not create tags or GitHub releases (`skip-github-release`); chart-releaser creates them as `<chart>-<version>`, and release-please reads those tags to find the last release, which is why it runs second.
 The `release` job also pushes every package in `.cr-release-packages/` to `oci://ghcr.io/unmango/charts`, which is why it needs `packages: write`.
 Each chart becomes the repository `ghcr.io/unmango/charts/<chart>`, tagged with its chart `version`.
-chart-releaser packages all ten charts on every run, so the push step skips a chart whose `version` tag is already in that repository, mirroring `skip-existing` in `.cr.yaml`.
+chart-releaser packages all eleven charts on every run, so the push step skips a chart whose `version` tag is already in that repository, mirroring `skip-existing` in `.cr.yaml`.
 `make push` does the same by hand against `REGISTRY` (default `ghcr.io/unmango/charts`) after a `helm registry login`, without the skip check.
 `appVersion` tracks the upstream image and is bumped by Renovate via the `# renovate: image=...` comments.
 Renovate updates under `charts/` commit as `fix(deps): ...` so they trigger a patch release.
 
 ## Chart conventions
 
-- `deemix`, `deluge`, `filebrowser`, `hercules-ci-agent`, `mage-server`, `qbittorrent`, and `unifi` depend on `common` from `oci://registry-1.docker.io/bitnamicharts` for `common.images.image`, and wrap it in local `image` / `init.image` / `auth.image` / `mongodb.image` helpers so templates never call it directly.
+- `deemix`, `deluge`, `filebrowser`, `hercules-ci-agent`, `knot`, `mage-server`, `qbittorrent`, and `unifi` depend on `common` from `oci://registry-1.docker.io/bitnamicharts` for `common.images.image`, and wrap it in local `image` / `init.image` / `auth.image` / `mongodb.image` helpers so templates never call it directly.
   Renovate bumps the pin; a signature change upstream lands in those wrappers and nowhere else.
   Each also defines its `labels` and `selectorLabels`, which are still duplicated.
   `actions-runner` takes neither: template names are global to a release, so a library defining unprefixed names would silently override the consumer's.
@@ -97,6 +97,11 @@ Renovate updates under `charts/` commit as `fix(deps): ...` so they trigger a pa
 - `deemix` renders `Deployment` or `StatefulSet` from `.Values.kind`; PVCs only exist in the `StatefulSet` path via `volumeClaimTemplates`.
 - `unifi` runs two StatefulSets, the controller and an optional MongoDB, told apart by `app.kubernetes.io/component` in their selectors.
   Its Secret generates missing passwords and reuses them through `lookup`, so `helm template` output differs on every run while a real upgrade keeps them stable.
+- `knot` configures the server through `KNOT_*` environment variables rather than a rendered `config.toml`.
+  Helm's `toToml` writes every integer from values as a float (`3600.0`), which the knot's typed config rejects.
+  Its `config` value is a raw TOML string for that reason, and the environment overrides it.
+  `podSecurityContext` sets `fsGroupChangePolicy: OnRootMismatch` because a recursive fsGroup pass adds group read to the SSH host key the knot wrote, and the knot refuses a group-readable host key on its next start.
+  The master key Secret carries `helm.sh/resource-policy: keep`, and is generated and reused through `lookup` like `unifi`'s passwords.
 - `mage-server` speaks raw TCP, so it has no Ingress or HTTPRoute; its `server.*` values become `XMAGE_*` environment variables consumed by the image entrypoint.
 - `filebrowser` ships `configmap/*` files (`settings.json`, `setup.sh`) rendered through `tpl` into a ConfigMap, and runs `setup.sh` in an init container to chown volumes and seed the filebrowser DB.
   Edits to `configmap/setup.sh` change runtime behavior, not just packaging.
