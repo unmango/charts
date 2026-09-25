@@ -22,11 +22,12 @@ FILEBROWSER_VERSION := $(shell awk '/^version:/{print $$2}' charts/filebrowser/C
 GHA_RUNNER_SCALE_SET_VERSION := $(shell awk '/^version:/{print $$2}' charts/gha-runner-scale-set/Chart.yaml)
 GLUETUN_VERSION := $(shell awk '/^version:/{print $$2}' charts/gluetun/Chart.yaml)
 HERCULES_CI_AGENT_VERSION := $(shell awk '/^version:/{print $$2}' charts/hercules-ci-agent/Chart.yaml)
+KNOT_VERSION := $(shell awk '/^version:/{print $$2}' charts/knot/Chart.yaml)
 MAGE_SERVER_VERSION := $(shell awk '/^version:/{print $$2}' charts/mage-server/Chart.yaml)
 QBITTORRENT_VERSION := $(shell awk '/^version:/{print $$2}' charts/qbittorrent/Chart.yaml)
 UNIFI_VERSION := $(shell awk '/^version:/{print $$2}' charts/unifi/Chart.yaml)
 
-lint: lint-actions-runner lint-deemix lint-deluge lint-filebrowser lint-gha-runner-scale-set lint-gluetun lint-hercules-ci-agent lint-mage-server lint-qbittorrent lint-unifi
+lint: lint-actions-runner lint-deemix lint-deluge lint-filebrowser lint-gha-runner-scale-set lint-gluetun lint-hercules-ci-agent lint-knot lint-mage-server lint-qbittorrent lint-unifi
 lint-%: charts/%/Chart.yaml charts/%/Chart.lock .ct.yaml
 	helm lint $(dir $<)
 	ct lint --config .ct.yaml $(dir $<)
@@ -94,6 +95,7 @@ package: .cr-release-packages/actions-runner-$(ACTIONS_RUNNER_VERSION).tgz \
 	.cr-release-packages/gha-runner-scale-set-$(GHA_RUNNER_SCALE_SET_VERSION).tgz \
 	.cr-release-packages/gluetun-$(GLUETUN_VERSION).tgz \
 	.cr-release-packages/hercules-ci-agent-$(HERCULES_CI_AGENT_VERSION).tgz \
+	.cr-release-packages/knot-$(KNOT_VERSION).tgz \
 	.cr-release-packages/mage-server-$(MAGE_SERVER_VERSION).tgz \
 	.cr-release-packages/qbittorrent-$(QBITTORRENT_VERSION).tgz \
 	.cr-release-packages/unifi-$(UNIFI_VERSION).tgz
@@ -130,6 +132,7 @@ index.yaml:
 .cr-release-packages/gha-runner-scale-set-$(GHA_RUNNER_SCALE_SET_VERSION).tgz: CHART := gha-runner-scale-set
 .cr-release-packages/gluetun-$(GLUETUN_VERSION).tgz: CHART := gluetun
 .cr-release-packages/hercules-ci-agent-$(HERCULES_CI_AGENT_VERSION).tgz: CHART := hercules-ci-agent
+.cr-release-packages/knot-$(KNOT_VERSION).tgz: CHART := knot
 .cr-release-packages/mage-server-$(MAGE_SERVER_VERSION).tgz: CHART := mage-server
 .cr-release-packages/qbittorrent-$(QBITTORRENT_VERSION).tgz: CHART := qbittorrent
 .cr-release-packages/unifi-$(UNIFI_VERSION).tgz: CHART := unifi

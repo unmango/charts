@@ -1,0 +1,45 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels" . | nindent 4 }}
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  selector:
+    {{- include "selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-ssh
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "labels" . | nindent 4 }}
+  {{- with .Values.ssh.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.ssh.service.type }}
+  {{- if and (eq .Values.ssh.service.type "LoadBalancer") .Values.ssh.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.ssh.service.loadBalancerIP }}
+  {{- end }}
+  selector:
+    {{- include "selectorLabels" . | nindent 4 }}
+  ports:
+    - name: ssh
+      port: {{ .Values.ssh.service.port }}
+      targetPort: ssh
+      {{- if and (eq .Values.ssh.service.type "NodePort") .Values.ssh.service.nodePort }}
+      nodePort: {{ .Values.ssh.service.nodePort }}
+      {{- end }}

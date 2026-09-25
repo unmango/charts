@@ -19,6 +19,11 @@
       "matchPackageNames": ["mongo", "library/mongo", "docker.io/library/mongo"],
       "description": "The UniFi Network Application supports MongoDB up to 8.0.",
       "allowedVersions": "<8.1"
+    },
+    {
+      "matchPackageNames": ["ghcr.io/unmango/knot"],
+      "description": "Knot 2 has no releases, so unmango/containers tags it <crate version>-unstable-<source date>.",
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-unstable-(?<build>\\d{8})$"
     }
   ]
 }

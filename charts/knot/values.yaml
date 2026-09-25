@@ -1,0 +1,171 @@
+global: {}
+
+image:
+  registry: ghcr.io
+  repository: unmango/knot
+  tag: ''
+  digest: ''
+
+# Public hostname. It is also the knot's identity, did:web:<hostname>, so it
+# must match the name registered on the appview and cannot change later.
+hostname: ''
+
+# ATProto DIDs allowed to administer the knot. The first is the owner that
+# sh.tangled.owner returns, which the appview checks when the knot registers.
+admins: []
+
+# PLC directory used to resolve did:plc identities
+plcDirectory: https://plc.directory
+
+# Only used to word messages printed during git operations
+appviewEndpoint: https://tangled.org
+
+# closed: an admin adds each member. open: anyone not blocklisted may create
+# repositories.
+admission: closed
+
+# sha256 or sha1, applied when a repository is created. A sha256 repository
+# cannot exchange objects with a sha1 one, so pick sha1 before anyone creates
+# a repository if users will mirror in from elsewhere.
+objectFormat: sha256
+
+# Header carrying the client address from a reverse proxy, e.g.
+# x-forwarded-for. Without it the knot rate limits every request as coming
+# from the proxy. Only set it behind a proxy you control.
+trustedProxyHeader: ''
+# Addresses or CIDRs the header is honoured from. Empty honours it from every
+# peer, so fill it in whenever anything but the proxy can reach the Service.
+trustedProxies: []
+
+# The master key unseals the per-repository signing keys in the sealed key
+# store. Without it the knot can no longer prove ownership of its repository
+# DIDs, so back it up somewhere other than the cluster.
+masterKey:
+  # Written to a chart-managed Secret that is kept on uninstall. Generated
+  # when empty, and reused across upgrades. Ignored when existingSecret is set.
+  # Generation reads the Secret through lookup, which returns nothing under
+  # helm template and GitOps tools that render with it, so those need value
+  # or existingSecret, or every render produces a new key.
+  value: ''
+  # Secret holding the base64 encoded key, at least 32 bytes, under key
+  existingSecret: ''
+  key: master-key
+
+# Raw config.toml mounted at /etc/knot/config.toml, for settings environment
+# variables cannot reach such as [messages]. Every value this chart sets is an
+# environment variable, and those override the file.
+config: ''
+
+persistence:
+  # Git repositories, which include the knot's ACL data: the knot's entire state
+  repos:
+    enabled: true
+    storageClassName: ''
+    size: 10Gi
+    accessModes: [ReadWriteOnce]
+  # The SSH host key and the sealed key store. Losing the host key changes the
+  # knot's SSH fingerprint, and the sealed store is useless without the master
+  # key and vice versa.
+  state:
+    enabled: true
+    storageClassName: ''
+    size: 64Mi
+    accessModes: [ReadWriteOnce]
+
+# Git LFS over both transports, stored on its own volume.
+# volumeClaimTemplates is immutable, so enabling LFS on an existing release, or
+# changing any persistence size or storageClassName, fails the upgrade. Run
+# `kubectl delete statefulset <release> --cascade=orphan` first, then upgrade.
+lfs:
+  enabled: false
+  # Free space below which the knot refuses uploads. Empty keeps the knot's
+  # default of 1GiB.
+  freeSpaceFloorBytes: ''
+  persistence:
+    storageClassName: ''
+    size: 50Gi
+    accessModes: [ReadWriteOnce]
+
+# Serves XRPC, git over HTTP, and the /events websocket
+service:
+  type: ClusterIP
+  annotations: {}
+  port: 5555
+
+# The appview builds clone URLs as git@<hostname>:..., with no port, so users
+# expect SSH on port 22 of the hostname. That usually means a LoadBalancer.
+ssh:
+  service:
+    type: ClusterIP
+    annotations: {}
+    loadBalancerIP: ''
+    port: 22
+    # Only used when type is NodePort
+    nodePort: ''
+
+ingress:
+  enabled: false
+  ingressClassName: ''
+  annotations: {}
+  # Defaults to hostname
+  host: ''
+  tls:
+    enabled: false
+    secretName: ''
+
+httpRoute:
+  # Requires at least one parentRefs entry
+  enabled: false
+  annotations: {}
+  parentRefs: []
+  # Defaults to [hostname]
+  hostnames: []
+
+resources: {}
+
+# The knot rebuilds its repository index before it accepts connections
+startupProbe:
+  httpGet:
+    path: /xrpc/_health
+    port: http
+  periodSeconds: 5
+  failureThreshold: 120
+livenessProbe:
+  httpGet:
+    path: /xrpc/_health
+    port: http
+  periodSeconds: 30
+  timeoutSeconds: 5
+readinessProbe:
+  httpGet:
+    path: /xrpc/_health
+    port: http
+  periodSeconds: 10
+  timeoutSeconds: 5
+
+# OnRootMismatch keeps the kubelet from adding group read to files the knot
+# wrote on an earlier start. The knot refuses an SSH host key that is group or
+# other readable.
+podSecurityContext:
+  runAsUser: 1000
+  runAsGroup: 1000
+  runAsNonRoot: true
+  fsGroup: 1000
+  fsGroupChangePolicy: OnRootMismatch
+  seccompProfile:
+    type: RuntimeDefault
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: [ALL]
+
+# In-flight clones and pushes get up to 40s to drain after SIGTERM
+terminationGracePeriodSeconds: 45
+
+extraEnv: []
+extraVolumes: []
+extraVolumeMounts: []
+nodeSelector: {}
+tolerations: []
+affinity: {}

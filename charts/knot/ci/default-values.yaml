@@ -1,0 +1,6 @@
+hostname: knot.example.com
+admins:
+  - did:plc:aaaaaaaaaaaaaaaaaaaaaaaa
+persistence:
+  repos:
+    size: 1Gi
