@@ -28,6 +28,7 @@
     inputs@{ flake-parts, ... }:
     flake-parts.lib.mkFlake { inherit inputs; } {
       systems = import inputs.systems;
+
       imports = with inputs; [
         systems.flakeModule
         treefmt-nix.flakeModule
@@ -62,18 +63,16 @@
           treefmt = {
             programs = {
               actionlint.enable = true;
+              deadnix.enable = true;
               gofmt.enable = true;
               mdformat.enable = true;
               nixfmt.enable = true;
+              statix.enable = true;
+              zizmor.enable = true;
             };
 
             settings.global.excludes = [
-              # release-please owns every CHANGELOG.md and rewrites it in its own
-              # style, so formatting them only produces drift on the next release.
               "charts/*/CHANGELOG.md"
-
-              # Agent tooling (skills, agents, commands) is owned by the assistant
-              # that generates it, so this repo's formatters leave it alone.
               ".claude/**"
               ".codex/**"
               ".cursor/**"

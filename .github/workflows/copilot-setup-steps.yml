@@ -25,6 +25,8 @@ jobs:
         extra-experimental-features = nix-command flakes pipe-operators
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       # cachix-action installs cachix into ~/.nix-profile/bin and then looks it
       # up on PATH, which install-nix-action used to arrange.
