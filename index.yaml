@@ -589,6 +589,29 @@ entries:
     urls:
     - https://github.com/unmango/charts/releases/download/hercules-ci-agent-0.1.0/hercules-ci-agent-0.1.0.tgz
     version: 0.1.0
+  knot:
+  - apiVersion: v2
+    appVersion: 2.0.0-unstable-20260918
+    created: "2026-09-25T02:34:15.190688428Z"
+    dependencies:
+    - name: common
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 2.41.0
+    description: Helm chart for installing a Tangled knot, the git server of the Tangled
+      code collaboration platform
+    digest: 1f19ea1c3dd616d2db71e98fe25b635eb489f8c492f80457683c4ef7acffa688
+    kubeVersion: '>= 1.26'
+    maintainers:
+    - name: UnstoppableMango
+      url: https://github.com/UnstoppableMango
+    name: knot
+    sources:
+    - https://tangled.org/tangled.org/core
+    - https://github.com/unmango/containers/tree/main/images/knot
+    type: application
+    urls:
+    - https://github.com/unmango/charts/releases/download/knot-0.1.0/knot-0.1.0.tgz
+    version: 0.1.0
   mage-server:
   - apiVersion: v2
     appVersion: v1.4.58V1r1
@@ -711,4 +734,4 @@ entries:
     urls:
     - https://github.com/unmango/charts/releases/download/unifi-0.1.0/unifi-0.1.0.tgz
     version: 0.1.0
-generated: "2026-09-23T00:51:05.234198556Z"
+generated: "2026-09-25T02:34:15.190722999Z"
