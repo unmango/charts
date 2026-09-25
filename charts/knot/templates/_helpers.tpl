@@ -22,7 +22,8 @@ Name of the Secret holding the master key.
 {{/*
 The master key from values, else the one already in the chart-managed Secret,
 else 32 new random bytes. Reusing the stored value keeps an upgrade from
-replacing the key the sealed store was written with.
+replacing the key the sealed store was written with. An upgrade that cannot
+read the Secret fails rather than generating a new key.
 */}}
 {{- define "masterKey.value" -}}
 {{- if .Values.masterKey.value -}}
@@ -31,6 +32,8 @@ replacing the key the sealed store was written with.
     {{- $secret := lookup "v1" "Secret" .Release.Namespace (include "masterKey.secretName" .) -}}
     {{- if and $secret (hasKey $secret.data .Values.masterKey.key) -}}
         {{- index $secret.data .Values.masterKey.key | b64dec -}}
+    {{- else if .Release.IsUpgrade -}}
+        {{- fail "masterKey: the existing Secret could not be read; set masterKey.value or masterKey.existingSecret instead of generating a new key" -}}
     {{- else -}}
         {{- randBytes 32 -}}
     {{- end -}}

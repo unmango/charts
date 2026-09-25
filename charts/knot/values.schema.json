@@ -324,7 +324,27 @@
 					}
 				}
 			},
-			"additionalProperties": false
+			"additionalProperties": false,
+			"if": {
+				"properties": {
+					"enabled": {
+						"const": true
+					}
+				},
+				"required": [
+					"enabled"
+				]
+			},
+			"then": {
+				"properties": {
+					"parentRefs": {
+						"minItems": 1
+					}
+				},
+				"required": [
+					"parentRefs"
+				]
+			}
 		},
 		"resources": {
 			"type": "object"

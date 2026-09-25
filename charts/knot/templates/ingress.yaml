@@ -16,7 +16,7 @@ spec:
   ingressClassName: {{ . }}
   {{- end }}
   rules:
-    - host: {{ $host }}
+    - host: {{ $host | quote }}
       http:
         paths:
           - path: /
@@ -29,7 +29,7 @@ spec:
   {{- if .Values.ingress.tls.enabled }}
   tls:
     - hosts:
-        - {{ $host }}
+        - {{ $host | quote }}
       secretName: {{ .Values.ingress.tls.secretName | default (printf "%s-tls" .Release.Name) }}
   {{- end }}
 {{- end }}
