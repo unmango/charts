@@ -63,7 +63,7 @@ mongodb:
     registry: docker.io
     repository: library/mongo
     # 8.0 is the newest MongoDB the UniFi Network Application supports
-    tag: 8.0.32
+    tag: 8.0.34
     digest: ''
   rootUsername: root
   # Generated when empty, like database.password
