@@ -6,6 +6,7 @@
 [![Helm repo](https://img.shields.io/badge/helm-repo-0F1689?logo=helm&logoColor=white)](https://unmango.github.io/charts)
 [![Built with Nix](https://img.shields.io/static/v1?label=Built%20with&message=Nix&color=5277C3&logo=nixos&logoColor=white&style=flat-square)](https://builtwithnix.org)
 [![Last commit](https://img.shields.io/github/last-commit/unmango/charts)](https://github.com/unmango/charts/commits/main)
+[![Hercules CI](https://hercules-ci.com/api/v1/site/github/account/unmango/project/charts/badge)](https://hercules-ci.com/github/unmango/charts)
 
 Random Helm charts you may or may not find useful.
 Use at your own risk.
