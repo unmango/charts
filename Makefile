@@ -10,7 +10,7 @@ export KUBECONFIG := ${CURDIR}/.kube/config
 NIX_FLAGS ?= --extra-experimental-features pipe-operators
 
 # renovate: datasource=github-releases depName=kubernetes-sigs/gateway-api
-GATEWAY_API_VERSION := 1.6.2
+GATEWAY_API_VERSION := 1.6.3
 
 # OCI destination for `make push`. Charts land at $(REGISTRY)/<chart>:<version>.
 REGISTRY ?= ghcr.io/unmango/charts
