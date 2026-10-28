@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/unmango/charts/compare/filebrowser-0.3.1...filebrowser-0.3.2) (2026-10-28)
+
+
+### Bug Fixes
+
+* **deps:** update helm release oauth2-proxy to v10.7.1 ([#125](https://github.com/unmango/charts/issues/125)) ([f7b62cf](https://github.com/unmango/charts/commit/f7b62cf56fd40b225da4a1d74eca4f041deccac0))
+
 ## [0.3.1](https://github.com/unmango/charts/compare/filebrowser-0.3.0...filebrowser-0.3.1) (2026-09-08)
 
 
