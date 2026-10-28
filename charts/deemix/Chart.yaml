@@ -18,5 +18,5 @@ dependencies:
     version: 2.41.0
   - name: oauth2-proxy
     repository: https://oauth2-proxy.github.io/manifests
-    version: 10.7.0
+    version: 10.7.1
     condition: oauth2-proxy.enabled
