@@ -422,7 +422,7 @@ template:
         ## layout inside whatever is mounted there. Upstream's
         ## ghcr.io/actions/actions-runner works too, with nix.enabled=false.
         # renovate: datasource=docker depName=ghcr.io/unmango/actions-runner
-        image: ghcr.io/unmango/actions-runner:2.337.0
+        image: ghcr.io/unmango/actions-runner:2.338.1
         command: ["/home/runner/run.sh"]
 ## Optional controller service account that needs to have required Role and RoleBinding
 ## to operate this gha-runner-scale-set installation.
