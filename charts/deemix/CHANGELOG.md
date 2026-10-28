@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.2](https://github.com/unmango/charts/compare/deemix-0.4.1...deemix-0.4.2) (2026-10-28)
+
+
+### Bug Fixes
+
+* **deps:** update ghcr.io/bambanah/deemix docker tag to v4.8.0 ([#128](https://github.com/unmango/charts/issues/128)) ([a51ea58](https://github.com/unmango/charts/commit/a51ea5826e7491f439460f4955ab3518f4ab2cf0))
+* **deps:** update helm release oauth2-proxy to v10.7.1 ([#125](https://github.com/unmango/charts/issues/125)) ([f7b62cf](https://github.com/unmango/charts/commit/f7b62cf56fd40b225da4a1d74eca4f041deccac0))
+
 ## [0.4.1](https://github.com/unmango/charts/compare/deemix-0.4.0...deemix-0.4.1) (2026-09-08)
 
 

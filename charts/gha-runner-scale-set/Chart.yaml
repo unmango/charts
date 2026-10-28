@@ -2,7 +2,7 @@ apiVersion: v2
 name: gha-runner-scale-set
 description: Helm chart for deploying an AutoScalingRunnerSet that builds with Nix
 type: application
-version: 0.1.1
+version: 0.1.2
 # renovate: image=ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set
 appVersion: '0.15.1'
 sources:
