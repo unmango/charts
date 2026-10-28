@@ -4,7 +4,7 @@ description: Helm chart for deploying an AutoScalingRunnerSet that builds with N
 type: application
 version: 0.1.1
 # renovate: image=ghcr.io/actions/actions-runner-controller-charts/gha-runner-scale-set
-appVersion: '0.14.2'
+appVersion: '0.15.1'
 sources:
   - https://github.com/actions/actions-runner-controller
   - https://github.com/unmango/charts/tree/main/charts/gha-runner-scale-set
