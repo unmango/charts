@@ -2,15 +2,15 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "customManagers:helmChartYamlAppVersions",
-    "github>UnstoppableMango/renovate-config"
+    "github>UnstoppableMango/renovate-config",
+    "github>UnstoppableMango/renovate-config:release-please",
+    "github>UnstoppableMango/renovate-config:nix-comments"
   ],
-  "nix": {
-    "enabled": true
-  },
-  "semanticCommits": "enabled",
   "packageRules": [
     {
-      "matchFileNames": ["charts/**"],
+      "matchFileNames": [
+        "charts/**"
+      ],
       "semanticCommitType": "fix",
       "semanticCommitScope": "deps"
     },
