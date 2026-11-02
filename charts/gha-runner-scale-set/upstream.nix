@@ -8,7 +8,7 @@
   owner = "actions";
   repo = "actions-runner-controller";
   # renovate: datasource=github-releases depName=actions/actions-runner-controller extractVersion=^gha-runner-scale-set-(?<version>.*)$
-  version = "0.14.2";
+  version = "0.15.1";
   hash = "sha256-KAbZWKjJ9vJDeKy1IXU80aZa7+IecVpfo5ZqFGfamgc=";
   # Path to the chart inside the repository.
   chartPath = "charts/gha-runner-scale-set";
