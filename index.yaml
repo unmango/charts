@@ -37,6 +37,31 @@ entries:
     version: 0.1.0
   deemix:
   - apiVersion: v2
+    appVersion: v4.8.0
+    created: "2026-11-02T06:52:43.956763486Z"
+    dependencies:
+    - name: common
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 2.41.0
+    - condition: oauth2-proxy.enabled
+      name: oauth2-proxy
+      repository: https://oauth2-proxy.github.io/manifests
+      version: 10.7.1
+    description: Helm chart for installing Deemix
+    digest: 223bee19ee7f979c7f622151c9c3ad454d5b5c402cb1d82ceb722c8ffdd2a014
+    kubeVersion: '>= 1.25'
+    maintainers:
+    - name: UnstoppableMango
+      url: https://github.com/UnstoppableMango
+    name: deemix
+    sources:
+    - https://github.com/bambanah/deemix
+    - https://github.com/UnstoppableMango/the-cluster/tree/main/charts/deemix
+    type: application
+    urls:
+    - https://github.com/unmango/charts/releases/download/deemix-0.4.2/deemix-0.4.2.tgz
+    version: 0.4.2
+  - apiVersion: v2
     appVersion: v4.7.0
     created: "2026-09-08T17:42:26.173002689Z"
     dependencies:
@@ -243,6 +268,32 @@ entries:
   filebrowser:
   - apiVersion: v2
     appVersion: v2.63.23
+    created: "2026-11-02T06:52:44.120901027Z"
+    dependencies:
+    - name: common
+      repository: oci://registry-1.docker.io/bitnamicharts
+      version: 2.41.0
+    - condition: oauth2-proxy.enabled
+      name: oauth2-proxy
+      repository: https://oauth2-proxy.github.io/manifests
+      version: 10.7.1
+    description: Helm chart for installing filebrowser
+    digest: 9f17cc99efc2548f0f1744921cdefd5fad7a6329218716ed63283db2b9243a61
+    icon: https://raw.githubusercontent.com/filebrowser/logo/master/icon.png
+    kubeVersion: '>= 1.25'
+    maintainers:
+    - name: UnstoppableMango
+      url: https://github.com/UnstoppableMango
+    name: filebrowser
+    sources:
+    - https://github.com/filebrowser/filebrowser
+    - https://github.com/UnstoppableMango/the-cluster/tree/main/charts/filebrowser
+    type: application
+    urls:
+    - https://github.com/unmango/charts/releases/download/filebrowser-0.3.2/filebrowser-0.3.2.tgz
+    version: 0.3.2
+  - apiVersion: v2
+    appVersion: v2.63.23
     created: "2026-09-08T17:42:26.452458366Z"
     dependencies:
     - name: common
@@ -429,6 +480,28 @@ entries:
     - https://github.com/unmango/charts/releases/download/filebrowser-0.1.0/filebrowser-0.1.0.tgz
     version: 0.1.0
   gha-runner-scale-set:
+  - apiVersion: v2
+    appVersion: 0.15.1
+    created: "2026-11-02T06:52:44.268640892Z"
+    dependencies:
+    - name: actions-runner
+      repository: file://../actions-runner
+      version: '>= 0.1.0'
+    description: Helm chart for deploying an AutoScalingRunnerSet that builds with
+      Nix
+    digest: 258d573c16bd604ef08d54873ee170fcbdb807da9d0a3bcc66349439e37818f2
+    kubeVersion: '>= 1.25'
+    maintainers:
+    - name: UnstoppableMango
+      url: https://github.com/UnstoppableMango
+    name: gha-runner-scale-set
+    sources:
+    - https://github.com/actions/actions-runner-controller
+    - https://github.com/unmango/charts/tree/main/charts/gha-runner-scale-set
+    type: application
+    urls:
+    - https://github.com/unmango/charts/releases/download/gha-runner-scale-set-0.1.2/gha-runner-scale-set-0.1.2.tgz
+    version: 0.1.2
   - apiVersion: v2
     appVersion: 0.14.2
     created: "2026-09-08T17:42:26.668298809Z"
@@ -754,4 +827,4 @@ entries:
     urls:
     - https://github.com/unmango/charts/releases/download/unifi-0.1.0/unifi-0.1.0.tgz
     version: 0.1.0
-generated: "2026-10-28T16:00:44.078627398Z"
+generated: "2026-11-02T06:52:44.268728014Z"
