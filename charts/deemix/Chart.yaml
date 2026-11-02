@@ -2,7 +2,7 @@ apiVersion: v2
 name: deemix
 description: Helm chart for installing Deemix
 type: application
-version: 0.4.1
+version: 0.4.2
 # renovate: image=ghcr.io/bambanah/deemix
 appVersion: v4.8.0
 sources:
