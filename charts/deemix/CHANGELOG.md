@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.3](https://github.com/unmango/charts/compare/deemix-0.4.2...deemix-0.4.3) (2026-11-21)
+
+
+### Bug Fixes
+
+* **deps:** update helm release oauth2-proxy to v10.7.4 ([#145](https://github.com/unmango/charts/issues/145)) ([0cd4fa0](https://github.com/unmango/charts/commit/0cd4fa0c880e44f240dbffb33791bf96e1e28a08))
+
 ## [0.4.2](https://github.com/unmango/charts/compare/deemix-0.4.1...deemix-0.4.2) (2026-11-02)
 
 

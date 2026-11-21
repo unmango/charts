@@ -1,8 +1,8 @@
 {
   "charts/actions-runner": "0.1.1",
-  "charts/deemix": "0.4.2",
+  "charts/deemix": "0.4.3",
   "charts/deluge": "0.1.0",
-  "charts/filebrowser": "0.3.2",
+  "charts/filebrowser": "0.3.3",
   "charts/gha-runner-scale-set": "0.1.2",
   "charts/gluetun": "0.1.0",
   "charts/hercules-ci-agent": "0.2.3",
