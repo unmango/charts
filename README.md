@@ -38,7 +38,6 @@ The version table below links to the releases each tag corresponds to.
 | [filebrowser](./charts/filebrowser/) | [filebrowser/filebrowser](https://github.com/filebrowser/filebrowser) | [![filebrowser](https://img.shields.io/github/v/release/unmango/charts?filter=filebrowser-*&label=filebrowser)](https://github.com/unmango/charts/releases?q=filebrowser) | [Upstream archived](#filebrowser) |
 | [gha-runner-scale-set](./charts/gha-runner-scale-set/) | [actions/actions-runner-controller](https://github.com/actions/actions-runner-controller) | [![gha-runner-scale-set](https://img.shields.io/github/v/release/unmango/charts?filter=gha-runner-scale-set-*&label=gha-runner-scale-set)](https://github.com/unmango/charts/releases?q=gha-runner-scale-set) | [Patched fork](#gha-runner-scale-set) |
 | [gluetun](./charts/gluetun/) | [qdm12/gluetun](https://github.com/qdm12/gluetun) | [![gluetun](https://img.shields.io/github/v/release/unmango/charts?filter=gluetun-*&label=gluetun)](https://github.com/unmango/charts/releases?q=gluetun) | [Library chart](#gluetun) |
-| [hercules-ci-agent](./charts/hercules-ci-agent/) | [hercules-ci/hercules-ci-agent](https://github.com/hercules-ci/hercules-ci-agent) | [![hercules-ci-agent](https://img.shields.io/github/v/release/unmango/charts?filter=hercules-ci-agent-*&label=hercules-ci-agent)](https://github.com/unmango/charts/releases?q=hercules-ci-agent) | [Active](#hercules-ci-agent) |
 | [knot](./charts/knot/) | [tangled.org/core](https://tangled.org/tangled.org/core) | [![knot](https://img.shields.io/github/v/release/unmango/charts?filter=knot-*&label=knot)](https://github.com/unmango/charts/releases?q=knot) | [Active](#knot) |
 | [mage-server](./charts/mage-server/) | [magefree/mage](https://github.com/magefree/mage) | [![mage-server](https://img.shields.io/github/v/release/unmango/charts?filter=mage-server-*&label=mage-server)](https://github.com/unmango/charts/releases?q=mage-server) | [Active](#xmage) |
 | [qbittorrent](./charts/qbittorrent/) | [linuxserver/docker-qbittorrent](https://github.com/linuxserver/docker-qbittorrent) | [![qbittorrent](https://img.shields.io/github/v/release/unmango/charts?filter=qbittorrent-*&label=qbittorrent)](https://github.com/unmango/charts/releases?q=qbittorrent) | [Active](#deluge-and-qbittorrent) |
@@ -73,16 +72,6 @@ Upstream chart, patched to wire in a Nix store.
 - Set `nix.maxJobs`/`nix.cores` explicitly, nix ignores cgroup CPU limits and defaults to 1 job.
 - `containerMode: kubernetes-novolume` mounts nothing; not for a runner that builds.
 - Keeps upstream's `labels` helper, since the controller keys on `app.kubernetes.io/name`.
-
-### Hercules CI Agent
-
-No upstream image or chart; uses `unmango/containers`.
-
-- Set `clusterJoinToken` or `existingSecret` (`cluster-join-token.key`, `binary-caches.json`, `secrets.json`); rotating `existingSecret` needs a manual pod restart.
-- Chart overrides the image's broken `SSL_CERT_FILE`/`NIX_SSL_CERT_FILE` paths.
-- No `/nix/var/nix`; Nix chroots into the persistent volume, so `persistence.size` defaults to `100Gi` and losing the volume also loses the agent's session key.
-- `effects.enabled: true` runs the pod privileged.
-- Excluded from `ct install`: without a real join token it never reaches Ready.
 
 ### Knot
 

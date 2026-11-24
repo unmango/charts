@@ -5,7 +5,7 @@ This file provides guidance to coding agents when working with code in this repo
 ## What this is
 
 A Helm chart repository published to GitHub Pages (`gh-pages` branch, `index.yaml`) by `chart-releaser`.
-Eleven charts live under `charts/`: `actions-runner`, `deemix`, `deluge`, `filebrowser`, `gha-runner-scale-set`, `gluetun`, `hercules-ci-agent`, `knot`, `mage-server`, `qbittorrent`, and `unifi`.
+Ten charts live under `charts/`: `actions-runner`, `deemix`, `deluge`, `filebrowser`, `gha-runner-scale-set`, `gluetun`, `knot`, `mage-server`, `qbittorrent`, and `unifi`.
 
 ## Tooling
 
@@ -15,7 +15,7 @@ Do not install them separately.
 Because of the zsh/Prezto autoload issue, prefix make with `command`:
 
 ```sh
-command make lint         # helm lint + ct lint, all eleven charts
+command make lint         # helm lint + ct lint, all ten charts
 command make lint-deemix
 command make test         # kind cluster + Gateway API CRDs, then ct install
 command make kind         # just create the .kube/config kind cluster
@@ -26,8 +26,8 @@ command make fmt          # treefmt (nixfmt, mdformat, actionlint, gofmt)
 command make package      # cr package into .cr-release-packages/
 ```
 
-`test` runs `install`, which depends on `gateway-api` and passes `--excluded-charts actions-runner,gha-runner-scale-set,gluetun,hercules-ci-agent`, so it is not a plain `ct install --all`.
-`ci.yml`'s `test` job excludes the same four through its `EXCLUDED_CHARTS` env var, but drops `--all`, so CI installs only the charts a PR changed while `make test` still installs all of them.
+`test` runs `install`, which depends on `gateway-api` and passes `--excluded-charts actions-runner,gha-runner-scale-set,gluetun`, so it is not a plain `ct install --all`.
+`ci.yml`'s `test` job excludes the same three through its `EXCLUDED_CHARTS` env var, but drops `--all`, so CI installs only the charts a PR changed while `make test` still installs all of them.
 
 Every `nix` invocation the Makefile makes goes through its `NIX_FLAGS`, which enables the `pipe-operators` experimental feature that `charts/gha-runner-scale-set/package.nix` needs.
 Run those targets through make rather than calling `nix build` directly.
@@ -57,14 +57,14 @@ Both run in `.github/workflows/release.yml` on every push to `main`: `chart-rele
 release-please does not create tags or GitHub releases (`skip-github-release`); chart-releaser creates them as `<chart>-<version>`, and release-please reads those tags to find the last release, which is why it runs second.
 The `release` job also pushes every package in `.cr-release-packages/` to `oci://ghcr.io/unmango/charts`, which is why it needs `packages: write`.
 Each chart becomes the repository `ghcr.io/unmango/charts/<chart>`, tagged with its chart `version`.
-chart-releaser packages all eleven charts on every run, so the push step skips a chart whose `version` tag is already in that repository, mirroring `skip-existing` in `.cr.yaml`.
+chart-releaser packages all ten charts on every run, so the push step skips a chart whose `version` tag is already in that repository, mirroring `skip-existing` in `.cr.yaml`.
 `make push` does the same by hand against `REGISTRY` (default `ghcr.io/unmango/charts`) after a `helm registry login`, without the skip check.
 `appVersion` tracks the upstream image and is bumped by Renovate via the `# renovate: image=...` comments.
 Renovate updates under `charts/` commit as `fix(deps): ...` so they trigger a patch release.
 
 ## Chart conventions
 
-- `deemix`, `deluge`, `filebrowser`, `hercules-ci-agent`, `knot`, `mage-server`, `qbittorrent`, and `unifi` depend on `common` from `oci://registry-1.docker.io/bitnamicharts` for `common.images.image`, and wrap it in local `image` / `init.image` / `auth.image` / `mongodb.image` helpers so templates never call it directly.
+- `deemix`, `deluge`, `filebrowser`, `knot`, `mage-server`, `qbittorrent`, and `unifi` depend on `common` from `oci://registry-1.docker.io/bitnamicharts` for `common.images.image`, and wrap it in local `image` / `init.image` / `auth.image` / `mongodb.image` helpers so templates never call it directly.
   Renovate bumps the pin; a signature change upstream lands in those wrappers and nowhere else.
   Each also defines its `labels` and `selectorLabels`, which are still duplicated.
   `actions-runner` takes neither: template names are global to a release, so a library defining unprefixed names would silently override the consumer's.
@@ -88,7 +88,7 @@ Renovate updates under `charts/` commit as `fix(deps): ...` so they trigger a pa
 - `deemix` and `filebrowser` declare `oauth2-proxy` as an optional dependency gated on `oauth2-proxy.enabled`.
   `Chart.lock` is gitignored like `charts/*/charts/`: it is a build artifact the `charts/%/Chart.lock` rule regenerates from `Chart.yaml`, and a committed one goes stale whenever a dependency declaration in `Chart.yaml` changes, whether that is a version bump or an added or removed dependency.
   Every chart with dependencies therefore builds a lock on demand, which is what the `lint-%` pattern rule depends on.
-  `lint-actions-runner` stays explicit because it has no dependencies and so produces no lock, and `lint-hercules-ci-agent` because `helm lint` needs `--values charts/hercules-ci-agent/ci/default-values.yaml` to supply the otherwise missing `clusterJoinToken`.
+  `lint-actions-runner` stays explicit because it has no dependencies and so produces no lock.
   Resolve dependencies before linting or templating; `helm dep build` is enough, and CI uses it rather than `helm dep update` so a stale lock cannot pass unnoticed.
 - `deemix` and `filebrowser` render an `HTTPRoute`, so the Gateway API CRDs must exist before `ct install`; that is what `make gateway-api` and the equivalent CI step provide.
   Each has a `ci/httproute-values.yaml` alongside `ci/default-values.yaml`, so `ct` installs them twice.
@@ -121,7 +121,7 @@ CI (`.github/workflows/ci.yml`) discovers charts automatically through `ct`.
 - `.ct.yaml` sets `helm-extra-args: --timeout 10m`, which `ct install` passes to `helm install`, `test`, and `uninstall` in both CI and `make test`; Helm's 5m default is short enough that a slow image pull on the runner fails charts with long startup probes.
 - `ct lint` requires full git history to diff against `main`; workflows use `fetch-depth: 0`.
 - CI runs on the self-hosted `thecluster` runner, not a GitHub-hosted one.
-- The `test` job installs each changed chart except `actions-runner`, `gha-runner-scale-set`, `gluetun` and `hercules-ci-agent`.
+- The `test` job installs each changed chart except `actions-runner`, `gha-runner-scale-set` and `gluetun`.
   A `ct list-changed` step gates kind creation, the Gateway API CRDs and `ct install`, so a PR that touches no installable chart never creates a cluster and the job still reports success.
   `filebrowser` provisions a PVC and relies on the kind cluster's default `standard` StorageClass; leaving `persistence.storageClassName` empty omits the field so the cluster default applies.
 - `.github/workflows/pr-title.yml` fails a PR whose title is not a Conventional Commit.

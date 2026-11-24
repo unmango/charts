@@ -2,7 +2,7 @@ export KUBECONFIG := ${CURDIR}/.kube/config
 
 # lint-% targets are intentionally omitted: .PHONY disables implicit rule
 # search, which would stop them matching the lint-% pattern rule below.
-.PHONY: lint lint-actions-runner lint-gluetun lint-hercules-ci-agent test install changed update check build format fmt kind package push gateway-api chart-gha-runner-scale-set
+.PHONY: lint lint-actions-runner lint-gluetun test install changed update check build format fmt kind package push gateway-api chart-gha-runner-scale-set
 
 # charts/gha-runner-scale-set/package.nix uses `|>`, which is still an
 # experimental Nix feature. CI enables it through install-nix-action; this is
@@ -21,13 +21,12 @@ DELUGE_VERSION := $(shell awk '/^version:/{print $$2}' charts/deluge/Chart.yaml)
 FILEBROWSER_VERSION := $(shell awk '/^version:/{print $$2}' charts/filebrowser/Chart.yaml)
 GHA_RUNNER_SCALE_SET_VERSION := $(shell awk '/^version:/{print $$2}' charts/gha-runner-scale-set/Chart.yaml)
 GLUETUN_VERSION := $(shell awk '/^version:/{print $$2}' charts/gluetun/Chart.yaml)
-HERCULES_CI_AGENT_VERSION := $(shell awk '/^version:/{print $$2}' charts/hercules-ci-agent/Chart.yaml)
 KNOT_VERSION := $(shell awk '/^version:/{print $$2}' charts/knot/Chart.yaml)
 MAGE_SERVER_VERSION := $(shell awk '/^version:/{print $$2}' charts/mage-server/Chart.yaml)
 QBITTORRENT_VERSION := $(shell awk '/^version:/{print $$2}' charts/qbittorrent/Chart.yaml)
 UNIFI_VERSION := $(shell awk '/^version:/{print $$2}' charts/unifi/Chart.yaml)
 
-lint: lint-actions-runner lint-deemix lint-deluge lint-filebrowser lint-gha-runner-scale-set lint-gluetun lint-hercules-ci-agent lint-knot lint-mage-server lint-qbittorrent lint-unifi
+lint: lint-actions-runner lint-deemix lint-deluge lint-filebrowser lint-gha-runner-scale-set lint-gluetun lint-knot lint-mage-server lint-qbittorrent lint-unifi
 lint-%: charts/%/Chart.yaml charts/%/Chart.lock .ct.yaml
 	helm lint $(dir $<)
 	ct lint --config .ct.yaml $(dir $<)
@@ -43,23 +42,16 @@ lint-gluetun: charts/gluetun/Chart.yaml .ct.yaml
 	helm lint charts/gluetun
 	ct lint --config .ct.yaml charts/gluetun
 
-# helm lint warns about the missing clusterJoinToken unless it is pointed at the
-# ci values, which the lint-% pattern rule has no way to pass
-lint-hercules-ci-agent: charts/hercules-ci-agent/Chart.yaml charts/hercules-ci-agent/Chart.lock .ct.yaml
-	helm lint charts/hercules-ci-agent --values charts/hercules-ci-agent/ci/default-values.yaml
-	ct lint --config .ct.yaml charts/hercules-ci-agent
-
 test: install
 
 gateway-api: kind
 	kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v$(GATEWAY_API_VERSION)/standard-install.yaml
 	kubectl wait --for=condition=Established --timeout=60s crd/httproutes.gateway.networking.k8s.io
 
-# hercules-ci-agent can't reach Ready without a real cluster join token,
 # gha-runner-scale-set needs the ARC controller and a real GitHub config, and
 # actions-runner is a library chart with nothing to deploy
 install: .ct.yaml gateway-api
-	ct install --config $< --all --excluded-charts actions-runner,gha-runner-scale-set,gluetun,hercules-ci-agent
+	ct install --config $< --all --excluded-charts actions-runner,gha-runner-scale-set,gluetun
 
 # charts/gha-runner-scale-set's templates and values.yaml are generated from the pinned
 # upstream chart and the patches beside them. Regenerate after touching either;
@@ -94,7 +86,6 @@ package: .cr-release-packages/actions-runner-$(ACTIONS_RUNNER_VERSION).tgz \
 	.cr-release-packages/filebrowser-$(FILEBROWSER_VERSION).tgz \
 	.cr-release-packages/gha-runner-scale-set-$(GHA_RUNNER_SCALE_SET_VERSION).tgz \
 	.cr-release-packages/gluetun-$(GLUETUN_VERSION).tgz \
-	.cr-release-packages/hercules-ci-agent-$(HERCULES_CI_AGENT_VERSION).tgz \
 	.cr-release-packages/knot-$(KNOT_VERSION).tgz \
 	.cr-release-packages/mage-server-$(MAGE_SERVER_VERSION).tgz \
 	.cr-release-packages/qbittorrent-$(QBITTORRENT_VERSION).tgz \
@@ -131,7 +122,6 @@ index.yaml:
 .cr-release-packages/filebrowser-$(FILEBROWSER_VERSION).tgz: CHART := filebrowser
 .cr-release-packages/gha-runner-scale-set-$(GHA_RUNNER_SCALE_SET_VERSION).tgz: CHART := gha-runner-scale-set
 .cr-release-packages/gluetun-$(GLUETUN_VERSION).tgz: CHART := gluetun
-.cr-release-packages/hercules-ci-agent-$(HERCULES_CI_AGENT_VERSION).tgz: CHART := hercules-ci-agent
 .cr-release-packages/knot-$(KNOT_VERSION).tgz: CHART := knot
 .cr-release-packages/mage-server-$(MAGE_SERVER_VERSION).tgz: CHART := mage-server
 .cr-release-packages/qbittorrent-$(QBITTORRENT_VERSION).tgz: CHART := qbittorrent

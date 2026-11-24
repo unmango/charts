@@ -1,3 +1,0 @@
-clusterJoinToken: dummy-token-for-linting
-persistence:
-  enabled: false
